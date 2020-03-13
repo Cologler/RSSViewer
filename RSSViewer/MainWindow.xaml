@@ -5,8 +5,129 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSSViewer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="RSSViewer" 
+        Height="600"
+        Width="1000">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
+        <Grid>
+            <!-- for menu -->
+        </Grid>
+
+        <Grid Margin="4"
+              Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <TextBox x:Name="SearchBox"
+                     Padding="2"
+                     Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <Grid Grid.Row="1"
+                  Margin="0,4,0,0">
+                <Grid x:Name="IncludeRangeArea">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="90" />
+                        <ColumnDefinition Width="90" />
+                        <ColumnDefinition Width="90" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <CheckBox Content="Undecided"
+                              IsChecked="{Binding IncludeView.Undecided, Mode=TwoWay}" />
+
+                    <CheckBox Content="Accepted"
+                              Grid.Column="1"
+                              IsChecked="{Binding IncludeView.Accepted, Mode=TwoWay}" />
+
+                    <CheckBox Content="Injected"
+                              Grid.Column="2"
+                              IsChecked="{Binding IncludeView.Rejected, Mode=TwoWay}" />
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Row="2"
+                  Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <Grid>
+                    <ListView ItemsSource="{Binding Groups}"
+                              SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
+                              SelectedIndex="0"
+                              x:Name="GroupsListView">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        <ListView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Accept"
+                                          x:Name="GroupsAcceptMenuItem" Click="GroupsAcceptMenuItem_Click"/>
+                                <MenuItem Header="Reject"
+                                          x:Name="GroupsRejectMenuItem" Click="GroupsRejectMenuItem_Click" />
+                            </ContextMenu>
+                        </ListView.ContextMenu>
+                    </ListView>
+                </Grid>
+
+                <GridSplitter Grid.Column="1"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Stretch"
+                              Width="4"/>
+
+                <Grid Grid.Column="2"
+                      Margin="0,0,0,0"
+                      DataContext="{Binding SelectedGroup}">
+                    
+                    <ListView ItemsSource="{Binding Items}"
+                              x:Name="ItemsListView">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="✅"
+                                               Visibility="{Binding AcceptedImageVisibility}" />
+
+                                    <TextBlock Text="❎"
+                                               Visibility="{Binding RejectedImageVisibility}" />
+
+                                    <TextBlock Text="{Binding Title}"
+                                               Grid.Column="1" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        
+                        <ListView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Accept"
+                                          x:Name="ItemsAcceptMenuItem" Click="ItemsAcceptMenuItem_Click"/>
+                                <MenuItem Header="Reject"
+                                          x:Name="ItemsRejectMenuItem" Click="ItemsRejectMenuItem_Click" />
+                            </ContextMenu>
+                        </ListView.ContextMenu>
+                    </ListView>
+                </Grid>
+            </Grid>
+
+        </Grid>
+        
     </Grid>
 </Window>

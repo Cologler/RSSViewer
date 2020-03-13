@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Jasily.ViewModel" Version="0.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\RSSViewer.Core\RSSViewer.Core.csproj" />
   </ItemGroup>
 

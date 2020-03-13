@@ -8,7 +8,7 @@ namespace RSSViewer.LocalDb
 
         public string RssId { get; set; }
 
-        public RssStates State { get; set; }
+        public RssState State { get; set; }
 
         public string RawText { get; set; }
 

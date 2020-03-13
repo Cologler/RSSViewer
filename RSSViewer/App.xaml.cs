@@ -1,4 +1,6 @@
-﻿using RSSViewer.Provider.RssFetcher;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RSSViewer.AcceptHandlers;
+using RSSViewer.Provider.RssFetcher;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -14,9 +16,15 @@ namespace RSSViewer
     /// </summary>
     public partial class App : Application
     {
+        public static RSSViewerHost RSSViewerHost { get; private set; }
+
         protected async override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            var sc = RSSViewerHost.CreateServices()
+                .AddTransient<IAcceptHandler, CopyMagnetLinkAcceptHandler>();
+            RSSViewerHost = new RSSViewerHost(sc);
 
             var prov = new RssFetcherSourceProvider();
             await prov.InitializeAsync(new Dictionary<string, object>
@@ -24,9 +32,7 @@ namespace RSSViewer
                 [RssFetcherSourceProvider.VarDatabase.VariableName] = @"C:\Users\skyof\Downloads\rss.sqlite3"
             });;
 
-            var host = new RSSViewerHost();
-            host.SourceProviderManager.AddProvider(prov);
-            await host.SyncAsync();
+            RSSViewerHost.SourceProviderManager.AddProvider(prov);
         }
     }
 }

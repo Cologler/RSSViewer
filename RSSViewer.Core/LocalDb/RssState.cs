@@ -1,8 +1,8 @@
 ﻿namespace RSSViewer.LocalDb
 {
-    public enum RssStates : int
+    public enum RssState : int
     {
-        Injected = -1,
+        Rejected = -1,
         Undecided = 0,
         Accepted = 1
     }
