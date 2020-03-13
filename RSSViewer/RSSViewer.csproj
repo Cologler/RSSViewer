@@ -6,4 +6,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RSSViewer.Core\RSSViewer.Core.csproj" />
+  </ItemGroup>
+
 </Project>

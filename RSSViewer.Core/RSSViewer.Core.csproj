@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>RSSViewer</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RSSViewer.Abstractions\RSSViewer.Abstractions.csproj" />
+    <ProjectReference Include="..\RSSViewer.Provider.RssFetcher\RSSViewer.Provider.RssFetcher.csproj" />
+  </ItemGroup>
+
+</Project>
