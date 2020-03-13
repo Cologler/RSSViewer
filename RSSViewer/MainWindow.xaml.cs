@@ -52,7 +52,7 @@ namespace RSSViewer
 
         private async void GroupsAcceptMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var handler = (IAcceptHandler)((MenuItem)sender).Tag;
+            var handler = (IAcceptHandler)((MenuItem)e.OriginalSource).Tag;
             await this.ViewModel.AcceptAsync(
                 this.GroupsListView.SelectedItems.OfType<RssItemGroupViewModel>().SelectMany(z => z.Items).ToArray(),
                 handler);
@@ -66,7 +66,7 @@ namespace RSSViewer
 
         private async void ItemsAcceptMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var handler = (IAcceptHandler)((MenuItem)sender).Tag;
+            var handler = (IAcceptHandler)((MenuItem)e.OriginalSource).Tag;
             await this.ViewModel.AcceptAsync(
                 this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().ToArray(),
                 handler);
