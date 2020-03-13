@@ -17,6 +17,11 @@ namespace RSSViewer.ViewModels
         private string _searchText = string.Empty;
         private RssItemGroupViewModel _selectedGroup;
 
+        public RssViewViewModel()
+        {
+            this.Analytics = new AnalyticsViewModel(this);
+        }
+
         public string SearchText
         {
             get => _searchText;
@@ -30,6 +35,8 @@ namespace RSSViewer.ViewModels
         }
 
         public IncludeViewModel IncludeView { get; } = new IncludeViewModel();
+
+        public AnalyticsViewModel Analytics { get; }
 
         public ObservableCollection<RssItemGroupViewModel> Groups { get; } = new ObservableCollection<RssItemGroupViewModel>();
 
@@ -46,6 +53,7 @@ namespace RSSViewer.ViewModels
             if (text == this.SearchText)
             {
                 await this._searchScheduler.RunAsync(token => this.SearchCoreAsync(text, token));
+                this.Analytics.RefreshProperties();
             }
         }
 
@@ -83,10 +91,12 @@ namespace RSSViewer.ViewModels
             if (await handler.Accept(rssItems))
             {
                 await App.RSSViewerHost.Modify().AcceptAsync(rssItems);
+
                 foreach (var item in items)
                 {
                     item.RefreshProperties();
                 }
+                this.Analytics.RefreshProperties();
             }
         }
 
@@ -94,10 +104,12 @@ namespace RSSViewer.ViewModels
         {
             var rssItems = items.Select(z => z.RssItem).ToArray();
             await App.RSSViewerHost.Modify().RejectAsync(rssItems);
+
             foreach (var item in items)
             {
                 item.RefreshProperties();
             }
+            this.Analytics.RefreshProperties();
         }
     }
 }

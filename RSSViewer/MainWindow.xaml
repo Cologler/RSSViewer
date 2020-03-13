@@ -128,6 +128,18 @@
             </Grid>
 
         </Grid>
-        
+
+        <Grid Grid.Row="2">
+            <StatusBar>
+                <TextBlock Text="Total:"/>
+                <TextBlock Text="{Binding Analytics.TotalCount}" />
+                <Separator />
+                <TextBlock Text="Accepted:"/>
+                <TextBlock Text="{Binding Analytics.AcceptedInView}" />
+                <Separator />
+                <TextBlock Text="Rejected:"/>
+                <TextBlock Text="{Binding Analytics.RejectedInView}" />
+            </StatusBar>
+        </Grid>
     </Grid>
 </Window>
