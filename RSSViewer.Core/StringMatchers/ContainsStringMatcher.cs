@@ -9,7 +9,9 @@ namespace RSSViewer.StringMatchers
 
         public ContainsStringMatcher(string subString, StringComparison comparison)
         {
-            this._subString = subString ?? throw new ArgumentNullException(nameof(subString));
+            if (String.IsNullOrEmpty(subString))
+                throw new ArgumentException("message", nameof(subString));
+            this._subString = subString;
             this._comparison = comparison;
         }
 

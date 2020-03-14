@@ -99,5 +99,18 @@ namespace RSSViewer
                 }
             }
         }
+
+        private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new SettingsWindow
+            {
+                Owner = this
+            };
+
+            if (win.ShowDialog() == true)
+            {
+
+            }
+        }
     }
 }

@@ -9,7 +9,9 @@ namespace RSSViewer.StringMatchers
 
         public EndsWithStringMatcher(string suffix, StringComparison comparison)
         {
-            this._suffix = suffix ?? throw new ArgumentNullException(nameof(suffix));
+            if (String.IsNullOrEmpty(suffix))
+                throw new ArgumentException("message", nameof(suffix));
+            this._suffix = suffix;
             this._comparison = comparison;
         }
 

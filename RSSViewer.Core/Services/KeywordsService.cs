@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
+using RSSViewer.Configuration;
 using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
 using System;
@@ -14,23 +15,21 @@ namespace RSSViewer.Services
     {
         private readonly object _syncRoot = new object();
         private readonly IServiceProvider _serviceProvider;
-        private readonly ConfigService _config;
         private ImmutableHashSet<string> _excludes;
         private ImmutableList<IKeywordsFinder> _finders;
 
         public KeywordsService(IServiceProvider serviceProvider, ConfigService config)
         {
             this._serviceProvider = serviceProvider;
-            this._config = config;
-            this._config.AppConfChanged += _ => this.Reload();
-            this.Reload();
+            config.OnAppConfChanged += this.Reload;
+            this.Reload(config.App);
         }
 
-        public void Reload()
+        public void Reload(AppConf conf)
         {
             lock (this._syncRoot)
             {
-                var section = this._config.App.Keywords;
+                var section = conf.Keywords;
 
                 var finders = new List<IKeywordsFinder>();
                 finders.AddRange(this._serviceProvider.GetServices<IKeywordsFinder>());

@@ -13,7 +13,7 @@ namespace RSSViewer.Services
 
         private readonly string _appConfPath;
 
-        public event Action<AppConf> AppConfChanged;
+        public event Action<AppConf> OnAppConfChanged;
 
         public ConfigService(AppDirService appDir)
         {
@@ -37,6 +37,7 @@ namespace RSSViewer.Services
         public void Save()
         {
             File.WriteAllText(this._appConfPath, JsonSerializer.Serialize(this.App));
+            this.OnAppConfChanged?.Invoke(this.App);
         }
     }
 }

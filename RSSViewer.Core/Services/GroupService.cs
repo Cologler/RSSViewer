@@ -1,7 +1,9 @@
 ﻿using RSSViewer.Abstractions;
+using RSSViewer.Configuration;
 using RSSViewer.LocalDb;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,14 +13,25 @@ namespace RSSViewer.Services
     public class GroupService
     {
         private readonly object _syncRoot = new object();
-        private readonly List<Regex> _regexes;
+        private ImmutableList<Regex> _regexes;
         public readonly Dictionary<string, string> _groupedMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public GroupService(ConfigService config)
         {
-            this._regexes = config.App.Group.Matches
+            this.Reload(config.App);
+            config.OnAppConfChanged += this.Reload;
+        }
+
+        private void Reload(AppConf config)
+        {
+            var regexes = config.Group.Matches
                 .Select(z => new Regex(z, RegexOptions.IgnoreCase))
-                .ToList();
+                .ToImmutableList();
+            lock (this._syncRoot)
+            {
+                this._regexes = regexes;
+                this._groupedMap.Clear();
+            }
         }
 
         private string GetGroupName(RssItem rssItem)

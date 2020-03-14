@@ -3,7 +3,7 @@ using System.Text;
 
 namespace RSSViewer.StringMatchers
 {
-    interface IStringMatcher
+    public interface IStringMatcher
     {
         bool IsMatch(string value);
     }

@@ -9,7 +9,9 @@ namespace RSSViewer.StringMatchers
 
         public StartsWithStringMatcher(string prefix, StringComparison comparison)
         {
-            this._prefix = prefix ?? throw new ArgumentNullException(nameof(prefix));
+            if (String.IsNullOrEmpty(prefix))
+                throw new ArgumentException("message", nameof(prefix));
+            this._prefix = prefix;
             this._comparison = comparison;
         }
 

@@ -7,7 +7,8 @@
         mc:Ignorable="d"
         Title="RSSViewer" 
         Height="600"
-        Width="1000">
+        Width="1000"
+        WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -16,7 +17,18 @@
         </Grid.RowDefinitions>
 
         <Grid>
+            <Grid.Resources>
+                <Style TargetType="MenuItem">
+                    <Setter Property="Padding"
+                            Value="6,3" />
+                </Style>
+            </Grid.Resources>
             <!-- for menu -->
+            <Menu>
+                <MenuItem Header="Settings"
+                          x:Name="SettingsMenuItem"
+                          Click="SettingsMenuItem_Click"/>
+            </Menu>
         </Grid>
 
         <Grid Margin="4"

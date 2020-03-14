@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace RSSViewer.Configuration
 {
@@ -9,5 +11,19 @@ namespace RSSViewer.Configuration
         public string MatchValue { get; set; }
 
         public int MatchOptions { get; set; }
+
+        [JsonIgnore]
+        public StringComparison AsStringComparison
+        {
+            get => (StringComparison) this.MatchOptions;
+            set => this.MatchOptions = (int) value;
+        }
+
+        [JsonIgnore]
+        public RegexOptions AsRegexOptions
+        {
+            get => (RegexOptions)this.MatchOptions;
+            set => this.MatchOptions = (int)value;
+        }
     }
 }

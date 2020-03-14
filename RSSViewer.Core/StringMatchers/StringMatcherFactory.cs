@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace RSSViewer.StringMatchers
 {
-    class StringMatcherFactory
+    public class StringMatcherFactory
     {
         public IStringMatcher Create(MatchStringConf conf)
         {

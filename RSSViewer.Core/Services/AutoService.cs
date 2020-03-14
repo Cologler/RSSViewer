@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using RSSViewer.Configuration;
 using RSSViewer.LocalDb;
 using RSSViewer.StringMatchers;
 using System;
@@ -15,10 +16,15 @@ namespace RSSViewer.Services
         public AutoService(IServiceProvider serviceProvider)
         {
             this._serviceProvider = serviceProvider;
+            var configService = this._serviceProvider.GetRequiredService<ConfigService>();
+            this.Reload(configService.App);
+            configService.OnAppConfChanged += this.Reload;
+        }
 
-            var factory = serviceProvider.GetRequiredService<StringMatcherFactory>();
-            this._stringMatchers = serviceProvider.GetRequiredService<ConfigService>()
-                .App.AutoReject.Matches
+        void Reload(AppConf conf)
+        {
+            var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
+            this._stringMatchers = conf.AutoReject.Matches
                 .Select(z => factory.Create(z))
                 .ToImmutableArray();
         }
