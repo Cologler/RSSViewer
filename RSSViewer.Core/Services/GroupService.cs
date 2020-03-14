@@ -14,7 +14,7 @@ namespace RSSViewer.Services
     {
         private readonly object _syncRoot = new object();
         private ImmutableList<Regex> _regexes;
-        public readonly Dictionary<string, string> _groupedMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, string> _groupsCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public GroupService(ConfigService config)
         {
@@ -30,13 +30,13 @@ namespace RSSViewer.Services
             lock (this._syncRoot)
             {
                 this._regexes = regexes;
-                this._groupedMap.Clear();
+                this._groupsCache.Clear();
             }
         }
 
-        private string GetGroupName(RssItem rssItem)
+        private static string GetGroupName(IImmutableList<Regex> regexes, RssItem rssItem)
         {
-            foreach (var re in this._regexes)
+            foreach (var re in regexes)
             {
                 var match = re.Match(rssItem.Title);
                 if (match.Success)
@@ -60,8 +60,15 @@ namespace RSSViewer.Services
 
         public Dictionary<string, List<RssItem>> GetGroupsMap(IEnumerable<RssItem> source)
         {
+            ImmutableList<Regex> regexes;
+            Dictionary<string, string> cache;
+            lock (this._syncRoot)
+            {
+                regexes = this._regexes;
+                cache = this._groupsCache;
+            }
+
             var ret = new Dictionary<string, List<RssItem>>(StringComparer.OrdinalIgnoreCase);
-            var miss = new List<RssItem>();
 
             void AddToRet(string key, RssItem value)
             {
@@ -73,41 +80,43 @@ namespace RSSViewer.Services
                 ls.Add(value);
             }
 
-            List<RssItem> ResolveMissing()
+            var unCachedItems = new List<RssItem>();
+            lock (this._syncRoot)
             {
-                lock (this._syncRoot)
+                if (!ReferenceEquals(regexes, this._regexes))
+                    // conf updated
+                    return this.GetGroupsMap(source);
+
+                foreach (var item in source)
                 {
-                    return source.Where(z =>
+                    if (cache.TryGetValue(item.Title, out var groupName))
                     {
-                        if (this._groupedMap.TryGetValue(z.Title, out var groupName))
-                        {
-                            AddToRet(groupName, z);
-                            return false;
-                        }
-                        return true;
-                    }).ToList();
+                        AddToRet(groupName, item);
+                    }
+                    else
+                    {
+                        unCachedItems.Add(item);
+                    }
                 }
             }
 
-            Dictionary<string, string> ResolveAdded()
+            var newResolvedGroups = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var item in unCachedItems)
             {
-                var @new = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var item in ResolveMissing())
-                {
-                    var g = GetGroupName(item);
-                    AddToRet(g, item);
-                    @new[item.Title] = g;
-                }
-                return @new;
+                var groupName = GetGroupName(regexes, item);
+                AddToRet(groupName, item);
+                newResolvedGroups[item.Title] = groupName;
             }
-
-            var needAddToCache = ResolveAdded();
 
             lock (this._syncRoot)
             {
-                foreach (var kvp in needAddToCache)
+                if (!ReferenceEquals(regexes, this._regexes))
+                    // conf updated
+                    return this.GetGroupsMap(source);
+
+                foreach (var kvp in newResolvedGroups)
                 {
-                    this._groupedMap[kvp.Key] = kvp.Value;
+                    cache[kvp.Key] = kvp.Value;
                 }
             }
 

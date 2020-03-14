@@ -36,7 +36,11 @@ namespace RSSViewer.Services
 
         public void Save()
         {
-            File.WriteAllText(this._appConfPath, JsonSerializer.Serialize(this.App));
+            var jso = new JsonSerializerOptions
+            {
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+            File.WriteAllText(this._appConfPath, JsonSerializer.Serialize(this.App, jso));
             this.OnAppConfChanged?.Invoke(this.App);
         }
     }
