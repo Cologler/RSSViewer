@@ -21,22 +21,25 @@ namespace RSSViewer.Configuration
 
     public class GroupConf
     {
-        public List<string> GroupingTitleRegexes { get; set; }
+        public List<string> FindGroupRegexes { get; set; }
 
         public void Upgrade()
         {
-            if (this.GroupingTitleRegexes == null)
+            if (this.FindGroupRegexes == null)
             {
-                this.GroupingTitleRegexes = new List<string>()
+                this.FindGroupRegexes = new List<string>()
                 {
                     // *.ep1.* | *.s01e01.*
-                    "^(?<name>.*)\\.(ep?\\d{1,3}|s\\d{1,3}e\\d{1,3})\\.(.*)$",
+                    "^(?<name>.+)\\.(ep?\\d{1,3}|s\\d{1,3}e\\d{1,3})\\.(.*)$",
 
-                    // *[01]*
-                    "^(?<name>.*)\\[\\d{1,3}\\](.*)$",
+                    // *[01-12]*
+                    "^(?<name>.+)\\[\\d{1,3}(?:-\\d{1,3})?\\](?:.*)$",
 
-                    // *【01】*
-                    "^(?<name>.*)【\\d{1,3}】(.*)$"
+                    // *【01-12】*
+                    "^(?<name>.+)【\\d{1,3}(?:-\\d{1,3})?】(?:.*)$",
+
+                    // [*] * - 01 [*
+                    "^\\[.+\\] (?<name>.+) - \\d{1,3} \\[.+$",
                 };
             }
         }
