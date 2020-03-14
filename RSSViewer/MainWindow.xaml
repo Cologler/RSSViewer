@@ -121,6 +121,8 @@
                                           x:Name="ItemsAcceptMenuItem" Click="ItemsAcceptMenuItem_Click"/>
                                 <MenuItem Header="Reject"
                                           x:Name="ItemsRejectMenuItem" Click="ItemsRejectMenuItem_Click" />
+                                <MenuItem Header="Copy"
+                                          x:Name="ItemsCopyMenuItem" Click="ItemsCopyMenuItem_Click" />
                             </ContextMenu>
                         </ListView.ContextMenu>
                     </ListView>

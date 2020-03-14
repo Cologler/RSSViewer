@@ -1,8 +1,9 @@
 ﻿using RSSViewer.Abstractions;
+using System;
 
 namespace RSSViewer.LocalDb
 {
-    public class RssItem
+    public class RssItem : IRssItem
     {
         public string FeedId { get; set; }
 
@@ -19,6 +20,24 @@ namespace RSSViewer.LocalDb
         public string Link { get; set; }
 
         public string MagnetLink { get; set; }
+
+        public string GetProperty(RssItemProperties property)
+        {
+            switch (property)
+            {
+                case RssItemProperties.Title:
+                    return this.Title;
+                case RssItemProperties.Description:
+                    return this.Description;
+                case RssItemProperties.Link:
+                    return this.Link;
+                case RssItemProperties.MagnetLink:
+                    return this.MagnetLink;
+
+                default:
+                    return string.Empty;
+            }
+        }
 
         public void UpdateFrom(ISourceRssItem sourceRssItem)
         {

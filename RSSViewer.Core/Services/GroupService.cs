@@ -1,4 +1,5 @@
-﻿using RSSViewer.LocalDb;
+﻿using RSSViewer.Abstractions;
+using RSSViewer.LocalDb;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,19 +10,20 @@ namespace RSSViewer.Services
 {
     public class GroupService
     {
-        private readonly List<Regex> _groupingTitleRegexes;
+        private readonly object _syncRoot = new object();
+        private readonly List<Regex> _regexes;
         public readonly Dictionary<string, string> _groupedMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public GroupService(ConfigService config)
         {
-            this._groupingTitleRegexes = config.App.Group.GroupingTitleRegexes
+            this._regexes = config.App.Group.Matches
                 .Select(z => new Regex(z, RegexOptions.IgnoreCase))
                 .ToList();
         }
 
         private string GetGroupName(RssItem rssItem)
         {
-            foreach (var re in this._groupingTitleRegexes)
+            foreach (var re in this._regexes)
             {
                 var match = re.Match(rssItem.Title);
                 if (match.Success)
@@ -60,7 +62,7 @@ namespace RSSViewer.Services
 
             List<RssItem> ResolveMissing()
             {
-                lock (this._groupedMap)
+                lock (this._syncRoot)
                 {
                     return source.Where(z =>
                     {
@@ -88,7 +90,7 @@ namespace RSSViewer.Services
 
             var needAddToCache = ResolveAdded();
 
-            lock (this._groupedMap)
+            lock (this._syncRoot)
             {
                 foreach (var kvp in needAddToCache)
                 {

@@ -2,7 +2,9 @@
 using RSSViewer.Abstractions;
 using RSSViewer.AcceptHandlers;
 using RSSViewer.LocalDb;
+using RSSViewer.Services;
 using RSSViewer.ViewModels;
+using RSSViewer.Windows;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -77,6 +79,25 @@ namespace RSSViewer
         {
             await this.ViewModel.RejectAsync(
                 this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().ToArray());
+        }
+
+        private void ItemsCopyMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().FirstOrDefault();
+            if (vm is null) return;
+            var kws = App.RSSViewerHost.ServiceProvider.GetRequiredService<KeywordsService>();
+            var kw = kws.GetKeywords(vm.RssItem);
+            if (StringsPickerWindow.TryPickString(this, kw, out var text))
+            {
+                try
+                {
+                    Clipboard.SetText(text);
+                }
+                catch (Exception exc)
+                {
+                    MessageBox.Show($"Unable to copy: {exc}");
+                }
+            }
         }
     }
 }

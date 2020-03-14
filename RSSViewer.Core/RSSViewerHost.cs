@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using RSSViewer.Abstractions;
+using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
 using RSSViewer.Services;
 using System;
@@ -49,10 +51,13 @@ namespace RSSViewer
                 .AddSingleton<SyncService>()
                 .AddSingleton<ConfigService>()
                 .AddSingleton<GroupService>()
+                .AddSingleton<KeywordsService>()
                 .AddDbContext<LocalDbContext>((prov, options) => {
                     var path = prov.GetRequiredService<AppDirService>().GetDataFileFullPath("localdb.sqlite3");
                     options.UseSqlite($"Data Source={path}");
                 })
+                .AddTransient<IKeywordsFinder, TitleKeywordsFinder>()
+                .AddTransient<IKeywordsFinder, MagnetLinkKeywordsFinder>()
                 ;
             return sc;
         }

@@ -1,0 +1,23 @@
+﻿<Window x:Class="RSSViewer.Windows.StringsPickerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RSSViewer.Windows"
+        mc:Ignorable="d"
+        Title="Strings Picker" 
+        Height="300"
+        Width="400"
+        WindowStartupLocation="CenterOwner">
+    <Grid>
+        <ListView ItemsSource="{Binding Items}"
+                  SelectedItem="{Binding SelectedItem}"
+                  Margin="4">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding DisplayValue}" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</Window>

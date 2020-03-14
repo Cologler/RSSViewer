@@ -1,4 +1,5 @@
 ﻿using RSSViewer.Configuration;
+using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -11,6 +12,8 @@ namespace RSSViewer.Services
         private const string AppConfName = "app-conf.json";
 
         private readonly string _appConfPath;
+
+        public event Action<AppConf> AppConfChanged;
 
         public ConfigService(AppDirService appDir)
         {
