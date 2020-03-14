@@ -1,4 +1,5 @@
-﻿using RSSViewer.LocalDb;
+﻿using RSSViewer.Abstractions;
+using RSSViewer.LocalDb;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,12 +12,12 @@ namespace RSSViewer.AcceptHandlers
     {
         public string HandlerName => "Copy Magnet Link";
 
-        public ValueTask<bool> Accept(IReadOnlyCollection<RssItem> rssItems)
+        public ValueTask<bool> Accept(IReadOnlyCollection<IRssItem> rssItems)
         {
             var urls = new List<string>();
             foreach (var item in rssItems)
             {
-                var ml = item.MagnetLink;
+                var ml = item.GetProperty(RssItemProperties.MagnetLink);
                 if (string.IsNullOrWhiteSpace(ml))
                 {
                     MessageBox.Show($"Some item's magnet link is empty: (FeedId={item.FeedId}, RssId={item.RssId})");
