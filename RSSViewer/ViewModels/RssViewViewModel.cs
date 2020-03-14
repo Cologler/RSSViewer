@@ -1,5 +1,7 @@
 ﻿using Jasily.ViewModel;
+using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.AcceptHandlers;
+using RSSViewer.Services;
 using RSSViewer.Utils;
 using System;
 using System.Collections.Generic;
@@ -65,20 +67,42 @@ namespace RSSViewer.ViewModels
             var states = this.IncludeView.GetStateValues();
 
             var items = await App.RSSViewerHost.Query().SearchAsync(searchText, states, token);
+            items = items.OrderBy(z => z.Title).ToArray();
             token.ThrowIfCancellationRequested();
 
-            var itemViewModels = items.Select(z => new RssItemViewModel(z)).ToArray();
+            var groupService = App.RSSViewerHost.ServiceProvider.GetRequiredService<GroupService>();
+            var groupsMap = await Task.Run(() => groupService.GetGroupsMap(items));
+            token.ThrowIfCancellationRequested();
 
+            var groups = new List<RssItemGroupViewModel>();
             var groupAll = new RssItemGroupViewModel { DisplayName = "<ALL>" };
-            groupAll.Items.AddRange(itemViewModels);
+            groups.Add(groupAll);
 
-            var groupOther = new RssItemGroupViewModel { DisplayName = "<>" };
-
-            var groups = new List<RssItemGroupViewModel>
+            await Task.Run(() =>
             {
-                groupAll,
-                groupOther
-            };
+                groupAll.Items.AddRange(items.Select(z => new RssItemViewModel(z)).ToArray());
+
+                var groupEmpty = new RssItemGroupViewModel { DisplayName = "<>" };
+                groups.Add(groupEmpty);
+
+                groups.AddRange(groupsMap.Where(z =>
+                {
+                    if (z.Key == string.Empty)
+                    {
+                        groupEmpty.Items.AddRange(z.Value.Select(x => new RssItemViewModel(x)));
+                        return false;
+                    }
+                    return true;
+                }).Select(z => 
+                {
+                    var gvm = new RssItemGroupViewModel { DisplayName = z.Key };
+                    gvm.Items.AddRange(z.Value.Select(x => new RssItemViewModel(x)));
+                    return gvm;
+                }).OrderBy(z => z.DisplayName));
+
+                return groups;
+            });
+            token.ThrowIfCancellationRequested();
 
             this.Groups.Clear();
             groups.ForEach(this.Groups.Add);

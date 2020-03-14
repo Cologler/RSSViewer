@@ -29,7 +29,7 @@ namespace RSSViewer
             var prov = new RssFetcherSourceProvider();
             await prov.InitializeAsync(new Dictionary<string, object>
             {
-                [RssFetcherSourceProvider.VarDatabase.VariableName] = @"C:\Users\skyof\Downloads\rss.sqlite3"
+                [RssFetcherSourceProvider.VarDatabase.VariableName] = @"W:\rss.sqlite3"
             });;
 
             RSSViewerHost.SourceProviderManager.AddProvider(prov);

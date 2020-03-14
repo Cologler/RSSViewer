@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.Services
 {
-    class SyncService
+    public class SyncService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly NPTask _task;

@@ -43,6 +43,8 @@ namespace RSSViewer
                 .AddSingleton<RssItemsQueryService>()
                 .AddSingleton<RssItemsOperationService>()
                 .AddSingleton<SyncService>()
+                .AddSingleton<ConfigService>()
+                .AddSingleton<GroupService>()
                 .AddDbContext<LocalDbContext>(options => options.UseSqlite($"Data Source=localdb.sqlite3"))
                 ;
             return sc;
