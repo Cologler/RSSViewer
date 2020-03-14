@@ -20,6 +20,9 @@ namespace RSSViewer
             this.ServiceProvider = services.BuildServiceProvider();
 
             using var scope = this.ServiceProvider.CreateScope();
+
+            scope.ServiceProvider.GetRequiredService<AppDirService>().EnsureCreated();
+
             var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
             ctx.Database.EnsureCreated();
         }
@@ -39,13 +42,17 @@ namespace RSSViewer
         public static IServiceCollection CreateServices()
         {
             var sc = new ServiceCollection()
+                .AddSingleton<AppDirService>()
                 .AddSingleton<RSSViewerSourceProviderManager>()
                 .AddSingleton<RssItemsQueryService>()
                 .AddSingleton<RssItemsOperationService>()
                 .AddSingleton<SyncService>()
                 .AddSingleton<ConfigService>()
                 .AddSingleton<GroupService>()
-                .AddDbContext<LocalDbContext>(options => options.UseSqlite($"Data Source=localdb.sqlite3"))
+                .AddDbContext<LocalDbContext>((prov, options) => {
+                    var path = prov.GetRequiredService<AppDirService>().GetDataFileFullPath("localdb.sqlite3");
+                    options.UseSqlite($"Data Source={path}");
+                })
                 ;
             return sc;
         }

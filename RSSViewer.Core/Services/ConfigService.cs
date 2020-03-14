@@ -8,13 +8,17 @@ namespace RSSViewer.Services
 {
     public class ConfigService
     {
-        private const string AppConfPath = "app-conf.json";
+        private const string AppConfName = "app-conf.json";
 
-        public ConfigService()
+        private readonly string _appConfPath;
+
+        public ConfigService(AppDirService appDir)
         {
-            if (File.Exists(AppConfPath))
+            this._appConfPath = appDir.GetDataFileFullPath(AppConfName);
+
+            if (File.Exists(this._appConfPath))
             {
-                this.App = JsonSerializer.Deserialize<AppConf>(File.ReadAllText(AppConfPath, Encoding.UTF8));
+                this.App = JsonSerializer.Deserialize<AppConf>(File.ReadAllText(this._appConfPath, Encoding.UTF8));
             }
             else
             {
@@ -28,7 +32,7 @@ namespace RSSViewer.Services
 
         public void Save()
         {
-            File.WriteAllText(AppConfPath, JsonSerializer.Serialize(this.App));
+            File.WriteAllText(this._appConfPath, JsonSerializer.Serialize(this.App));
         }
     }
 }
