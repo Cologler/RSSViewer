@@ -4,6 +4,7 @@ using RSSViewer.Abstractions;
 using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
 using RSSViewer.Services;
+using RSSViewer.StringMatchers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,12 @@ namespace RSSViewer
 
             using var scope = this.ServiceProvider.CreateScope();
 
+            var auto = scope.ServiceProvider.GetRequiredService<AutoService>();
             scope.ServiceProvider.GetRequiredService<AppDirService>().EnsureCreated();
+            scope.ServiceProvider.GetRequiredService<SyncService>().OnSynced += () =>
+            {
+                auto.AutoReject();
+            };
 
             var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
             ctx.Database.EnsureCreated();
@@ -49,6 +55,7 @@ namespace RSSViewer
                 .AddSingleton<RssItemsQueryService>()
                 .AddSingleton<RssItemsOperationService>()
                 .AddSingleton<SyncService>()
+                .AddSingleton<AutoService>()
                 .AddSingleton<ConfigService>()
                 .AddSingleton<GroupService>()
                 .AddSingleton<KeywordsService>()
@@ -58,6 +65,7 @@ namespace RSSViewer
                 })
                 .AddTransient<IKeywordsFinder, TitleKeywordsFinder>()
                 .AddTransient<IKeywordsFinder, MagnetLinkKeywordsFinder>()
+                .AddTransient<StringMatcherFactory>()
                 ;
             return sc;
         }

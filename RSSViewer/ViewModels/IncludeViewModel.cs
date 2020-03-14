@@ -11,15 +11,15 @@ namespace RSSViewer.ViewModels
 
         public bool Rejected { get; set; }
 
-        public RssState[] GetStateValues() 
+        public RssItemState[] GetStateValues() 
         {
-            var states = new List<RssState>();
+            var states = new List<RssItemState>();
             if (this.Undecided)
-                states.Add(RssState.Undecided);
+                states.Add(RssItemState.Undecided);
             if (this.Accepted)
-                states.Add(RssState.Accepted);
+                states.Add(RssItemState.Accepted);
             if (this.Rejected)
-                states.Add(RssState.Rejected);
+                states.Add(RssItemState.Rejected);
             return states.ToArray();
         }
     }

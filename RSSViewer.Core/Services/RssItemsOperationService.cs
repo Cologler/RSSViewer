@@ -15,26 +15,31 @@ namespace RSSViewer.Services
             this._serviceProvider = serviceProvider;
         }
 
-        public Task AcceptAsync(IReadOnlyCollection<RssItem> items) => this.ChangeStateAsync(items, RssState.Accepted);
+        public Task AcceptAsync(IReadOnlyCollection<RssItem> items) => this.ChangeStateAsync(items, RssItemState.Accepted);
 
-        public Task RejectAsync(IReadOnlyCollection<RssItem> items) => this.ChangeStateAsync(items, RssState.Rejected);
+        public Task RejectAsync(IReadOnlyCollection<RssItem> items) => this.ChangeStateAsync(items, RssItemState.Rejected);
 
-        private Task ChangeStateAsync(IReadOnlyCollection<RssItem> items, RssState state)
+        private Task ChangeStateAsync(IReadOnlyCollection<RssItem> items, RssItemState state)
         {
             if (items is null)
                 throw new ArgumentNullException(nameof(items));
 
-            return Task.Run(() =>
+            return Task.Run(() => this.ChangeState(items, state));
+        }
+
+        internal void ChangeState(IReadOnlyCollection<RssItem> items, RssItemState state)
+        {
+            if (items is null)
+                throw new ArgumentNullException(nameof(items));
+
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
+            ctx.AttachRange(items);
+            foreach (var item in items)
             {
-                using var scope = this._serviceProvider.CreateScope();
-                var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-                ctx.AttachRange(items);
-                foreach (var item in items)
-                {
-                    item.State = state;
-                }
-                ctx.SaveChanges();
-            });
+                item.State = state;
+            }
+            ctx.SaveChanges();
         }
     }
 }

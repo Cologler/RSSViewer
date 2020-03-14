@@ -62,6 +62,8 @@ namespace RSSViewer.ViewModels
 
         private async Task SearchCoreAsync(string searchText, CancellationToken token)
         {
+            searchText = searchText.Trim();
+
             await App.RSSViewerHost.SyncAsync();
             token.ThrowIfCancellationRequested();
 

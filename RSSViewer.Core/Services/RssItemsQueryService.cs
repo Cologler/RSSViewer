@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.LocalDb;
+using RSSViewer.Utils;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -18,7 +19,37 @@ namespace RSSViewer.Services
             this._serviceProvider = serviceProvider;
         }
 
-        public Task<RssItem[]> ListAsync(RssState[] includes, CancellationToken token)
+        /// <summary>
+        /// a sync version use for core service.
+        /// </summary>
+        /// <param name="includes"></param>
+        /// <returns></returns>
+        internal RssItem[] List(RssItemState[] includes)
+        {
+            if (includes is null)
+                throw new ArgumentNullException(nameof(includes));
+
+            if (includes.Length == 0)
+                return Array.Empty<RssItem>();
+
+            includes = includes.Distinct().ToArray();
+
+            IQueryable<RssItem> CreateQueryable(IQueryable<RssItem> queryable)
+            {
+                if (includes.Length == 3) // all
+                    return queryable;
+                else if (includes.Length == 1)
+                    return queryable.Where(z => z.State == includes[0]);
+                else
+                    return queryable.Where(z => z.State == includes[0] || z.State == includes[1]);
+            }
+
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
+            return CreateQueryable(ctx.RssItems).ToArray();
+        }
+
+        public Task<RssItem[]> ListAsync(RssItemState[] includes, CancellationToken token)
         {
             if (includes is null)
                 throw new ArgumentNullException(nameof(includes));
@@ -46,7 +77,7 @@ namespace RSSViewer.Services
             }, token);
         }
 
-        public async Task<RssItem[]> SearchAsync(string searchText, RssState[] includes, CancellationToken token)
+        public async Task<RssItem[]> SearchAsync(string searchText, RssItemState[] includes, CancellationToken token)
         {
             if (searchText is null)
                 throw new ArgumentNullException(nameof(searchText));
@@ -61,13 +92,7 @@ namespace RSSViewer.Services
 
             return await Task.Run(() =>
             {
-                var any = ".";
-                var regex = new Regex(
-                    Regex.Escape(searchText.Trim())
-                        .Replace("\\*", any + "*")
-                        .Replace("\\?", any),
-                    RegexOptions.IgnoreCase
-                );
+                var regex = RegexUtils.WildcardToRegex(searchText);
                 return items.Where(z => regex.IsMatch(z.Title)).ToArray();
             }).ConfigureAwait(false);
         }

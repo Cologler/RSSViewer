@@ -18,9 +18,9 @@ namespace RSSViewer.ViewModels
         public int TotalCount => this.GetItems().Count;
 
         [ModelProperty]
-        public int AcceptedInView => this.GetItems().Count(z => z.RssItem.State == LocalDb.RssState.Accepted);
+        public int AcceptedInView => this.GetItems().Count(z => z.RssItem.State == LocalDb.RssItemState.Accepted);
 
         [ModelProperty]
-        public int RejectedInView => this.GetItems().Count(z => z.RssItem.State == LocalDb.RssState.Rejected);
+        public int RejectedInView => this.GetItems().Count(z => z.RssItem.State == LocalDb.RssItemState.Rejected);
     }
 }

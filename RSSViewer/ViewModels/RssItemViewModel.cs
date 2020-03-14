@@ -14,12 +14,12 @@ namespace RSSViewer.ViewModels
         }
 
         [ModelProperty]
-        public Visibility AcceptedImageVisibility => this.RssItem.State == RssState.Accepted
+        public Visibility AcceptedImageVisibility => this.RssItem.State == RssItemState.Accepted
             ? Visibility.Visible
             : Visibility.Collapsed;
 
         [ModelProperty]
-        public Visibility RejectedImageVisibility => this.RssItem.State == RssState.Rejected
+        public Visibility RejectedImageVisibility => this.RssItem.State == RssItemState.Rejected
             ? Visibility.Visible
             : Visibility.Collapsed;
 

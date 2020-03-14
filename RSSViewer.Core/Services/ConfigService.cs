@@ -29,6 +29,7 @@ namespace RSSViewer.Services
             }
 
             this.App.Upgrade();
+            this.Save();
         }
 
         public AppConf App { get; }
