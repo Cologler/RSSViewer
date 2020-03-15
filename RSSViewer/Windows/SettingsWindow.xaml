@@ -8,7 +8,8 @@
         Title="Settings"
         Height="450"
         Width="400"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
     <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -30,29 +31,61 @@
                             <RowDefinition />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        
-                        <ListView ItemsSource="{Binding Matches}"
-                                  x:Name="AutoRejectMatchesListView">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding DisplayValue}" />
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                            <ListView.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Edit"
-                                              x:Name="EditAutoRejectMatchButton"
-                                              Click="EditAutoRejectMatchButton_Click"/>
-                                    <MenuItem Header="Remove"
-                                              x:Name="RemoveAutoRejectMatchButton"
-                                              Click="RemoveAutoRejectMatchButton_Click"/>
-                                </ContextMenu>
-                            </ListView.ContextMenu>
-                        </ListView>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="30" />
+                            </Grid.ColumnDefinitions>
+
+                            <ListView ItemsSource="{Binding Matches}"
+                                      x:Name="AutoRejectMatchesListView">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayValue}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                                <ListView.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Edit"
+                                                  x:Name="EditAutoRejectMatchButton"
+                                                  Click="EditAutoRejectMatchButton_Click" />
+                                        <MenuItem Header="Remove"
+                                                  x:Name="RemoveAutoRejectMatchButton"
+                                                  Click="RemoveAutoRejectMatchButton_Click" />
+                                    </ContextMenu>
+                                </ListView.ContextMenu>
+                            </ListView>
+
+                            <Grid Grid.Column="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.Resources>
+                                    <Style TargetType="Button">
+                                        <Setter Property="MinWidth"
+                                                Value="0" />
+                                        <Setter Property="Margin"
+                                                Value="4,0,0,4" />
+                                    </Style>
+                                </Grid.Resources>
+
+                                <Button Content="⬆"
+                                        x:Name="AutoRejectItemMoveUpButton"
+                                        Click="AutoRejectItemMoveUpButton_Click" />
+
+                                <Button Content="⬇"
+                                        Grid.Row="1"
+                                        x:Name="AutoRejectItemMoveDownButton"
+                                        Click="AutoRejectItemMoveDownButton_Click" />
+                            </Grid>
+                        </Grid>
 
                         <Grid Grid.Row="1"
                               HorizontalAlignment="Left"
                               Margin="0,4,0,0">
+                            
                             <Button Content="Add"
                                     x:Name="AddAutoRejectMatchButton"
                                     Click="AddAutoRejectMatchButton_Click"/>

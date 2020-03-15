@@ -30,13 +30,28 @@ namespace RSSViewer.Windows
 
         internal SettingsViewModel ViewModel => (SettingsViewModel)this.DataContext;
 
+        private MatchStringConfViewModel[] SelectedAutoRejectMatches
+        {
+            get
+            {
+                return this.AutoRejectMatchesListView.SelectedItems
+                    .OfType<MatchStringConfViewModel>()
+                    .ToArray();
+            }
+            set
+            {
+                this.AutoRejectMatchesListView.SelectedItems.Clear();
+                foreach (var item in value)
+                {
+                    this.AutoRejectMatchesListView.SelectedItems.Add(item);
+                }
+            }
+        }
+
         private void RemoveAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
         {
             var svm = this.ViewModel;
-            var vms = this.AutoRejectMatchesListView.SelectedItems
-                .OfType<MatchStringConfViewModel>()
-                .ToArray();
-            foreach (var vm in vms)
+            foreach (var vm in this.SelectedAutoRejectMatches)
             {
                 svm.AutoRejectView.Matches.Remove(vm);
             }
@@ -61,9 +76,7 @@ namespace RSSViewer.Windows
 
         private void EditAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
         {
-            var conf = this.AutoRejectMatchesListView.SelectedItems
-                .OfType<MatchStringConfViewModel>()
-                .FirstOrDefault()?.Conf;
+            var conf = this.SelectedAutoRejectMatches.FirstOrDefault()?.Conf;
 
             if (conf == null)
                 return;
@@ -85,6 +98,20 @@ namespace RSSViewer.Windows
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = false;
+        }
+
+        private void AutoRejectItemMoveUpButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = this.SelectedAutoRejectMatches;
+            this.ViewModel.AutoRejectView.MoveUp(selected);
+            this.SelectedAutoRejectMatches = selected;
+        }
+
+        private void AutoRejectItemMoveDownButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = this.SelectedAutoRejectMatches;
+            this.ViewModel.AutoRejectView.MoveDown(selected);
+            this.SelectedAutoRejectMatches = selected;
         }
     }
 }
