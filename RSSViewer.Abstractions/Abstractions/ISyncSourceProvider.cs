@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.Abstractions
 {
-    public interface ISourceProvider
+    public interface ISyncSourceProvider
     {
         string ProviderName { get; }
 

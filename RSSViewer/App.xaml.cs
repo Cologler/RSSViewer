@@ -27,10 +27,10 @@ namespace RSSViewer
                 .AddTransient<IAcceptHandler, CopyMagnetLinkAcceptHandler>();
             RSSViewerHost = new RSSViewerHost(sc);
 
-            var prov = new RssFetcherSourceProvider();
+            var prov = new RssFetcherSyncSourceProvider();
             await prov.InitializeAsync(new Dictionary<string, object>
             {
-                [RssFetcherSourceProvider.VarDatabase.VariableName] = @"W:\rss.sqlite3"
+                [RssFetcherSyncSourceProvider.VarDatabase.VariableName] = @"W:\rss.sqlite3"
             });;
 
             RSSViewerHost.SourceProviderManager.AddProvider(prov);

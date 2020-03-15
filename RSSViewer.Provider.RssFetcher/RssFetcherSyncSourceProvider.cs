@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.Provider.RssFetcher
 {
-    public class RssFetcherSourceProvider : ISourceProvider
+    public class RssFetcherSyncSourceProvider : ISyncSourceProvider
     {
         public static readonly VariableInfo VarDatabase = VariableInfo.String("Database", true);
         public static readonly VariableInfo[] VariableInfos = new [] {

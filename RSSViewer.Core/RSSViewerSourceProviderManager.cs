@@ -5,13 +5,13 @@ namespace RSSViewer
 {
     public class RSSViewerSourceProviderManager
     {
-        private readonly List<ISourceProvider> _sourceProviders = new List<ISourceProvider>();
+        private readonly List<ISyncSourceProvider> _sourceProviders = new List<ISyncSourceProvider>();
 
-        public void AddProvider(ISourceProvider sourceProvider)
+        public void AddProvider(ISyncSourceProvider sourceProvider)
         {
             this._sourceProviders.Add(sourceProvider);
         }
 
-        public IReadOnlyCollection<ISourceProvider> GetProviders() => this._sourceProviders;
+        public IReadOnlyCollection<ISyncSourceProvider> GetProviders() => this._sourceProviders;
     }
 }
