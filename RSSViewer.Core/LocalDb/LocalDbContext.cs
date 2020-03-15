@@ -15,7 +15,7 @@ namespace RSSViewer.LocalDb
 
         public DbSet<RssItem> RssItems { get; set; }
 
-        public DbSet<ProviderInfo> ProviderInfos { get; set; }
+        public DbSet<SyncSourceInfo> SyncSourceInfos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

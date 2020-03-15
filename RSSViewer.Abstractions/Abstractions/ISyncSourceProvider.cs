@@ -11,8 +11,6 @@ namespace RSSViewer.Abstractions
 
         IReadOnlyCollection<VariableInfo> GetVariableInfos();
 
-        ValueTask<bool> InitializeAsync(Dictionary<string, object> variables);
-
-        ValueTask<ISourceRssItemPage> GetItemsListAsync(int? lastId = null, int? limit = null);
+        ISyncSource GetSyncSource(string syncSourceId, Dictionary<string, string> variables);
     }
 }

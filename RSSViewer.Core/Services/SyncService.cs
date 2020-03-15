@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RSSViewer.Services
@@ -29,19 +30,19 @@ namespace RSSViewer.Services
         {
             using (var scope = this._serviceProvider.CreateScope())
             {
-                var provs = scope.ServiceProvider.GetRequiredService<RSSViewerSourceProviderManager>().GetProviders();
+                var sources = scope.ServiceProvider.GetRequiredService<RSSViewerSourceProviderManager>().GetSyncSources();
                 var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-                var provMap = ctx.ProviderInfos.ToDictionary(z => z.ProviderName);
-                foreach (var prov in provs)
+                var provMap = ctx.SyncSourceInfos.ToDictionary(z => z.SyncSourceId);
+                foreach (var source in sources)
                 {
-                    var provInfo = provMap.GetValueOrDefault(prov.ProviderName);
+                    var provInfo = provMap.GetValueOrDefault(source.SyncSourceId);
                     if (provInfo == null)
                     {
-                        provInfo = new ProviderInfo { ProviderName = prov.ProviderName };
+                        provInfo = new SyncSourceInfo { SyncSourceId = source.SyncSourceId };
                         ctx.Add(provInfo);
                     }
 
-                    var page = await prov.GetItemsListAsync(provInfo.LastSyncId);
+                    var page = await source.TryGetItemsAsync(provInfo.LastSyncId, CancellationToken.None);
                     if (page.LastId is int lastId)
                     {
                         provInfo.LastSyncId = lastId;

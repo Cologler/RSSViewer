@@ -2,10 +2,10 @@
 
 namespace RSSViewer.LocalDb
 {
-    public class ProviderInfo
+    public class SyncSourceInfo
     {
         [Key]
-        public string ProviderName { get; set; }
+        public string SyncSourceId { get; set; }
 
         public int? LastSyncId { get; set; }
     }

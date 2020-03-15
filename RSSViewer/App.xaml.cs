@@ -19,7 +19,7 @@ namespace RSSViewer
     {
         public static RSSViewerHost RSSViewerHost { get; private set; }
 
-        protected async override void OnStartup(StartupEventArgs e)
+        protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
@@ -28,12 +28,12 @@ namespace RSSViewer
             RSSViewerHost = new RSSViewerHost(sc);
 
             var prov = new RssFetcherSyncSourceProvider();
-            await prov.InitializeAsync(new Dictionary<string, object>
+            var ss = prov.GetSyncSource("RssFetcher", new Dictionary<string, string>
             {
-                [RssFetcherSyncSourceProvider.VarDatabase.VariableName] = @"W:\rss.sqlite3"
-            });;
+                ["Database"] = @"W:\rss.sqlite3"
+            });
 
-            RSSViewerHost.SourceProviderManager.AddProvider(prov);
+            RSSViewerHost.SourceProviderManager.AddSyncSource(ss);
         }
     }
 }
