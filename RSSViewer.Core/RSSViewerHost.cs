@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
 using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
+using RSSViewer.Provider.RssFetcher;
 using RSSViewer.Services;
 using RSSViewer.StringMatchers;
 using System;
@@ -66,6 +67,7 @@ namespace RSSViewer
                 .AddTransient<IKeywordsFinder, TitleKeywordsFinder>()
                 .AddTransient<IKeywordsFinder, MagnetLinkKeywordsFinder>()
                 .AddTransient<StringMatcherFactory>()
+                .AddSingleton<ISyncSourceProvider, RssFetcherSyncSourceProvider>()
                 ;
             return sc;
         }

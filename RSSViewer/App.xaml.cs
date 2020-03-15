@@ -26,14 +26,6 @@ namespace RSSViewer
             var sc = RSSViewerHost.CreateServices()
                 .AddTransient<IAcceptHandler, CopyMagnetLinkAcceptHandler>();
             RSSViewerHost = new RSSViewerHost(sc);
-
-            var prov = new RssFetcherSyncSourceProvider();
-            var ss = prov.GetSyncSource("RssFetcher", new Dictionary<string, string>
-            {
-                ["Database"] = @"W:\rss.sqlite3"
-            });
-
-            RSSViewerHost.SourceProviderManager.AddSyncSource(ss);
         }
     }
 }

@@ -1,19 +1,35 @@
-﻿using RSSViewer.Abstractions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using RSSViewer.Abstractions;
+using RSSViewer.Configuration;
+using RSSViewer.Services;
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace RSSViewer
 {
     public class RSSViewerSourceProviderManager
     {
-        private readonly List<ISyncSourceProvider> _sourceProviders = new List<ISyncSourceProvider>();
-        private readonly List<ISyncSource> _syncSources = new List<ISyncSource>();
+        private readonly Dictionary<string, ISyncSourceProvider> _sourceProviders;
+        private ImmutableArray<ISyncSource> _syncSources;
+        private readonly IServiceProvider _serviceProvider;
 
-        public void AddProvider(ISyncSourceProvider sourceProvider)
+        public RSSViewerSourceProviderManager(IServiceProvider serviceProvider)
         {
-            this._sourceProviders.Add(sourceProvider);
+            this._serviceProvider = serviceProvider;
+            this._sourceProviders = serviceProvider.GetServices<ISyncSourceProvider>().ToDictionary(z => z.ProviderName);
+            var configService = serviceProvider.GetRequiredService<ConfigService>();
+            this.Reload(configService.AppConf);
+            configService.OnAppConfChanged += this.Reload;
         }
 
-        public IReadOnlyCollection<ISyncSourceProvider> GetProviders() => this._sourceProviders;
+        void Reload(AppConf conf)
+        {
+            this._syncSources = conf.SyncSources
+                .Select(z => this._sourceProviders[z.Value.ProviderName].GetSyncSource(z.Key, z.Value.Variables))
+                .ToImmutableArray();
+        }
 
         public IEnumerable<ISyncSource> GetSyncSources()
         {
@@ -22,7 +38,7 @@ namespace RSSViewer
 
         public void AddSyncSource(ISyncSource source)
         {
-            this._syncSources.Add(source);
+            this._syncSources = this._syncSources.Add(source);
         }
     }
 }
