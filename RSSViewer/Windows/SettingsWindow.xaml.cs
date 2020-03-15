@@ -59,33 +59,21 @@ namespace RSSViewer.Windows
 
         private void AddAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
         {
-            var conf = new MatchStringConf
+            if (EditStringMatcherWindow.TryCreateConf(this, out var conf))
             {
-                MatchMode = MatchStringMode.Contains,
-                AsStringComparison = StringComparison.OrdinalIgnoreCase,
-                MatchValue = string.Empty
-            };
-            var win = new EditStringMatcherWindow { Owner = this };
-            win.LoadFromConf(conf);
-            if (win.ShowDialog() == true)
-            {
-                win.WriteToConf(conf);
                 this.ViewModel.AutoRejectView.Add(conf);
             }
         }
 
         private void EditAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
         {
-            var conf = this.SelectedAutoRejectMatches.FirstOrDefault()?.Conf;
-
-            if (conf == null)
+            var vm = this.SelectedAutoRejectMatches.FirstOrDefault();
+            if (vm == null)
                 return;
 
-            var win = new EditStringMatcherWindow { Owner = this };
-            win.LoadFromConf(conf);
-            if (win.ShowDialog() == true)
+            if (EditStringMatcherWindow.EditConf(this, vm.Conf))
             {
-                win.WriteToConf(conf);
+                vm.RefreshProperties();
             }
         }
 

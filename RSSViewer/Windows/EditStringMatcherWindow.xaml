@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSSViewer.Windows"
         mc:Ignorable="d"
-        Title="EditStringMatcherWindow"
+        Title="Edit Rule"
         Height="400"
         Width="700"
         ResizeMode="NoResize"

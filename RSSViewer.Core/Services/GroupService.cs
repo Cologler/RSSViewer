@@ -18,7 +18,7 @@ namespace RSSViewer.Services
 
         public GroupService(ConfigService config)
         {
-            this.Reload(config.App);
+            this.Reload(config.AppConf);
             config.OnAppConfChanged += this.Reload;
         }
 

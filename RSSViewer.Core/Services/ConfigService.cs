@@ -11,6 +11,7 @@ namespace RSSViewer.Services
     {
         private const string AppConfName = "app-conf.json";
 
+        private readonly object _syncRoot = new object();
         private readonly string _appConfPath;
 
         public event Action<AppConf> OnAppConfChanged;
@@ -21,18 +22,18 @@ namespace RSSViewer.Services
 
             if (File.Exists(this._appConfPath))
             {
-                this.App = JsonSerializer.Deserialize<AppConf>(File.ReadAllText(this._appConfPath, Encoding.UTF8));
+                this.AppConf = JsonSerializer.Deserialize<AppConf>(File.ReadAllText(this._appConfPath, Encoding.UTF8));
             }
             else
             {
-                this.App = new AppConf();
+                this.AppConf = new AppConf();
             }
 
-            this.App.Upgrade();
+            this.AppConf.Upgrade();
             this.Save();
         }
 
-        public AppConf App { get; }
+        public AppConf AppConf { get; }
 
         public void Save()
         {
@@ -40,8 +41,13 @@ namespace RSSViewer.Services
             {
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
-            File.WriteAllText(this._appConfPath, JsonSerializer.Serialize(this.App, jso));
-            this.OnAppConfChanged?.Invoke(this.App);
+
+            lock (this._syncRoot)
+            {
+                File.WriteAllText(this._appConfPath, JsonSerializer.Serialize(this.AppConf, jso));
+            }
+            
+            this.OnAppConfChanged?.Invoke(this.AppConf);
         }
     }
 }

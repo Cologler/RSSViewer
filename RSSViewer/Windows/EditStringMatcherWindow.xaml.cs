@@ -194,5 +194,35 @@ namespace RSSViewer.Windows
                 }
             }
         }
+
+        internal static bool TryCreateConf(Window owner, out MatchStringConf conf)
+        {
+            conf = new MatchStringConf
+            {
+                MatchMode = MatchStringMode.Contains,
+                AsStringComparison = StringComparison.OrdinalIgnoreCase,
+                MatchValue = string.Empty
+            };
+            var win = new EditStringMatcherWindow { Owner = owner };
+            win.LoadFromConf(conf);
+            if (win.ShowDialog() == true)
+            {
+                win.WriteToConf(conf);
+                return true;
+            }
+            return false;
+        }
+
+        internal static bool EditConf(Window owner, MatchStringConf conf)
+        {
+            var win = new EditStringMatcherWindow { Owner = owner };
+            win.LoadFromConf(conf);
+            if (win.ShowDialog() == true)
+            {
+                win.WriteToConf(conf);
+                return true;
+            }
+            return false;
+        }
     }
 }

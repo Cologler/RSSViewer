@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
 using RSSViewer.AcceptHandlers;
+using RSSViewer.Configuration;
 using RSSViewer.LocalDb;
 using RSSViewer.Services;
 using RSSViewer.ViewModels;
@@ -84,7 +85,9 @@ namespace RSSViewer
         private void ItemsCopyMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var vm = this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().FirstOrDefault();
-            if (vm is null) return;
+            if (vm is null) 
+                return;
+
             var kws = App.RSSViewerHost.ServiceProvider.GetRequiredService<KeywordsService>();
             var kw = kws.GetKeywords(vm.RssItem);
             if (StringsPickerWindow.TryPickString(this, kw, out var text))
@@ -110,6 +113,33 @@ namespace RSSViewer
             if (win.ShowDialog() == true)
             {
 
+            }
+        }
+
+        private void AddAutoRejectRuleMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().FirstOrDefault();
+            if (vm is null)
+                return;
+
+            var sp = App.RSSViewerHost.ServiceProvider;
+            var kws = sp.GetRequiredService<KeywordsService>();
+            var kw = kws.GetKeywords(vm.RssItem);
+            if (StringsPickerWindow.TryPickString(this, kw, out var text))
+            {
+                var conf = new MatchStringConf
+                {
+                    MatchMode = MatchStringMode.Contains,
+                    AsStringComparison = StringComparison.OrdinalIgnoreCase,
+                    MatchValue = text,
+                };
+
+                if (EditStringMatcherWindow.EditConf(this, conf))
+                {
+                    var cs = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
+                    cs.AppConf.AutoReject.Matches.Add(conf);
+                    cs.Save();
+                }
             }
         }
     }

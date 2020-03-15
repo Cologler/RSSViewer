@@ -22,7 +22,7 @@ namespace RSSViewer.Services
         {
             this._serviceProvider = serviceProvider;
             config.OnAppConfChanged += this.Reload;
-            this.Reload(config.App);
+            this.Reload(config.AppConf);
         }
 
         public void Reload(AppConf conf)

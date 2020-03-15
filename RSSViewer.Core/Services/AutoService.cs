@@ -17,7 +17,7 @@ namespace RSSViewer.Services
         {
             this._serviceProvider = serviceProvider;
             var configService = this._serviceProvider.GetRequiredService<ConfigService>();
-            this.Reload(configService.App);
+            this.Reload(configService.AppConf);
             configService.OnAppConfChanged += this.Reload;
         }
 

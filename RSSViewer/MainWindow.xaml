@@ -130,11 +130,17 @@
                         <ListView.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Accept"
-                                          x:Name="ItemsAcceptMenuItem" Click="ItemsAcceptMenuItem_Click"/>
+                                          x:Name="ItemsAcceptMenuItem"
+                                          Click="ItemsAcceptMenuItem_Click" />
                                 <MenuItem Header="Reject"
-                                          x:Name="ItemsRejectMenuItem" Click="ItemsRejectMenuItem_Click" />
+                                          x:Name="ItemsRejectMenuItem"
+                                          Click="ItemsRejectMenuItem_Click" />
                                 <MenuItem Header="Copy"
-                                          x:Name="ItemsCopyMenuItem" Click="ItemsCopyMenuItem_Click" />
+                                          x:Name="ItemsCopyMenuItem"
+                                          Click="ItemsCopyMenuItem_Click" />
+                                <MenuItem Header="Add Auto Reject Rule"
+                                          x:Name="AddAutoRejectRuleMenuItem" 
+                                          Click="AddAutoRejectRuleMenuItem_Click"/>
                             </ContextMenu>
                         </ListView.ContextMenu>
                     </ListView>

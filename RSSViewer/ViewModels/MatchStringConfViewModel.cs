@@ -1,8 +1,9 @@
-﻿using RSSViewer.Configuration;
+﻿using Jasily.ViewModel;
+using RSSViewer.Configuration;
 
 namespace RSSViewer.ViewModels
 {
-    public class MatchStringConfViewModel
+    public class MatchStringConfViewModel : BaseViewModel
     {
         public MatchStringConf Conf { get; }
 
@@ -11,6 +12,7 @@ namespace RSSViewer.ViewModels
             this.Conf = matchStringConf;
         }
 
+        [ModelProperty]
         public string DisplayValue
         {
             get
