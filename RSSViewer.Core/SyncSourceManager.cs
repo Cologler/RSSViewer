@@ -9,13 +9,13 @@ using System.Linq;
 
 namespace RSSViewer
 {
-    public class RSSViewerSourceProviderManager
+    public class SyncSourceManager
     {
         private readonly Dictionary<string, ISyncSourceProvider> _sourceProviders;
         private ImmutableArray<ISyncSource> _syncSources;
         private readonly IServiceProvider _serviceProvider;
 
-        public RSSViewerSourceProviderManager(IServiceProvider serviceProvider)
+        public SyncSourceManager(IServiceProvider serviceProvider)
         {
             this._serviceProvider = serviceProvider;
             this._sourceProviders = serviceProvider.GetServices<ISyncSourceProvider>().ToDictionary(z => z.ProviderName);
@@ -34,11 +34,6 @@ namespace RSSViewer
         public IEnumerable<ISyncSource> GetSyncSources()
         {
             return this._syncSources;
-        }
-
-        public void AddSyncSource(ISyncSource source)
-        {
-            this._syncSources = this._syncSources.Add(source);
         }
     }
 }

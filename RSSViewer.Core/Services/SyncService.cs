@@ -30,7 +30,7 @@ namespace RSSViewer.Services
         {
             using (var scope = this._serviceProvider.CreateScope())
             {
-                var sources = scope.ServiceProvider.GetRequiredService<RSSViewerSourceProviderManager>().GetSyncSources();
+                var sources = scope.ServiceProvider.GetRequiredService<SyncSourceManager>().GetSyncSources();
                 var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
                 var provMap = ctx.SyncSourceInfos.ToDictionary(z => z.SyncSourceId);
                 foreach (var source in sources)

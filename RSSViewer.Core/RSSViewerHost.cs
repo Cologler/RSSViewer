@@ -36,8 +36,8 @@ namespace RSSViewer
             ctx.Database.EnsureCreated();
         }
 
-        public RSSViewerSourceProviderManager SourceProviderManager =>
-            this.ServiceProvider.GetRequiredService<RSSViewerSourceProviderManager>();
+        public SyncSourceManager SourceProviderManager =>
+            this.ServiceProvider.GetRequiredService<SyncSourceManager>();
 
         public Task SyncAsync()
         {
@@ -52,7 +52,7 @@ namespace RSSViewer
         {
             var sc = new ServiceCollection()
                 .AddSingleton<AppDirService>()
-                .AddSingleton<RSSViewerSourceProviderManager>()
+                .AddSingleton<SyncSourceManager>()
                 .AddSingleton<RssItemsQueryService>()
                 .AddSingleton<RssItemsOperationService>()
                 .AddSingleton<SyncService>()
