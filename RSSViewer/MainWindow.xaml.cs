@@ -2,6 +2,7 @@
 using RSSViewer.Abstractions;
 using RSSViewer.AcceptHandlers;
 using RSSViewer.Configuration;
+using RSSViewer.Controls;
 using RSSViewer.LocalDb;
 using RSSViewer.Services;
 using RSSViewer.ViewModels;
@@ -110,10 +111,7 @@ namespace RSSViewer
                 Owner = this
             };
 
-            if (win.ShowDialog() == true)
-            {
-
-            }
+            win.ShowDialog();
         }
 
         private void AddAutoRejectRuleMenuItem_Click(object sender, RoutedEventArgs e)
@@ -141,6 +139,20 @@ namespace RSSViewer
                     cs.Save();
                 }
             }
+        }
+
+        private void RunSyncSourceOnceMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (EditObjectControl.CreateSyncSourceConf(this, out var conf))
+            {
+
+            }
+        }
+
+        private async void RunAutoRejectMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            await App.RSSViewerHost.ServiceProvider.GetRequiredService<AutoService>()
+                .AutoRejectAsync();
         }
     }
 }

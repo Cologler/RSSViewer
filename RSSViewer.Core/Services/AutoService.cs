@@ -5,11 +5,13 @@ using RSSViewer.StringMatchers;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace RSSViewer.Services
 {
-    class AutoService
+    public class AutoService
     {
+        private readonly object _syncRoot = new object();
         private readonly IServiceProvider _serviceProvider;
         private ImmutableArray<IStringMatcher> _stringMatchers;
 
@@ -29,7 +31,7 @@ namespace RSSViewer.Services
                 .ToImmutableArray();
         }
 
-        public void AutoReject()
+        internal void AutoReject()
         {
             var stringMatchers = this._stringMatchers;
             if (stringMatchers.Length == 0)
@@ -46,5 +48,7 @@ namespace RSSViewer.Services
 
             operation.ChangeState(shouldReject, RssItemState.Rejected);
         }
+
+        public Task AutoRejectAsync() => Task.Run(this.AutoReject);
     }
 }

@@ -5,12 +5,8 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.Abstractions
 {
-    public interface ISyncSourceProvider
+    public interface ISyncSourceProvider : IObjectFactoryProvider
     {
-        string ProviderName { get; }
-
-        IReadOnlyCollection<VariableInfo> GetVariableInfos();
-
         ISyncSource GetSyncSource(string syncSourceId, Dictionary<string, string> variables);
     }
 }

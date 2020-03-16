@@ -23,8 +23,19 @@
                             Value="6,3" />
                 </Style>
             </Grid.Resources>
-            <!-- for menu -->
+            
             <Menu>
+                <MenuItem Header="Run">
+                    <MenuItem Header="Auto Reject Manualy"
+                              x:Name="RunAutoRejectMenuItem"
+                              Click="RunAutoRejectMenuItem_Click" />
+
+                    <MenuItem Header="Once">
+                        <MenuItem Header="SyncSource"
+                                  x:Name="RunSyncSourceOnceMenuItem"
+                                  Click="RunSyncSourceOnceMenuItem_Click" />
+                    </MenuItem>
+                </MenuItem>
                 <MenuItem Header="Settings"
                           x:Name="SettingsMenuItem"
                           Click="SettingsMenuItem_Click"/>

@@ -26,5 +26,13 @@ namespace RSSViewer
         public Type VariableType { get; }
 
         public string VariableName { get; }
+
+        public bool Validate(string value)
+        {
+            if (IsRequired && string.IsNullOrWhiteSpace(value))
+                return false;
+
+            return true;
+        }
     }
 }
