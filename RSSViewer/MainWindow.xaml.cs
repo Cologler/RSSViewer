@@ -151,8 +151,11 @@ namespace RSSViewer
 
         private async void RunAutoRejectMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            var mi = (MenuItem)e.OriginalSource;
+            mi.IsEnabled = false;
             await App.RSSViewerHost.ServiceProvider.GetRequiredService<AutoService>()
                 .AutoRejectAsync();
+            mi.IsEnabled = true;
         }
     }
 }

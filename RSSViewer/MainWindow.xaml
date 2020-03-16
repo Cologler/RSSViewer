@@ -26,7 +26,7 @@
             
             <Menu>
                 <MenuItem Header="Run">
-                    <MenuItem Header="Auto Reject Manualy"
+                    <MenuItem Header="Auto Reject"
                               x:Name="RunAutoRejectMenuItem"
                               Click="RunAutoRejectMenuItem_Click" />
 
