@@ -170,6 +170,8 @@
                 <Separator />
                 <TextBlock Text="Rejected:"/>
                 <TextBlock Text="{Binding Analytics.RejectedInView}" />
+                <Separator />
+                <TextBlock Text="{Binding StatusText}" />
             </StatusBar>
         </Grid>
     </Grid>

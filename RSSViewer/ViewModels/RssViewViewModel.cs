@@ -7,6 +7,7 @@ using RSSViewer.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -19,6 +20,7 @@ namespace RSSViewer.ViewModels
         private CancelableTaskScheduler _searchScheduler = new CancelableTaskScheduler();
         private string _searchText = string.Empty;
         private RssItemGroupViewModel _selectedGroup;
+        private string _statusText;
 
         public RssViewViewModel()
         {
@@ -27,10 +29,10 @@ namespace RSSViewer.ViewModels
 
         public string SearchText
         {
-            get => _searchText;
+            get => this._searchText;
             set
             {
-                if (this.ChangeModelProperty(ref _searchText, value))
+                if (this.ChangeModelProperty(ref this._searchText, value))
                 {
                     _ = this.SearchAsync();
                 }
@@ -43,10 +45,16 @@ namespace RSSViewer.ViewModels
 
         public ObservableCollection<RssItemGroupViewModel> Groups { get; } = new ObservableCollection<RssItemGroupViewModel>();
 
-        public RssItemGroupViewModel SelectedGroup 
-        { 
-            get => _selectedGroup;
-            set => this.ChangeModelProperty(ref _selectedGroup, value);
+        public string StatusText
+        {
+            get => this._statusText;
+            private set => this.ChangeModelProperty(ref this._statusText , value);
+        }
+
+        public RssItemGroupViewModel SelectedGroup
+        {
+            get => this._selectedGroup;
+            set => this.ChangeModelProperty(ref this._selectedGroup, value);
         }
 
         public async Task SearchAsync()
@@ -64,9 +72,12 @@ namespace RSSViewer.ViewModels
         {
             searchText = searchText.Trim();
 
-            await App.RSSViewerHost.SyncAsync();
+            var sc = App.RSSViewerHost.ServiceProvider.GetRequiredService<SyncService>();
+            await sc.SyncAsync();
+
             token.ThrowIfCancellationRequested();
 
+            var sw = Stopwatch.StartNew();
             var states = this.IncludeView.GetStateValues();
 
             var items = await App.RSSViewerHost.Query().SearchAsync(searchText, states, token);
@@ -96,7 +107,7 @@ namespace RSSViewer.ViewModels
                         return false;
                     }
                     return true;
-                }).Select(z => 
+                }).Select(z =>
                 {
                     var gvm = new RssItemGroupViewModel { DisplayName = z.Key };
                     gvm.Items.AddRange(z.Value.Select(x => new RssItemViewModel(x)));
@@ -110,6 +121,16 @@ namespace RSSViewer.ViewModels
             this.Groups.Clear();
             groups.ForEach(this.Groups.Add);
             this.SelectedGroup = groupAll;
+
+            sw.Stop();
+
+            var st = "";
+            if (sc.LastSyncElapsed.HasValue)
+            {
+                st += $"Last sync taked {sc.LastSyncElapsed.Value.TotalSeconds}s, ";
+            }
+            st += $"last query taked {sw.Elapsed.TotalSeconds}s, ";
+            this.StatusText = st;
         }
 
         public async Task AcceptAsync(RssItemViewModel[] items, IAcceptHandler handler)

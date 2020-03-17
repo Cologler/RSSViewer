@@ -5,6 +5,7 @@ using RSSViewer.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -25,10 +26,13 @@ namespace RSSViewer.Services
             this._task = new ExpirableNPTask(TimeSpan.FromMinutes(10), this.SyncCore);
         }
 
+        public TimeSpan? LastSyncElapsed { get; private set; }
+
         public Task SyncAsync() => this._task.RunAsync();
 
         private async Task SyncCore()
         {
+            var sw = Stopwatch.StartNew();
             using (var scope = this._serviceProvider.CreateScope())
             {
                 var sources = scope.ServiceProvider.GetRequiredService<SyncSourceManager>().GetSyncSources();
@@ -43,6 +47,8 @@ namespace RSSViewer.Services
             }
 
             this.OnSynced?.Invoke();
+            sw.Stop();
+            this.LastSyncElapsed = sw.Elapsed;
         }
 
         public Task SyncAsync(ISyncSource syncSource)
