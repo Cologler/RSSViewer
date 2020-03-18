@@ -67,7 +67,7 @@ namespace RSSViewer
                 .AddTransient<IKeywordsFinder, TitleKeywordsFinder>()
                 .AddTransient<IKeywordsFinder, MagnetLinkKeywordsFinder>()
                 .AddTransient<StringMatcherFactory>()
-                .AddSingleton<ISyncSourceProvider, RssFetcherSyncSourceProvider>()
+                .AddRssFetcher()
                 ;
             return sc;
         }

@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace RSSViewer.Provider.RssFetcher
 {
-    public class RssFetcherSyncSourceProvider : ISyncSourceProvider
+    class RssFetcherSyncSourceProvider : ISyncSourceProvider
     {
         private static readonly VariableInfo[] VariableInfos = VariablesHelper.GetVariableInfos(typeof(RssFetcherSyncSource));
 
