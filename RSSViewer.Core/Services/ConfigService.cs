@@ -1,4 +1,5 @@
 ﻿using RSSViewer.Configuration;
+using RSSViewer.Utils;
 using System;
 using System.IO;
 using System.Text;
@@ -39,12 +40,13 @@ namespace RSSViewer.Services
         {
             var jso = new JsonSerializerOptions
             {
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                IgnoreNullValues = true
             };
 
             lock (this._syncRoot)
             {
-                File.WriteAllText(this._appConfPath, JsonSerializer.Serialize(this.AppConf, jso));
+                FileSystemAtomicOperations.Write(this._appConfPath, JsonSerializer.Serialize(this.AppConf, jso));
             }
             
             this.OnAppConfChanged?.Invoke(this.AppConf);
