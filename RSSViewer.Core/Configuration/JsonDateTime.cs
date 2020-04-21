@@ -14,9 +14,17 @@ namespace RSSViewer.Configuration
             set => this.Ticks = value.Ticks;
         }
 
-        public static implicit operator JsonDateTime(DateTime dateTime) => new JsonDateTime
+        public static implicit operator JsonDateTime(DateTime? dateTime)
         {
-            DateTime = dateTime.ToUniversalTime()
-        };
+            if (dateTime == null)
+                return null;
+
+            return new JsonDateTime
+            {
+                DateTime = dateTime.Value.ToUniversalTime()
+            };
+        }
+
+        public static implicit operator DateTime?(JsonDateTime dateTime) => dateTime?.DateTime;
     }
 }
