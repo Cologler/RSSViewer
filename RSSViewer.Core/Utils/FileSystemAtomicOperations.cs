@@ -19,6 +19,7 @@ namespace RSSViewer.Utils
                 using (var fs = File.OpenWrite(tmp))
                 {
                     stream.CopyTo(fs);
+                    fs.Flush(true);
                 }
             }
             catch (Exception)
