@@ -1,4 +1,4 @@
-﻿<Window x:Class="RSSViewer.Windows.EditStringMatcherWindow"
+﻿<Window xmlns:Controls="clr-namespace:RSSViewer.Controls"  x:Class="RSSViewer.Windows.EditStringMatcherWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Edit Rule"
         Height="400"
-        Width="700"
+        Width="360"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="4">
@@ -30,120 +30,128 @@
         </Grid.Resources>
 
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280"></ColumnDefinition>
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            
-            <StackPanel Margin="8,0">
-                <StackPanel.Resources>
-                    
-                    <Style TargetType="RadioButton">
-                        <Setter Property="Margin"
-                                Value="0,3" />
-                    </Style>
-                    <Style TargetType="CheckBox">
-                        <Setter Property="Margin"
-                                Value="0,3" />
-                    </Style>
-                </StackPanel.Resources>
-                
-                <TextBlock Text="Mode"
-                           Style="{StaticResource HeaderStyle}" />
+            <TabControl>
+                <TabItem Header="Default">
+                    <Grid>
+                        <StackPanel Margin="8,0">
+                            <StackPanel.Resources>
 
-                <ComboBox Width="140"
-                          HorizontalAlignment="Left"
-                          x:Name="SelectModeComboBox"
-                          SelectionChanged="SelectModeComboBox_SelectionChanged">
-                    <ComboBox.Items>
-                        <ComboBoxItem Content="Contains" />
-                        <ComboBoxItem Content="StartsWith" />
-                        <ComboBoxItem Content="EndsWith" />
-                        <ComboBoxItem Content="Wildcard" />
-                        <ComboBoxItem Content="Regex" />
-                    </ComboBox.Items>
-                </ComboBox>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Margin"
+                                            Value="0,3" />
+                                </Style>
+                                <Style TargetType="CheckBox">
+                                    <Setter Property="Margin"
+                                            Value="0,3" />
+                                </Style>
+                            </StackPanel.Resources>
 
-                <Separator Margin="6" />
+                            <TextBlock Text="Mode"
+                                       Style="{StaticResource HeaderStyle}" />
 
-                <TextBlock Text="Value"
-                           Style="{StaticResource HeaderStyle}" />
+                            <ComboBox Width="140"
+                                      HorizontalAlignment="Left"
+                                      x:Name="SelectModeComboBox"
+                                      SelectionChanged="SelectModeComboBox_SelectionChanged">
+                                <ComboBox.Items>
+                                    <ComboBoxItem Content="Contains" />
+                                    <ComboBoxItem Content="StartsWith" />
+                                    <ComboBoxItem Content="EndsWith" />
+                                    <ComboBoxItem Content="Wildcard" />
+                                    <ComboBoxItem Content="Regex" />
+                                </ComboBox.Items>
+                            </ComboBox>
 
-                <TextBox Height="19"
-                         x:Name="MatchValueTextBox"/>
+                            <Separator Margin="6" />
 
-                <Separator Margin="6" />
+                            <TextBlock Text="Value"
+                                       Style="{StaticResource HeaderStyle}" />
 
-                <StackPanel x:Name="StringComparisonPanel" 
-                            Visibility="Collapsed">
-                    <TextBlock Text="String Comparison Options"
-                               Style="{StaticResource HeaderStyle}" />
+                            <TextBox Height="19"
+                                     x:Name="MatchValueTextBox" />
 
-                    <RadioButton Content="CurrentCulture"
-                                 Grid.Column="0" />
-                    <RadioButton Content="CurrentCultureIgnoreCase"
-                                 Grid.Column="1" />
-                    <RadioButton Content="InvariantCulture"
-                                 Grid.Column="2" />
-                    <RadioButton Content="InvariantCultureIgnoreCase"
-                                 Grid.Column="0"
-                                 Grid.Row="1" />
-                    <RadioButton Content="Ordinal"
-                                 Grid.Column="1"
-                                 Grid.Row="1" />
-                    <RadioButton Content="OrdinalIgnoreCase"
-                                 Grid.Column="2"
-                                 Grid.Row="1" />
-                </StackPanel>
+                            <Separator Margin="6" />
 
-                <StackPanel x:Name="RegexOptionsPanel">
-                    <TextBlock Text="Regex Options"
-                               Style="{StaticResource HeaderStyle}" />
+                            <StackPanel x:Name="StringComparisonPanel"
+                                        Visibility="Collapsed">
+                                <TextBlock Text="String Comparison Options"
+                                           Style="{StaticResource HeaderStyle}" />
 
-                    <CheckBox Content="IgnoreCase" />
-                    <CheckBox Content="Multiline" />
-                    <CheckBox Content="ExplicitCapture" />
-                    <CheckBox Content="Compiled" />
-                    <CheckBox Content="Singleline" />
-                    <CheckBox Content="IgnorePatternWhitespace" />
-                    <CheckBox Content="RightToLeft" />
-                    <CheckBox Content="ECMAScript" />
-                    <CheckBox Content="CultureInvariant" />
-                </StackPanel>
+                                <RadioButton Content="CurrentCulture"
+                                             Grid.Column="0" />
+                                <RadioButton Content="CurrentCultureIgnoreCase"
+                                             Grid.Column="1" />
+                                <RadioButton Content="InvariantCulture"
+                                             Grid.Column="2" />
+                                <RadioButton Content="InvariantCultureIgnoreCase"
+                                             Grid.Column="0"
+                                             Grid.Row="1" />
+                                <RadioButton Content="Ordinal"
+                                             Grid.Column="1"
+                                             Grid.Row="1" />
+                                <RadioButton Content="OrdinalIgnoreCase"
+                                             Grid.Column="2"
+                                             Grid.Row="1" />
+                            </StackPanel>
 
-            </StackPanel>
+                            <StackPanel x:Name="RegexOptionsPanel">
+                                <TextBlock Text="Regex Options"
+                                           Style="{StaticResource HeaderStyle}" />
 
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
+                                <CheckBox Content="IgnoreCase" />
+                                <CheckBox Content="Multiline" />
+                                <CheckBox Content="ExplicitCapture" />
+                                <CheckBox Content="Compiled" />
+                                <CheckBox Content="Singleline" />
+                                <CheckBox Content="IgnorePatternWhitespace" />
+                                <CheckBox Content="RightToLeft" />
+                                <CheckBox Content="ECMAScript" />
+                                <CheckBox Content="CultureInvariant" />
+                            </StackPanel>
 
-                <Button Content="Run Test"
-                        HorizontalAlignment="Left"
-                        Margin="0,0,0,6"
-                        Padding="4,2"
-                        x:Name="RunTestButton" 
-                        Click="RunTestButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
 
-                <TextBlock Text="Matched in Undecided:"
-                           Style="{StaticResource HeaderStyle}"
-                           Grid.Row="1"/>
+                <TabItem Header="Lifetime">
+                    <Controls:LifeTimeControl x:Name="LifeTimeControl" />
+                </TabItem>
 
-                <ListView Grid.Row="2"
-                          x:Name="MatchedRssItemsListView">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <TextBlock Text="{Binding Title}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Grid>
-            
+                <TabItem Header="Test">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <Button Content="Run Test"
+                                HorizontalAlignment="Left"
+                                Margin="0,0,0,6"
+                                Padding="4,2"
+                                x:Name="RunTestButton"
+                                Click="RunTestButton_Click" />
+
+                        <TextBlock Text="Matched in Undecided:"
+                                   Style="{StaticResource HeaderStyle}"
+                                   Grid.Row="1" />
+
+                        <ListView Grid.Row="2"
+                                  x:Name="MatchedRssItemsListView">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <TextBlock Text="{Binding Title}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+                </TabItem>
+            </TabControl>
         </Grid>
+
+        
 
         <Grid Grid.Row="1"
               HorizontalAlignment="Right"

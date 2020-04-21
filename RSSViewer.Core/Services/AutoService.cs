@@ -23,10 +23,27 @@ namespace RSSViewer.Services
             configService.OnAppConfChanged += this.Reload;
         }
 
+        private static bool IsEnable(MatchStringConf conf, DateTime now)
+        {
+            if (conf.ExpiredAt != null && conf.ExpiredAt.DateTime > now)
+            {
+                return false;
+            }
+
+            if (conf.DisableAt != null && conf.DisableAt.DateTime > now)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         void Reload(AppConf conf)
         {
+            var now = DateTime.UtcNow;
             var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
             this._stringMatchers = conf.AutoReject.Matches
+                .Where(z => IsEnable(z, now))
                 .Select(z => factory.Create(z))
                 .ToImmutableArray();
         }

@@ -54,6 +54,16 @@ namespace RSSViewer.Windows
                     this.SelectedRegexOptions = (RegexOptions)conf.MatchOptions;
                     break;
             }
+
+            if (conf.DisableAt != null)
+            {
+                this.LifeTimeControl.SelectedDisableAt = conf.DisableAt.DateTime;
+            }
+
+            if (conf.ExpiredAt != null)
+            {
+                this.LifeTimeControl.SelectedExpiredAt = conf.ExpiredAt.DateTime;
+            }
         }
 
         public void WriteToConf(MatchStringConf conf)
@@ -71,6 +81,16 @@ namespace RSSViewer.Windows
                     conf.MatchOptions = (int)this.SelectedRegexOptions;
                     break;
             }
+
+            if (this.LifeTimeControl.SelectedDisableAt is DateTime da)
+            {
+                conf.DisableAt = da;
+            } 
+
+            if (this.LifeTimeControl.SelectedExpiredAt is DateTime ea)
+            {
+                conf.ExpiredAt = ea;
+            } 
         }
 
         private void SelectModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

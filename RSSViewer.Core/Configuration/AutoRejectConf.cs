@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RSSViewer.Configuration
 {
@@ -8,7 +10,11 @@ namespace RSSViewer.Configuration
 
         public void Upgrade()
         {
-            _ = this.Matches ?? (this.Matches = new List<MatchStringConf>());
+            var now = DateTime.UtcNow;
+            var matches = this.Matches ?? (this.Matches = new List<MatchStringConf>());
+            this.Matches = matches
+                .Where(z => z.ExpiredAt is null || z.ExpiredAt.DateTime > now)
+                .ToList();
         }
     }
 }

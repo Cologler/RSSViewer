@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+using System;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
@@ -11,6 +12,10 @@ namespace RSSViewer.Configuration
         public string MatchValue { get; set; }
 
         public int MatchOptions { get; set; }
+
+        public JsonDateTime ExpiredAt { get; set; }
+
+        public JsonDateTime DisableAt { get; set; }
 
         [JsonIgnore]
         public StringComparison AsStringComparison
