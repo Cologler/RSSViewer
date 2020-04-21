@@ -13,7 +13,7 @@ namespace RSSViewer.Configuration
             var now = DateTime.UtcNow;
             var matches = this.Matches ?? (this.Matches = new List<MatchStringConf>());
             this.Matches = matches
-                .Where(z => z.ExpiredAt is null || z.ExpiredAt.DateTime > now)
+                .Where(z => z.ExpiredAt is null || z.ExpiredAt.Value > now)
                 .ToList();
         }
     }

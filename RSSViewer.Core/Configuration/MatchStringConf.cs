@@ -13,9 +13,9 @@ namespace RSSViewer.Configuration
 
         public int MatchOptions { get; set; }
 
-        public JsonDateTime ExpiredAt { get; set; }
+        public DateTime? ExpiredAt { get; set; }
 
-        public JsonDateTime DisableAt { get; set; }
+        public DateTime? DisableAt { get; set; }
 
         [JsonIgnore]
         public StringComparison AsStringComparison

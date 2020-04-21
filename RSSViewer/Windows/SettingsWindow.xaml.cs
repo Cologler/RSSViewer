@@ -25,7 +25,12 @@ namespace RSSViewer.Windows
             InitializeComponent();
             var vm = new SettingsViewModel();
             vm.Load();
-            this.DataContext = vm;
+            this.Load(vm);
+        }
+
+        private void Load(SettingsViewModel settingsViewModel)
+        {
+            this.DataContext = settingsViewModel;
         }
 
         internal SettingsViewModel ViewModel => (SettingsViewModel)this.DataContext;

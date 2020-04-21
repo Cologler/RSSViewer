@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Configuration;
 using RSSViewer.LocalDb;
+using RSSViewer.Services;
 using RSSViewer.StringMatchers;
 using System;
 using System.Collections.Generic;
@@ -57,12 +58,12 @@ namespace RSSViewer.Windows
 
             if (conf.DisableAt != null)
             {
-                this.LifeTimeControl.SelectedDisableAt = conf.DisableAt.DateTime;
+                this.LifeTimeControl.SelectedDisableAt = conf.DisableAt.Value;
             }
 
             if (conf.ExpiredAt != null)
             {
-                this.LifeTimeControl.SelectedExpiredAt = conf.ExpiredAt.DateTime;
+                this.LifeTimeControl.SelectedExpiredAt = conf.ExpiredAt.Value;
             }
         }
 
@@ -217,20 +218,10 @@ namespace RSSViewer.Windows
 
         internal static bool TryCreateConf(Window owner, out MatchStringConf conf)
         {
-            conf = new MatchStringConf
-            {
-                MatchMode = MatchStringMode.Contains,
-                AsStringComparison = StringComparison.OrdinalIgnoreCase,
-                MatchValue = string.Empty
-            };
-            var win = new EditStringMatcherWindow { Owner = owner };
-            win.LoadFromConf(conf);
-            if (win.ShowDialog() == true)
-            {
-                win.WriteToConf(conf);
-                return true;
-            }
-            return false;
+            conf = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>()
+                .CreateMatchStringConf();
+
+            return EditConf(owner, conf);
         }
 
         internal static bool EditConf(Window owner, MatchStringConf conf)

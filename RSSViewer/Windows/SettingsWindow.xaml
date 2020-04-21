@@ -1,4 +1,4 @@
-﻿<Window x:Class="RSSViewer.Windows.SettingsWindow"
+﻿<Window xmlns:Controls="clr-namespace:RSSViewer.Controls"  x:Class="RSSViewer.Windows.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -20,10 +20,26 @@
                 <Setter Property="MinWidth"
                         Value="62" />
             </Style>
+            <Style TargetType="TextBlock"
+                   x:Key="ItemHeader">
+                <Setter Property="FontSize"
+                        Value="14" />
+                <Setter Property="Margin"
+                        Value="0,0,0,6" />
+            </Style>
         </Grid.Resources>
         
         <Grid>
             <TabControl>
+                <TabItem Header="Defaults">
+                    <Grid>
+                        <StackPanel>
+                            <TextBlock Text="Auto reject rules life time:"
+                                       Style="{StaticResource ItemHeader}"/>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+                
                 <TabItem Header="Auto Reject"
                          DataContext="{Binding AutoRejectView}">
                     <Grid>

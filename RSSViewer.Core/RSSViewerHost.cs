@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
+using RSSViewer.Json;
 using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
 using RSSViewer.Provider.RssFetcher;
@@ -10,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -69,6 +71,9 @@ namespace RSSViewer
                 .AddTransient<StringMatcherFactory>()
                 .AddRssFetcher()
                 ;
+
+            sc.AddSingleton<JsonConverter, TimeSpanConverter>();
+
             return sc;
         }
     }

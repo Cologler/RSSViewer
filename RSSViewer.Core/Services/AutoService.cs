@@ -11,7 +11,6 @@ namespace RSSViewer.Services
 {
     public class AutoService
     {
-        private readonly object _syncRoot = new object();
         private readonly IServiceProvider _serviceProvider;
         private ImmutableArray<IStringMatcher> _stringMatchers;
 
@@ -25,12 +24,12 @@ namespace RSSViewer.Services
 
         private static bool IsEnable(MatchStringConf conf, DateTime now)
         {
-            if (conf.ExpiredAt != null && conf.ExpiredAt.DateTime > now)
+            if (conf.ExpiredAt != null && conf.ExpiredAt.Value < now)
             {
                 return false;
             }
 
-            if (conf.DisableAt != null && conf.DisableAt.DateTime > now)
+            if (conf.DisableAt != null && conf.DisableAt.Value < now)
             {
                 return false;
             }

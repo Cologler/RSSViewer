@@ -125,12 +125,11 @@ namespace RSSViewer
             var kw = kws.GetKeywords(vm.RssItem);
             if (StringsPickerWindow.TryPickString(this, kw, out var text))
             {
-                var conf = new MatchStringConf
-                {
-                    MatchMode = MatchStringMode.Contains,
-                    AsStringComparison = StringComparison.OrdinalIgnoreCase,
-                    MatchValue = text,
-                };
+                var conf = sp.GetRequiredService<ConfigService>()
+                    .CreateMatchStringConf();
+                conf.MatchMode = MatchStringMode.Contains;
+                conf.AsStringComparison = StringComparison.OrdinalIgnoreCase;
+                conf.MatchValue = text;
 
                 if (EditStringMatcherWindow.EditConf(this, conf))
                 {
