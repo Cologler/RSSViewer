@@ -24,6 +24,14 @@ namespace RSSViewer.ViewModels
             : Visibility.Collapsed;
 
         [ModelProperty]
-        public string Title => this.RssItem.Title;
+        public string Title
+        {
+            get
+            {
+                if (this.RssItem.FeedId is null)
+                    return this.RssItem.Title;
+                return $"{this.RssItem.Title} ({this.RssItem.FeedId})";
+            }
+        }
     }
 }
