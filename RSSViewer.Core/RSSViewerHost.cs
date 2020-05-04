@@ -7,6 +7,7 @@ using RSSViewer.LocalDb;
 using RSSViewer.Provider.RssFetcher;
 using RSSViewer.Services;
 using RSSViewer.StringMatchers;
+using RSSViewer.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,6 +71,7 @@ namespace RSSViewer
                 .AddTransient<IKeywordsFinder, MagnetLinkKeywordsFinder>()
                 .AddTransient<StringMatcherFactory>()
                 .AddRssFetcher()
+                .AddSingleton<IViewerLogger, NoneViewerLogger>()
                 ;
 
             sc.AddSingleton<JsonConverter, TimeSpanConverter>();

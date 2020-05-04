@@ -16,13 +16,15 @@ namespace RSSViewer.Services
     public class SyncService
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IViewerLogger _viewerLogger;
         private readonly NPTask _task;
 
         public event Action OnSynced;
 
-        public SyncService(IServiceProvider serviceProvider)
+        public SyncService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
             this._serviceProvider = serviceProvider;
+            this._viewerLogger = viewerLogger;
             this._task = new ExpirableNPTask(TimeSpan.FromMinutes(10), this.SyncCore);
         }
 
@@ -49,6 +51,8 @@ namespace RSSViewer.Services
             this.OnSynced?.Invoke();
             sw.Stop();
             this.LastSyncElapsed = sw.Elapsed;
+
+            this._viewerLogger.AddLine($"Synced source takes {sw.Elapsed.TotalSeconds}s.");
         }
 
         public Task SyncAsync(ISyncSource syncSource)

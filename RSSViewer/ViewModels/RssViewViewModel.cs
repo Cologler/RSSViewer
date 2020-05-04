@@ -4,7 +4,6 @@ using RSSViewer.Abstractions;
 using RSSViewer.AcceptHandlers;
 using RSSViewer.Services;
 using RSSViewer.Utils;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -25,6 +24,7 @@ namespace RSSViewer.ViewModels
         public RssViewViewModel()
         {
             this.Analytics = new AnalyticsViewModel(this);
+            this.LoggerMessage = App.RSSViewerHost.ServiceProvider.GetRequiredService<ViewerLoggerViewModel>();
         }
 
         public string SearchText
@@ -42,6 +42,8 @@ namespace RSSViewer.ViewModels
         public IncludeViewModel IncludeView { get; } = new IncludeViewModel();
 
         public AnalyticsViewModel Analytics { get; }
+
+        public ViewerLoggerViewModel LoggerMessage { get; }
 
         public ObservableCollection<RssItemGroupViewModel> Groups { get; } = new ObservableCollection<RssItemGroupViewModel>();
 
@@ -123,14 +125,7 @@ namespace RSSViewer.ViewModels
             this.SelectedGroup = groupAll;
 
             sw.Stop();
-
-            var st = "";
-            if (sc.LastSyncElapsed.HasValue)
-            {
-                st += $"Last sync taked {sc.LastSyncElapsed.Value.TotalSeconds}s, ";
-            }
-            st += $"last query taked {sw.Elapsed.TotalSeconds}s, ";
-            this.StatusText = st;
+            this.LoggerMessage.AddLine($"Query \"{searchText}\" takes {sw.Elapsed.TotalSeconds}s.");
         }
 
         public async Task AcceptAsync(RssItemViewModel[] items, IAcceptHandler handler)

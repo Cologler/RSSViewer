@@ -2,6 +2,7 @@
 using RSSViewer.Abstractions;
 using RSSViewer.AcceptHandlers;
 using RSSViewer.Provider.RssFetcher;
+using RSSViewer.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -24,7 +25,9 @@ namespace RSSViewer
             base.OnStartup(e);
 
             var sc = RSSViewerHost.CreateServices()
-                .AddTransient<IAcceptHandler, CopyMagnetLinkAcceptHandler>();
+                .AddTransient<IAcceptHandler, CopyMagnetLinkAcceptHandler>()
+                .AddSingleton<ViewerLoggerViewModel>()
+                .AddSingleton<IViewerLogger>(p => p.GetRequiredService<ViewerLoggerViewModel>());
             RSSViewerHost = new RSSViewerHost(sc);
         }
     }
