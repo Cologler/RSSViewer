@@ -28,8 +28,6 @@ namespace RSSViewer.Services
             this._task = new ExpirableNPTask(TimeSpan.FromMinutes(10), this.SyncCore);
         }
 
-        public TimeSpan? LastSyncElapsed { get; private set; }
-
         public Task SyncAsync() => this._task.RunAsync();
 
         private async Task SyncCore()
@@ -48,11 +46,11 @@ namespace RSSViewer.Services
                 ctx.SaveChanges();
             }
 
-            this.OnSynced?.Invoke();
             sw.Stop();
-            this.LastSyncElapsed = sw.Elapsed;
 
             this._viewerLogger.AddLine($"Synced source takes {sw.Elapsed.TotalSeconds}s.");
+
+            this.OnSynced?.Invoke();
         }
 
         public Task SyncAsync(ISyncSource syncSource)

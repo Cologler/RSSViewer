@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
 using RSSViewer.LocalDb;
 using RSSViewer.StringMatchers;
@@ -12,11 +13,13 @@ namespace RSSViewer.Services
     public class AutoService
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IViewerLogger _viewerLogger;
         private ImmutableArray<IStringMatcher> _stringMatchers;
 
-        public AutoService(IServiceProvider serviceProvider)
+        public AutoService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
             this._serviceProvider = serviceProvider;
+            this._viewerLogger = viewerLogger;
             var configService = this._serviceProvider.GetRequiredService<ConfigService>();
             this.Reload(configService.AppConf);
             configService.OnAppConfChanged += this.Reload;
@@ -63,6 +66,8 @@ namespace RSSViewer.Services
                 .ToArray();
 
             operation.ChangeState(shouldReject, RssItemState.Rejected);
+
+            this._viewerLogger.AddLine($"Rejected {shouldReject.Length} items from {items.Length} undecided items.");
         }
 
         public Task AutoRejectAsync() => Task.Run(this.AutoReject);
