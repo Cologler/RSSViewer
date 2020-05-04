@@ -3,6 +3,7 @@ using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
 using RSSViewer.LocalDb;
 using RSSViewer.StringMatchers;
+using RSSViewer.Utils;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -52,22 +53,25 @@ namespace RSSViewer.Services
 
         internal void AutoReject()
         {
-            var stringMatchers = this._stringMatchers;
-            if (stringMatchers.Length == 0)
-                return;
+            using (this._viewerLogger.EnterEvent("Auto reject"))
+            {
+                var stringMatchers = this._stringMatchers;
+                if (stringMatchers.Length == 0)
+                    return;
 
-            var query = this._serviceProvider.GetRequiredService<RssItemsQueryService>();
-            var operation = this._serviceProvider.GetRequiredService<RssItemsOperationService>();
+                var query = this._serviceProvider.GetRequiredService<RssItemsQueryService>();
+                var operation = this._serviceProvider.GetRequiredService<RssItemsOperationService>();
 
-            var items = query.List(new[] { RssItemState.Undecided });
+                var items = query.List(new[] { RssItemState.Undecided });
 
-            var shouldReject = items
-                .Where(i => stringMatchers.Any(z => z.IsMatch(i.Title)))
-                .ToArray();
+                var shouldReject = items
+                    .Where(i => stringMatchers.Any(z => z.IsMatch(i.Title)))
+                    .ToArray();
 
-            operation.ChangeState(shouldReject, RssItemState.Rejected);
+                operation.ChangeState(shouldReject, RssItemState.Rejected);
 
-            this._viewerLogger.AddLine($"Rejected {shouldReject.Length} items from {items.Length} undecided items.");
+                this._viewerLogger.AddLine($"Rejected {shouldReject.Length} items from {items.Length} undecided items.");
+            }                
         }
 
         public Task AutoRejectAsync() => Task.Run(this.AutoReject);

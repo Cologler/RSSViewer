@@ -32,23 +32,21 @@ namespace RSSViewer.Services
 
         private async Task SyncCore()
         {
-            var sw = Stopwatch.StartNew();
-            using (var scope = this._serviceProvider.CreateScope())
+            using (this._viewerLogger.EnterEvent("Synced sources"))
             {
-                var sources = scope.ServiceProvider.GetRequiredService<SyncSourceManager>().GetSyncSources();
-                var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-                var syncInfoTable = ctx.SyncSourceInfos.ToDictionary(z => z.SyncSourceId);
-                foreach (var source in sources)
+                using (var scope = this._serviceProvider.CreateScope())
                 {
-                    var syncInfo = syncInfoTable.GetValueOrDefault(source.SyncSourceId);
-                    await SyncCoreAsync(ctx, source, syncInfo, CancellationToken.None).ConfigureAwait(false);
+                    var sources = scope.ServiceProvider.GetRequiredService<SyncSourceManager>().GetSyncSources();
+                    var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
+                    var syncInfoTable = ctx.SyncSourceInfos.ToDictionary(z => z.SyncSourceId);
+                    foreach (var source in sources)
+                    {
+                        var syncInfo = syncInfoTable.GetValueOrDefault(source.SyncSourceId);
+                        await SyncCoreAsync(ctx, source, syncInfo, CancellationToken.None).ConfigureAwait(false);
+                    }
+                    ctx.SaveChanges();
                 }
-                ctx.SaveChanges();
             }
-
-            sw.Stop();
-
-            this._viewerLogger.AddLine($"Synced source takes {sw.Elapsed.TotalSeconds}s.");
 
             this.OnSynced?.Invoke();
         }
