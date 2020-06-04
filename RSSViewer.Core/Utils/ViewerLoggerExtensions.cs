@@ -1,4 +1,5 @@
-﻿using RSSViewer.Abstractions;
+﻿
+using RSSViewer.Abstractions;
 
 namespace RSSViewer.Utils
 {
