@@ -35,7 +35,7 @@ namespace RSSViewer
             InitializeComponent();
 
             var sp = App.RSSViewerHost.ServiceProvider;
-            foreach (var handler in sp.GetServices<IAcceptHandler>())
+            foreach (var handler in sp.GetRequiredService<AcceptHandlerService>().GetAcceptHandlers())
             {
                 this.GroupsAcceptMenuItem.Items.Add(new MenuItem
                 {

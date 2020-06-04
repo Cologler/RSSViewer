@@ -62,6 +62,18 @@ namespace RSSViewer.Utils
                 return true;
             }
 
+            if (type == typeof(int) && int.TryParse(value, out var r))
+            {
+                result = r;
+                return true;
+            }
+
+            if (type == typeof(bool) && bool.TryParse(value, out var b))
+            {
+                result = b;
+                return true;
+            }
+
             result = null;
             return false;
         }

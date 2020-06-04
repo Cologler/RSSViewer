@@ -5,9 +5,13 @@ using RSSViewer.Json;
 using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
 using RSSViewer.Provider.RssFetcher;
+using RSSViewer.Provider.Synology;
 using RSSViewer.Services;
 using RSSViewer.StringMatchers;
 using RSSViewer.Utils;
+
+using Synology;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,6 +63,7 @@ namespace RSSViewer
                 .AddSingleton<RssItemsQueryService>()
                 .AddSingleton<RssItemsOperationService>()
                 .AddSingleton<SyncService>()
+                .AddSingleton<AcceptHandlerService>()
                 .AddSingleton<AutoService>()
                 .AddSingleton<ConfigService>()
                 .AddSingleton<GroupService>()
@@ -71,6 +76,7 @@ namespace RSSViewer
                 .AddTransient<IKeywordsFinder, MagnetLinkKeywordsFinder>()
                 .AddTransient<StringMatcherFactory>()
                 .AddRssFetcher()
+                .AddSynologyProvider()
                 .AddSingleton<IViewerLogger, NoneViewerLogger>()
                 ;
 

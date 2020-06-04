@@ -2,18 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>RSSViewer</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.4" />
+    <PackageReference Include="Synology" Version="0.6.52" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\RSSViewer.Abstractions\RSSViewer.Abstractions.csproj" />
-    <ProjectReference Include="..\RSSViewer.Provider.RssFetcher\RSSViewer.Provider.RssFetcher.csproj" />
-    <ProjectReference Include="..\RSSViewer.Provider.Synology\RSSViewer.Provider.Synology.csproj" />
   </ItemGroup>
 
 </Project>
