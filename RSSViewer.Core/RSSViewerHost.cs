@@ -1,6 +1,4 @@
-﻿using Jasily.EF.MigrationHistoryBuilder;
-
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
 using RSSViewer.Json;
