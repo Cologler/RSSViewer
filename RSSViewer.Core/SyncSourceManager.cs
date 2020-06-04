@@ -20,8 +20,8 @@ namespace RSSViewer
             this._serviceProvider = serviceProvider;
             this._sourceProviders = serviceProvider.GetServices<ISyncSourceProvider>().ToDictionary(z => z.ProviderName);
             var configService = serviceProvider.GetRequiredService<ConfigService>();
-            this.Reload(configService.AppConf);
             configService.OnAppConfChanged += this.Reload;
+            this.Reload(configService.AppConf);
         }
 
         void Reload(AppConf conf)
