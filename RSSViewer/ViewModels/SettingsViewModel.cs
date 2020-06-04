@@ -4,6 +4,7 @@ using RSSViewer.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
@@ -13,20 +14,19 @@ namespace RSSViewer.ViewModels
 
         public DefaultsViewModel DefaultsView { get; } = new DefaultsViewModel();
 
-        public void Load()
+        public async Task Load()
         {
-            var conf = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>().AppConf;
-            this.AutoRejectView.Load(conf);
-            this.DefaultsView.Load(conf);
+            var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
+            this.DefaultsView.Load(configService.AppConf);
+            await this.AutoRejectView.Load(configService);
         }
 
         internal void Save()
         {
-            var confService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
-            var conf = confService.AppConf;
-            this.AutoRejectView.Save(conf);
-            this.DefaultsView.Save(conf);
-            confService.Save();
+            var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
+            this.AutoRejectView.Save(configService);
+            this.DefaultsView.Save(configService.AppConf);
+            configService.Save();
         }
 
         public class DefaultsViewModel

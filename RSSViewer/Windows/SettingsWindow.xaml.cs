@@ -24,7 +24,7 @@ namespace RSSViewer.Windows
         {
             InitializeComponent();
             var vm = new SettingsViewModel();
-            vm.Load();
+            _ = vm.Load();
             this.Load(vm);
         }
 
@@ -35,12 +35,12 @@ namespace RSSViewer.Windows
 
         internal SettingsViewModel ViewModel => (SettingsViewModel)this.DataContext;
 
-        private MatchStringConfViewModel[] SelectedAutoRejectMatches
+        private MatchRuleViewModel[] SelectedAutoRejectMatches
         {
             get
             {
                 return this.AutoRejectMatchesListView.SelectedItems
-                    .OfType<MatchStringConfViewModel>()
+                    .OfType<MatchRuleViewModel>()
                     .ToArray();
             }
             set
@@ -76,7 +76,7 @@ namespace RSSViewer.Windows
             if (vm == null)
                 return;
 
-            if (EditStringMatcherWindow.EditConf(this, vm.Conf))
+            if (EditStringMatcherWindow.EditConf(this, vm.MatchRule))
             {
                 vm.RefreshProperties();
             }

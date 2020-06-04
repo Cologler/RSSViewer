@@ -2,10 +2,14 @@
 using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
 using RSSViewer.LocalDb;
+using RSSViewer.RulesDb;
 using RSSViewer.StringMatchers;
 using RSSViewer.Utils;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,6 +17,7 @@ namespace RSSViewer.Services
 {
     public class AutoService
     {
+        private readonly object _syncRoot = new object();
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
         private ImmutableArray<IStringMatcher> _stringMatchers;
@@ -21,9 +26,61 @@ namespace RSSViewer.Services
         {
             this._serviceProvider = serviceProvider;
             this._viewerLogger = viewerLogger;
+
             var configService = this._serviceProvider.GetRequiredService<ConfigService>();
-            this.Reload(configService.AppConf);
-            configService.OnAppConfChanged += this.Reload;
+            configService.MatchRulesChanged += this.ConfigService_MatchRulesChanged;
+            this.OnUpdated(configService.ListMatchRules());
+        }
+
+        private void ConfigService_MatchRulesChanged(object sender, CollectionChangeEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case CollectionChangeAction.Add:
+                    this.OnAdded(e.Element as MatchRule);
+                    break;
+
+                case CollectionChangeAction.Remove:
+                    break;
+
+                case CollectionChangeAction.Refresh:
+                    this.OnUpdated(e.Element as IEnumerable<MatchRule>);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private void OnAdded(MatchRule rule)
+        {
+            if (rule is null) return;
+            if (rule.Action != MatchAction.Reject) return;
+
+            var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
+
+            var matcher = factory.Create(rule);
+
+            lock (this._syncRoot)
+            {
+                this._stringMatchers = this._stringMatchers.Add(matcher);
+            }
+        }
+
+        private void OnUpdated(IEnumerable<MatchRule> rules)
+        {
+            if (rules is null)
+                return;
+
+            var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
+            var matchers = rules.Where(z => z.Action == MatchAction.Reject)
+                .Select(z => factory.Create(z))
+                .ToArray();
+
+            lock (this._syncRoot)
+            {
+                this._stringMatchers = matchers.ToImmutableArray();
+            }
         }
 
         private static bool IsEnable(MatchStringConf conf, DateTime now)
@@ -39,16 +96,6 @@ namespace RSSViewer.Services
             }
 
             return true;
-        }
-
-        void Reload(AppConf conf)
-        {
-            var now = DateTime.UtcNow;
-            var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
-            this._stringMatchers = conf.AutoReject.Matches
-                .Where(z => IsEnable(z, now))
-                .Select(z => factory.Create(z))
-                .ToImmutableArray();
         }
 
         internal void AutoReject()

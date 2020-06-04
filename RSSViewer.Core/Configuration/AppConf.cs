@@ -10,8 +10,6 @@ namespace RSSViewer.Configuration
 
         public KeywordsConf Keywords { get; set; }
 
-        public AutoRejectConf AutoReject { get; set; }
-
         public Dictionary<string, SyncSourceConf> SyncSources { get; set; }
 
         public Dictionary<string, AcceptHandlerConf> AcceptHandlers { get; set; }
@@ -22,7 +20,6 @@ namespace RSSViewer.Configuration
         {
             (this.Group ?? (this.Group = new GroupConf())).Upgrade();
             (this.Keywords ?? (this.Keywords = new KeywordsConf())).Upgrade();
-            (this.AutoReject ?? (this.AutoReject = new AutoRejectConf())).Upgrade();
             if (this.SyncSources is null)
                 this.SyncSources = new Dictionary<string, SyncSourceConf>();
             if (AcceptHandlers is null)

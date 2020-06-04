@@ -1,37 +1,46 @@
 ﻿using Accessibility;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using RSSViewer.Configuration;
+using RSSViewer.RulesDb;
+using RSSViewer.Services;
+
 using SQLitePCL;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
     public class AutoRejectSettingsViewModel
     {
-        public ObservableCollection<MatchStringConfViewModel> Matches { get; } = new ObservableCollection<MatchStringConfViewModel>();
+        public ObservableCollection<MatchRuleViewModel> Matches { get; } = new ObservableCollection<MatchRuleViewModel>();
 
-        public void Load(AppConf conf)
+        public async Task Load(ConfigService configService)
         {
+            var rules = await configService.ListMatchRulesAsync().ConfigureAwait(false);
             this.Matches.Clear();
-            conf.AutoReject.Matches
-                .Select(z => new MatchStringConfViewModel(z))
+            rules.Select(z => new MatchRuleViewModel(z))
                 .ToList()
                 .ForEach(this.Matches.Add);
         }
 
-        internal void Add(MatchStringConf conf)
+        internal void Add(MatchRule conf)
         {
-            this.Matches.Add(new MatchStringConfViewModel(conf));
+            this.Matches.Add(new MatchRuleViewModel(conf));
         }
 
-        internal void Save(AppConf conf)
+        internal async void Save(ConfigService configService)
         {
-            conf.AutoReject.Matches = this.Matches.Select(z => z.Conf).ToList();
+            var rules = this.Matches.Select(z => z.MatchRule).ToArray();
+            for (var i = 0; i < rules.Length; i++)
+            {
+                rules[i].OrderCode = i + 1;
+            }
+            await configService.ReplaceMatchRulesAsync(rules);
         }
 
-        internal void MoveUp(IEnumerable<MatchStringConfViewModel> items)
+        internal void MoveUp(IEnumerable<MatchRuleViewModel> items)
         {
             var itemIndexes = items
                 .Select(z => this.Matches.IndexOf(z))
@@ -51,7 +60,7 @@ namespace RSSViewer.ViewModels
             }
         }
 
-        internal void MoveDown(IEnumerable<MatchStringConfViewModel> items)
+        internal void MoveDown(IEnumerable<MatchRuleViewModel> items)
         {
             var itemIndexes = items
                 .Select(z => this.Matches.IndexOf(z))

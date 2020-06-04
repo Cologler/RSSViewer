@@ -1,11 +1,16 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Configuration;
+using RSSViewer.RulesDb;
 using RSSViewer.Utils;
 using System;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace RSSViewer.Services
 {
@@ -16,11 +21,15 @@ namespace RSSViewer.Services
         private readonly object _syncRoot = new object();
         private readonly string _appConfPath;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
+        private readonly IServiceProvider _serviceProvider;
 
         public event Action<AppConf> OnAppConfChanged;
+        public event CollectionChangeEventHandler MatchRulesChanged;
 
         public ConfigService(IServiceProvider serviceProvider, AppDirService appDir)
         {
+            this._serviceProvider = serviceProvider;
+
             this._jsonSerializerOptions = new JsonSerializerOptions
             {
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -56,28 +65,101 @@ namespace RSSViewer.Services
             {
                 FileSystemAtomicOperations.Write(this._appConfPath, JsonSerializer.Serialize(this.AppConf, this._jsonSerializerOptions));
             }
-
+            
             this.OnAppConfChanged?.Invoke(this.AppConf);
         }
 
-        public MatchStringConf CreateMatchStringConf()
+        public MatchRule CreateMatchRule(MatchAction matchAction)
         {
-            var conf = new MatchStringConf
+            var rule = new MatchRule
             {
-                MatchMode = MatchStringMode.Contains,
-                AsStringComparison = StringComparison.OrdinalIgnoreCase,
-                MatchValue = string.Empty
+                Action = matchAction,
             };
-            if (this.AppConf.Defaults.AutoRejectRulesDisableAfter is TimeSpan da)
+
+            switch (matchAction)
             {
-                conf.DisableAt = DateTime.UtcNow + da;
-            }
-            if (this.AppConf.Defaults.AutoRejectRulesExpiredAfter is TimeSpan ea)
-            {
-                conf.ExpiredAt = DateTime.UtcNow + ea;
+                case MatchAction.Reject:
+                    rule.Mode = MatchMode.Contains;
+                    rule.OptionsAsStringComparison = StringComparison.OrdinalIgnoreCase;
+                    rule.Argument = string.Empty;
+                    rule.AutoDisabledAfterLastMatched = TimeSpan.FromDays(365 * 2);
+                    rule.AutoExpiredAfterLastMatched = TimeSpan.FromDays(365 * 4);
+                    break;
+
+                case MatchAction.Accept:
+                    break;
             }
 
-            return conf;
+            rule.LastMatched = DateTime.UtcNow;
+
+            return rule;
+        }
+
+        public async Task AddMatchRuleAsync(MatchRule matchRule)
+        {
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
+            ctx.Add(matchRule);
+            await ctx.SaveChangesAsync().ConfigureAwait(false);
+            this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Add, matchRule));
+        }
+
+        public async Task RemoveMatchRuleAsync(MatchRule matchRule)
+        {
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
+            ctx.Attach(matchRule);
+            ctx.Remove(matchRule);
+            await ctx.SaveChangesAsync().ConfigureAwait(false);
+            this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Remove, matchRule));
+        }
+
+        public async Task ReplaceMatchRulesAsync(MatchRule[] matchRules)
+        {
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
+            var ids = matchRules.Select(z => z.Id).ToHashSet();
+
+            foreach (var rule in matchRules)
+            {
+                if (rule.Id == 0)
+                {
+                    ctx.Add(rule);
+                }
+                else
+                {
+                    ctx.Attach(rule);
+                    ctx.Update(rule);
+                }
+            }
+
+            var eInDb = ctx.MatchRules.ToDictionary(z => z.Id, z => z);
+
+            var removed = eInDb
+                .Where(z => !ids.Contains(z.Key))
+                .Select(z => z.Value)
+                .ToArray();
+            ctx.RemoveRange(removed);
+
+            await ctx.SaveChangesAsync().ConfigureAwait(false);
+
+            this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Refresh, matchRules));
+        }
+
+        public async Task<MatchRule[]> ListMatchRulesAsync()
+        {
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
+            var items = await ctx.MatchRules.ToArrayAsync().ConfigureAwait(false);
+            var offset = items.Length + 10;
+            return items.OrderBy(z => z.OrderCode == 0 ? offset : z.OrderCode).ToArray();
+        }
+
+        internal MatchRule[] ListMatchRules()
+        {
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
+            return ctx.MatchRules.ToArray();
         }
     }
 }

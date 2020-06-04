@@ -4,6 +4,7 @@ using RSSViewer.AcceptHandlers;
 using RSSViewer.Configuration;
 using RSSViewer.Controls;
 using RSSViewer.LocalDb;
+using RSSViewer.RulesDb;
 using RSSViewer.Services;
 using RSSViewer.ViewModels;
 using RSSViewer.Windows;
@@ -114,7 +115,7 @@ namespace RSSViewer
             win.ShowDialog();
         }
 
-        private void AddAutoRejectRuleMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void AddAutoRejectRuleMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var vm = this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().FirstOrDefault();
             if (vm is null)
@@ -125,17 +126,16 @@ namespace RSSViewer
             var kw = kws.GetKeywords(vm.RssItem);
             if (StringsPickerWindow.TryPickString(this, kw, out var text))
             {
-                var conf = sp.GetRequiredService<ConfigService>()
-                    .CreateMatchStringConf();
-                conf.MatchMode = MatchStringMode.Contains;
-                conf.AsStringComparison = StringComparison.OrdinalIgnoreCase;
-                conf.MatchValue = text;
+                var rule = sp.GetRequiredService<ConfigService>()
+                    .CreateMatchRule(MatchAction.Reject);
+                rule.Mode = MatchMode.Contains;
+                rule.OptionsAsStringComparison = StringComparison.OrdinalIgnoreCase;
+                rule.Argument = text;
 
-                if (EditStringMatcherWindow.EditConf(this, conf))
+                if (EditStringMatcherWindow.EditConf(this, rule))
                 {
                     var cs = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
-                    cs.AppConf.AutoReject.Matches.Add(conf);
-                    cs.Save();
+                    await cs.AddMatchRuleAsync(rule);
                 }
             }
         }

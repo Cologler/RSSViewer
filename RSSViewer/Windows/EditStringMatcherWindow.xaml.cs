@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Configuration;
 using RSSViewer.LocalDb;
+using RSSViewer.RulesDb;
 using RSSViewer.Services;
 using RSSViewer.StringMatchers;
 using System;
@@ -30,68 +31,44 @@ namespace RSSViewer.Windows
             this.InitializeComponent();
         }
 
-        public MatchStringConf CreateMatchStringConf()
+        public void LoadFromConf(MatchRule rule)
         {
-            var conf = new MatchStringConf();
-            this.WriteToConf(conf);
-            return conf;
-        }
+            if (rule is null)
+                throw new ArgumentNullException(nameof(rule));
 
-        public void LoadFromConf(MatchStringConf conf)
-        {
-            if (conf is null)
-                throw new ArgumentNullException(nameof(conf));
-
-            this.SelectedMatchStringMode = conf.MatchMode;
-            this.MatchValueTextBox.Text = conf.MatchValue;
-            switch (conf.MatchMode)
+            this.SelectedMatchStringMode = rule.Mode;
+            this.MatchValueTextBox.Text = rule.Argument;
+            switch (rule.Mode)
             {
-                case MatchStringMode.Contains:
-                case MatchStringMode.StartsWith:
-                case MatchStringMode.EndsWith:
-                    this.SelectedStringComparison = (StringComparison)conf.MatchOptions;
+                case MatchMode.Contains:
+                case MatchMode.StartsWith:
+                case MatchMode.EndsWith:
+                    this.SelectedStringComparison = rule.OptionsAsStringComparison;
                     break;
-                case MatchStringMode.Regex:
-                    this.SelectedRegexOptions = (RegexOptions)conf.MatchOptions;
+                case MatchMode.Regex:
+                    this.SelectedRegexOptions = rule.OptionsAsRegexOptions;
                     break;
-            }
-
-            if (conf.DisableAt != null)
-            {
-                this.LifeTimeControl.SelectedDisableAt = conf.DisableAt.Value;
-            }
-
-            if (conf.ExpiredAt != null)
-            {
-                this.LifeTimeControl.SelectedExpiredAt = conf.ExpiredAt.Value;
             }
         }
 
-        public void WriteToConf(MatchStringConf conf)
+        public void WriteToConf(MatchRule rule)
         {
-            conf.MatchMode = this.SelectedMatchStringMode;
-            conf.MatchValue = this.MatchValueTextBox.Text;
-            switch (conf.MatchMode)
+            if (rule is null)
+                throw new ArgumentNullException(nameof(rule));
+
+            rule.Mode = this.SelectedMatchStringMode;
+            rule.Argument = this.MatchValueTextBox.Text;
+            switch (rule.Mode)
             {
-                case MatchStringMode.Contains:
-                case MatchStringMode.StartsWith:
-                case MatchStringMode.EndsWith:
-                    conf.MatchOptions = (int)this.SelectedStringComparison;
+                case MatchMode.Contains:
+                case MatchMode.StartsWith:
+                case MatchMode.EndsWith:
+                    rule.OptionsAsStringComparison = this.SelectedStringComparison;
                     break;
-                case MatchStringMode.Regex:
-                    conf.MatchOptions = (int)this.SelectedRegexOptions;
+                case MatchMode.Regex:
+                    rule.OptionsAsRegexOptions = this.SelectedRegexOptions;
                     break;
             }
-
-            if (this.LifeTimeControl.SelectedDisableAt is DateTime da)
-            {
-                conf.DisableAt = da;
-            } 
-
-            if (this.LifeTimeControl.SelectedExpiredAt is DateTime ea)
-            {
-                conf.ExpiredAt = ea;
-            } 
         }
 
         private void SelectModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -114,12 +91,12 @@ namespace RSSViewer.Windows
             }
         }
 
-        private MatchStringMode SelectedMatchStringMode
+        private MatchMode SelectedMatchStringMode
         {
             get
             {
                 var selected = (string)((ComboBoxItem)this.SelectModeComboBox.SelectedItem).Content;
-                return (MatchStringMode)Enum.Parse(typeof(MatchStringMode), selected);
+                return (MatchMode)Enum.Parse(typeof(MatchMode), selected);
             }
             set
             {
@@ -186,12 +163,13 @@ namespace RSSViewer.Windows
 
         private IStringMatcher TryCreateStringMatcher()
         {
-            var conf = this.CreateMatchStringConf();
+            var rule = new MatchRule();
+            this.WriteToConf(rule);
             var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<StringMatcherFactory>();
 
             try
             {
-                return factory.Create(conf);
+                return factory.Create(rule);
             }
             catch (ArgumentException e)
             {
@@ -216,21 +194,21 @@ namespace RSSViewer.Windows
             }
         }
 
-        internal static bool TryCreateConf(Window owner, out MatchStringConf conf)
+        internal static bool TryCreateConf(Window owner, out MatchRule rule)
         {
-            conf = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>()
-                .CreateMatchStringConf();
+            rule = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>()
+                .CreateMatchRule(MatchAction.Reject);
 
-            return EditConf(owner, conf);
+            return EditConf(owner, rule);
         }
 
-        internal static bool EditConf(Window owner, MatchStringConf conf)
+        internal static bool EditConf(Window owner, MatchRule rule)
         {
             var win = new EditStringMatcherWindow { Owner = owner };
-            win.LoadFromConf(conf);
+            win.LoadFromConf(rule);
             if (win.ShowDialog() == true)
             {
-                win.WriteToConf(conf);
+                win.WriteToConf(rule);
                 return true;
             }
             return false;

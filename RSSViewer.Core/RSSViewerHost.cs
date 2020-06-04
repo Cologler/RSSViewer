@@ -6,6 +6,7 @@ using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
 using RSSViewer.Provider.RssFetcher;
 using RSSViewer.Provider.Synology;
+using RSSViewer.RulesDb;
 using RSSViewer.Services;
 using RSSViewer.StringMatchers;
 using RSSViewer.Utils;
@@ -32,15 +33,18 @@ namespace RSSViewer
 
             using var scope = this.ServiceProvider.CreateScope();
 
+            scope.ServiceProvider.GetRequiredService<LocalDbContext>()
+                .Database.EnsureCreated();
+
+            scope.ServiceProvider.GetRequiredService<RulesDbContext>()
+                .Database.Migrate();
+
             var auto = scope.ServiceProvider.GetRequiredService<AutoService>();
             scope.ServiceProvider.GetRequiredService<AppDirService>().EnsureCreated();
             scope.ServiceProvider.GetRequiredService<SyncService>().OnSynced += () =>
             {
                 auto.AutoReject();
             };
-
-            var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-            ctx.Database.EnsureCreated();
         }
 
         public SyncSourceManager SourceProviderManager =>
@@ -70,6 +74,10 @@ namespace RSSViewer
                 .AddSingleton<KeywordsService>()
                 .AddDbContext<LocalDbContext>((prov, options) => {
                     var path = prov.GetRequiredService<AppDirService>().GetDataFileFullPath("localdb.sqlite3");
+                    options.UseSqlite($"Data Source={path}");
+                })
+                .AddDbContext<RulesDbContext>((prov, options) => {
+                    var path = prov.GetRequiredService<AppDirService>().GetDataFileFullPath("rulesdb.sqlite3");
                     options.UseSqlite($"Data Source={path}");
                 })
                 .AddTransient<IKeywordsFinder, TitleKeywordsFinder>()

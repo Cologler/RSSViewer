@@ -9,7 +9,7 @@ namespace RSSViewer.LocalDb
 {
     public class LocalDbContext : DbContext
     {
-        public LocalDbContext([NotNull] DbContextOptions options) : base(options)
+        public LocalDbContext([NotNull] DbContextOptions<LocalDbContext> options) : base(options)
         {
         }
 
