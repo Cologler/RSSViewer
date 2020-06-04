@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSSViewer.Provider.RssFetch
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSSViewer.Core", "RSSViewer.Core\RSSViewer.Core.csproj", "{F9611C8D-AE6C-4E28-874C-C807538E7BCA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RSSViewer.Provider.Synology", "RSSViewer.Provider.Synology\RSSViewer.Provider.Synology.csproj", "{998E4D62-481F-40A8-9345-F49293FB6A45}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSSViewer.Provider.Synology", "RSSViewer.Provider.Synology\RSSViewer.Provider.Synology.csproj", "{998E4D62-481F-40A8-9345-F49293FB6A45}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

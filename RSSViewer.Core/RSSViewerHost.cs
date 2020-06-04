@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Jasily.EF.MigrationHistoryBuilder;
+
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
 using RSSViewer.Json;
@@ -34,7 +36,7 @@ namespace RSSViewer
             using var scope = this.ServiceProvider.CreateScope();
 
             scope.ServiceProvider.GetRequiredService<LocalDbContext>()
-                .Database.EnsureCreated();
+                .Database.Migrate();
 
             scope.ServiceProvider.GetRequiredService<RulesDbContext>()
                 .Database.Migrate();
