@@ -21,6 +21,8 @@ namespace RSSViewer.Configuration
                     // for series
                     // *.ep1.* | *.s01e01.*
                     "^(?<kw>.*)\\.(?:ep?\\d{1,3}|s\\d{1,3}e\\d{1,3})\\.(?:.*)$",
+                    // *.ep1.* | *.s01e01.* without english name suffix
+                    "^(?<kw>.*[^\\. a-z\\d])[\\. a-z\\d]*\\.(?:ep?\\d{1,3}|s\\d{1,3}e\\d{1,3})\\.(?:.*)$",
 
                     // for animes
                     // *[01]* | *【01】* | *[01-12]* |  *【01-12】* 
