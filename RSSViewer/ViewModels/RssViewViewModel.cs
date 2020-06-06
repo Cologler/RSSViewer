@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
 using RSSViewer.AcceptHandlers;
+using RSSViewer.LocalDb;
 using RSSViewer.Services;
 using RSSViewer.Utils;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ namespace RSSViewer.ViewModels
         private string _searchText = string.Empty;
         private RssItemGroupViewModel _selectedGroup;
         private string _statusText;
+        private Dictionary<(string, string), RssItemViewModel> _itemsIndexes;
 
         public RssViewViewModel()
         {
@@ -83,46 +85,49 @@ namespace RSSViewer.ViewModels
             var states = this.IncludeView.GetStateValues();
 
             var items = await App.RSSViewerHost.Query().SearchAsync(searchText, states, token);
-            items = items.OrderBy(z => z.Title).ToArray();
             token.ThrowIfCancellationRequested();
+            items = items.OrderBy(z => z.Title).ToArray();
 
             var groupService = App.RSSViewerHost.ServiceProvider.GetRequiredService<GroupService>();
             var groupsMap = await Task.Run(() => groupService.GetGroupsMap(items));
             token.ThrowIfCancellationRequested();
 
-            var groups = new List<RssItemGroupViewModel>();
-            var groupAll = new RssItemGroupViewModel { DisplayName = "<ALL>" };
-            groups.Add(groupAll);
+            var groupList = new List<RssItemGroupViewModel>();
+
+            var allItemsGroup = new RssItemGroupViewModel { DisplayName = "<ALL>" };
+            groupList.Add(allItemsGroup);
+
+            var emptyItemsGroup = new RssItemGroupViewModel { DisplayName = "<>" };
+            groupList.Add(emptyItemsGroup);
+
+            allItemsGroup.Items.AddRange(items.Select(z => new RssItemViewModel(z)).ToArray());
+            var itemsIndexes = allItemsGroup.Items.ToDictionary(z => z.RssItem.GetKey());
+
+            RssItemViewModel FromCreated(RssItem rssItem) => itemsIndexes[rssItem.GetKey()];
 
             await Task.Run(() =>
             {
-                groupAll.Items.AddRange(items.Select(z => new RssItemViewModel(z)).ToArray());
-
-                var groupEmpty = new RssItemGroupViewModel { DisplayName = "<>" };
-                groups.Add(groupEmpty);
-
-                groups.AddRange(groupsMap.Where(z =>
+                groupList.AddRange(groupsMap.Where(z =>
                 {
                     if (z.Key == string.Empty)
                     {
-                        groupEmpty.Items.AddRange(z.Value.Select(x => new RssItemViewModel(x)));
+                        emptyItemsGroup.Items.AddRange(z.Value.Select(x => FromCreated(x)));
                         return false;
                     }
                     return true;
                 }).Select(z =>
                 {
                     var gvm = new RssItemGroupViewModel { DisplayName = z.Key };
-                    gvm.Items.AddRange(z.Value.Select(x => new RssItemViewModel(x)));
+                    gvm.Items.AddRange(z.Value.Select(x => FromCreated(x)));
                     return gvm;
                 }).OrderBy(z => z.DisplayName));
-
-                return groups;
             });
             token.ThrowIfCancellationRequested();
 
             this.Groups.Clear();
-            groups.ForEach(this.Groups.Add);
-            this.SelectedGroup = groupAll;
+            groupList.ForEach(this.Groups.Add);
+            this.SelectedGroup = allItemsGroup;
+            this._itemsIndexes = itemsIndexes;
 
             sw.Stop();
             this.LoggerMessage.AddLine($"Query \"{searchText}\" takes {sw.Elapsed.TotalSeconds}s.");
@@ -137,7 +142,13 @@ namespace RSSViewer.ViewModels
 
                 foreach (var item in items)
                 {
-                    item.RefreshProperties();
+                    // ensure notify updated whatever view is recreated or not.
+                    var viewModel = this._itemsIndexes.GetValueOrDefault(item.RssItem.GetKey());
+                    if (viewModel != null)
+                    {
+                        viewModel.RssItem.State = RssItemState.Accepted;
+                        viewModel.RefreshProperties();
+                    }
                 }
                 this.Analytics.RefreshProperties();
             }
@@ -147,10 +158,16 @@ namespace RSSViewer.ViewModels
         {
             var rssItems = items.Select(z => z.RssItem).ToArray();
             await App.RSSViewerHost.Modify().RejectAsync(rssItems);
-
+            
             foreach (var item in items)
             {
-                item.RefreshProperties();
+                // ensure notify updated whatever view is recreated or not.
+                var viewModel = this._itemsIndexes.GetValueOrDefault(item.RssItem.GetKey());
+                if (viewModel != null)
+                {
+                    viewModel.RssItem.State = RssItemState.Rejected;
+                    viewModel.RefreshProperties();
+                }
             }
             this.Analytics.RefreshProperties();
         }
