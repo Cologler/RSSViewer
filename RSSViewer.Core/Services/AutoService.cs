@@ -20,7 +20,7 @@ namespace RSSViewer.Services
         private readonly object _syncRoot = new object();
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
-        private ImmutableArray<(MatchRule, IStringMatcher)> _rejectRules;
+        private ImmutableArray<MatchRuleStateDecider> _matchRuleStateDeciders;
 
         public AutoService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
@@ -60,10 +60,11 @@ namespace RSSViewer.Services
             var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
 
             var matcher = factory.Create(rule);
+            var decider = new MatchRuleStateDecider(rule, matcher);
 
             lock (this._syncRoot)
             {
-                this._rejectRules = this._rejectRules.Add((rule, matcher));
+                this._matchRuleStateDeciders = this._matchRuleStateDeciders.Add(decider); 
             }
         }
 
@@ -76,10 +77,13 @@ namespace RSSViewer.Services
             var matchers = rules.Where(z => z.Action == MatchAction.Reject)
                 .Select(z => (z, factory.Create(z)))
                 .ToArray();
+            var deciders = rules
+                .Select(z => new MatchRuleStateDecider(z, factory.Create(z)))
+                .ToImmutableArray();
 
             lock (this._syncRoot)
             {
-                this._rejectRules = matchers.ToImmutableArray();
+                this._matchRuleStateDeciders = deciders;
             }
         }
 
@@ -102,8 +106,8 @@ namespace RSSViewer.Services
         {
             using (this._viewerLogger.EnterEvent("Auto reject"))
             {
-                var rejectRules = this._rejectRules;
-                if (rejectRules.Length == 0)
+                var deciders = this._matchRuleStateDeciders;
+                if (deciders.Length == 0)
                     return;
 
                 var state = new Dictionary<int, int>();
@@ -113,24 +117,38 @@ namespace RSSViewer.Services
 
                 var items = query.List(new[] { RssItemState.Undecided });
 
-                var shouldReject = items
-                    .Where(i => {
-                        foreach (var (rule, matcher) in rejectRules)
+                var shouldAccept = new List<RssItem>();
+                var shouldReject = new List<RssItem>();
+
+                foreach (var item in items)
+                {
+                    foreach (var decider in deciders)
+                    {
+                        var decidedState = decider.GetNextState(item);
+                        if (decidedState != RssItemState.Undecided)
                         {
-                            if (matcher.IsMatch(i.Title))
+                            if (decidedState == RssItemState.Accepted)
                             {
-                                state[rule.Id] = state.GetValueOrDefault(rule.Id) + 1;
-                                return true;
+                                shouldAccept.Add(item);
                             }
+                            else if (decidedState == RssItemState.Rejected)
+                            {
+                                shouldReject.Add(item);
+                            }
+
+                            state[decider.RuleId] = state.GetValueOrDefault(decider.RuleId) + 1;
+
+                            break;
                         }
+                    }
+                }
 
-                        return false;
-                    })
-                    .ToArray();
-
-                if (shouldReject.Length > 0)
+                if (shouldReject.Count + shouldAccept.Count > 0)
                 {
                     operation.ChangeState(shouldReject, RssItemState.Rejected);
+
+                    if (shouldAccept.Count > 0)
+                        throw new NotImplementedException();
 
                     using (var scope = this._serviceProvider.CreateScope())
                     {
@@ -149,10 +167,44 @@ namespace RSSViewer.Services
                     }
                 }
 
-                this._viewerLogger.AddLine($"Rejected {shouldReject.Length} items from {items.Length} undecided items.");
+                this._viewerLogger.AddLine($"Rejected {shouldReject.Count} items from {items.Length} undecided items.");
             }                
         }
 
         public Task AutoRejectAsync() => Task.Run(this.AutoReject);
+
+        private class MatchRuleStateDecider
+        {
+            private readonly MatchRule _matchRule;
+            private readonly IStringMatcher _stringMatcher;
+            private readonly RssItemState _state;
+
+            public MatchRuleStateDecider(MatchRule matchRule, IStringMatcher stringMatcher)
+            {
+                this._matchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
+                this._stringMatcher = stringMatcher ?? throw new ArgumentNullException(nameof(stringMatcher));
+                switch (this._matchRule.Action)
+                {
+                    case MatchAction.Reject:
+                        this._state = RssItemState.Rejected;
+                        break;
+
+                    case MatchAction.Accept:
+                        this._state = RssItemState.Accepted;
+                        break;
+
+                    default:
+                        this._state = RssItemState.Undecided;
+                        break;
+                }
+            }
+
+            public int RuleId => this._matchRule.Id;
+
+            public RssItemState GetNextState(RssItem rssItem)
+            {
+                return this._stringMatcher.IsMatch(rssItem.Title) ? this._state : RssItemState.Undecided;
+            }
+        }
     }
 }
