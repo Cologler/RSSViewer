@@ -33,7 +33,8 @@ namespace RSSViewer.Services
             this._jsonSerializerOptions = new JsonSerializerOptions
             {
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                IgnoreNullValues = true
+                IgnoreNullValues = true,
+                WriteIndented = true
             };
             foreach (var converter in serviceProvider.GetServices<JsonConverter>())
             {
