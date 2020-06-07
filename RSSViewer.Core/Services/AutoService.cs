@@ -73,6 +73,8 @@ namespace RSSViewer.Services
             {
                 var context = new ExecuteContext(this._serviceProvider);
                 context.Run(ImmutableArray.Create(decider));
+                this._viewerLogger.AddLine(
+                    $"{rule.Action}ed {context.RejectedItems.Count} items by new rule ({rule.Argument})");
                 this.AddedSingleRuleEffectedRssItemsStateChanged?.Invoke(context);
             });
         }
