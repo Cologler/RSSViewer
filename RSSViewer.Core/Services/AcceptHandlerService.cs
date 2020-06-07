@@ -72,8 +72,12 @@ namespace RSSViewer.Services
                     .Concat(dynamicHandlers)
                     .ToImmutableArray();
             }
+
+            this.AcceptHandlersChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public IReadOnlyCollection<IAcceptHandler> GetAcceptHandlers() => this._acceptHandlers;
+
+        public event EventHandler AcceptHandlersChanged;
     }
 }

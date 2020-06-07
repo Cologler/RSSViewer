@@ -35,8 +35,21 @@ namespace RSSViewer
         {
             InitializeComponent();
 
-            var sp = App.RSSViewerHost.ServiceProvider;
-            foreach (var handler in sp.GetRequiredService<AcceptHandlerService>().GetAcceptHandlers())
+            App.RSSViewerHost.ServiceProvider.GetRequiredService<AcceptHandlerService>()
+                .AcceptHandlersChanged += (_, __) => this.RefreshAcceptHandlers();
+            this.RefreshAcceptHandlers();
+
+            this.DataContext = new RssViewViewModel();
+            _ = this.ViewModel.SearchAsync();
+        }
+
+        private void RefreshAcceptHandlers()
+        {
+            this.GroupsAcceptMenuItem.Items.Clear();
+            this.ItemsAcceptMenuItem.Items.Clear();
+
+            var serviceProvider = App.RSSViewerHost.ServiceProvider;
+            foreach (var handler in serviceProvider.GetRequiredService<AcceptHandlerService>().GetAcceptHandlers())
             {
                 this.GroupsAcceptMenuItem.Items.Add(new MenuItem
                 {
@@ -49,9 +62,6 @@ namespace RSSViewer
                     Tag = handler
                 });
             }
-
-            this.DataContext = new RssViewViewModel();
-            _ = this.ViewModel.SearchAsync();
         }
 
         public RssViewViewModel ViewModel => (RssViewViewModel) this.DataContext;
