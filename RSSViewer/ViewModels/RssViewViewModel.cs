@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace RSSViewer.ViewModels
 {
@@ -25,8 +26,30 @@ namespace RSSViewer.ViewModels
 
         public RssViewViewModel()
         {
+            var serviceProvider = App.RSSViewerHost.ServiceProvider;
             this.Analytics = new AnalyticsViewModel(this);
-            this.LoggerMessage = App.RSSViewerHost.ServiceProvider.GetRequiredService<ViewerLoggerViewModel>();
+            this.LoggerMessage = serviceProvider.GetRequiredService<ViewerLoggerViewModel>();
+            serviceProvider.GetRequiredService<AutoService>().AddedSingleRuleEffectedRssItemsStateChanged += 
+                this.OnRssItemsStateChanged;
+        }
+
+        private void OnRssItemsStateChanged(IRssItemsStateChangedInfo obj)
+        {
+            _ = Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                foreach (var state in new[] { RssItemState.Accepted , RssItemState.Rejected } )
+                {
+                    foreach (var item in obj.GetItems(state))
+                    {
+                        var viewModel = this._itemsIndexes.GetValueOrDefault(item.GetKey());
+                        if (viewModel != null)
+                        {
+                            viewModel.RssItem.State = state;
+                            viewModel.RefreshProperties();
+                        }
+                    }
+                }
+            });
         }
 
         public string SearchText
