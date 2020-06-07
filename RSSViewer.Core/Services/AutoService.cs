@@ -54,8 +54,8 @@ namespace RSSViewer.Services
 
         private void OnAdded(MatchRule rule)
         {
-            if (rule is null) return;
-            if (rule.Action != MatchAction.Reject) return;
+            if (rule is null)
+                throw new ArgumentNullException(nameof(rule));
 
             var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
 
@@ -76,8 +76,7 @@ namespace RSSViewer.Services
             using (this._viewerLogger.EnterEvent("Rebuild matchers"))
             {
                 var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
-                var matchers = rules.Where(z => z.Action == MatchAction.Reject)
-                    .Select(z => (z, factory.Create(z)))
+                var matchers = rules.Select(z => (z, factory.Create(z)))
                     .ToArray();
                 var deciders = rules
                     .Select(z => new MatchRuleStateDecider(z, factory.Create(z)))
