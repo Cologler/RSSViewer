@@ -1,6 +1,7 @@
 ﻿using RSSViewer.Annotations;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -9,6 +10,29 @@ namespace RSSViewer.Utils
 {
     public static class VariablesHelper
     {
+        public class MissingRequiredVariableException : Exception
+        {
+            public MissingRequiredVariableException(string variableName)
+            {
+                this.VariableName = variableName;
+            }
+
+            public string VariableName { get; }
+        }
+
+        public class UnableConvertVariableException : Exception
+        {
+            public UnableConvertVariableException(string fromValue, Type toType)
+            {
+                this.FromValue = fromValue;
+                this.ToType = toType;
+            }
+
+            public string FromValue { get; }
+
+            public Type ToType { get; }
+        }
+
         public static VariableInfo[] GetVariableInfos(Type type)
         {
             if (type is null)
@@ -39,7 +63,7 @@ namespace RSSViewer.Utils
 
             foreach (var variableInfo in variableInfos)
             {
-                if (variableInfo.IsRequired || variables.ContainsKey(variableInfo.VariableName))
+                if (variables.ContainsKey(variableInfo.VariableName))
                 {
                     var stringValue = variables[variableInfo.VariableName];
                     if (TryConvert(stringValue, variableInfo.VariableType, out var value))
@@ -48,8 +72,12 @@ namespace RSSViewer.Utils
                     }
                     else
                     {
-                        throw new NotImplementedException();
+                        throw new UnableConvertVariableException(stringValue, variableInfo.VariableType);
                     }
+                }
+                else if (variableInfo.IsRequired)
+                {
+                    throw new MissingRequiredVariableException(variableInfo.VariableName);
                 }
             }
         }
