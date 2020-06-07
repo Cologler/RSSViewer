@@ -2,32 +2,35 @@
 using RSSViewer.RulesDb;
 using RSSViewer.Utils;
 using System;
+using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 
 namespace RSSViewer.StringMatchers
 {
     public class StringMatcherFactory
     {
-        public IStringMatcher Create(MatchStringConf conf)
-        {
-            if (conf is null)
-                throw new ArgumentNullException(nameof(conf));
+        private ImmutableDictionary<(string, RegexOptions), Regex> _regexesCache = ImmutableDictionary<(string, RegexOptions), Regex>.Empty;
 
-            switch (conf.MatchMode)
+        private Regex GetOrCreateRegex(string pattern, RegexOptions options)
+        {
+            var key = (pattern, options);
+            if (!this._regexesCache.TryGetValue(key, out var r))
             {
-                case MatchStringMode.Contains:
-                    return new ContainsStringMatcher(conf.MatchValue, (StringComparison)conf.MatchOptions);
-                case MatchStringMode.StartsWith:
-                    return new StartsWithStringMatcher(conf.MatchValue, (StringComparison)conf.MatchOptions);
-                case MatchStringMode.EndsWith:
-                    return new EndsWithStringMatcher(conf.MatchValue, (StringComparison)conf.MatchOptions);
-                case MatchStringMode.Wildcard:
-                    return new RegexStringMatcher(RegexUtils.WildcardToRegex(conf.MatchValue));
-                case MatchStringMode.Regex:
-                    return new RegexStringMatcher(new Regex(conf.MatchValue, (RegexOptions)conf.MatchOptions));
-                default:
-                    throw new NotImplementedException();
+                r = new Regex(pattern, options);
+                this._regexesCache = this._regexesCache.SetItem(key, r);
             }
+            return r;
+        }
+
+        private Regex GetOrCreateWildcardRegex(string value)
+        {
+            var key = (value, RegexUtils.WildcardRegexOptions);
+            if (!this._regexesCache.TryGetValue(key, out var r))
+            {
+                r = RegexUtils.WildcardToRegex(value);
+                this._regexesCache = this._regexesCache.SetItem(key, r);
+            }
+            return r;
         }
 
         public IStringMatcher Create(MatchRule rule)
@@ -44,9 +47,9 @@ namespace RSSViewer.StringMatchers
                 case MatchMode.EndsWith:
                     return new EndsWithStringMatcher(rule.Argument, (StringComparison)rule.ExtraOptions);
                 case MatchMode.Wildcard:
-                    return new RegexStringMatcher(RegexUtils.WildcardToRegex(rule.Argument));
+                    return new RegexStringMatcher(this.GetOrCreateWildcardRegex(rule.Argument));
                 case MatchMode.Regex:
-                    return new RegexStringMatcher(new Regex(rule.Argument, (RegexOptions)rule.ExtraOptions));
+                    return new RegexStringMatcher(this.GetOrCreateRegex(rule.Argument, (RegexOptions)rule.ExtraOptions));
                 default:
                     throw new NotImplementedException();
             }

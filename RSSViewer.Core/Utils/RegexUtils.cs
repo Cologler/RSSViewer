@@ -6,6 +6,8 @@ namespace RSSViewer.Utils
 {
     public static class RegexUtils
     {
+        public static readonly RegexOptions WildcardRegexOptions = RegexOptions.IgnoreCase;
+
         public static Regex WildcardToRegex(string wildcardText)
         {
             var any = ".";
@@ -13,7 +15,7 @@ namespace RSSViewer.Utils
                 Regex.Escape(wildcardText)
                     .Replace("\\*", any + "*")
                     .Replace("\\?", any),
-                RegexOptions.IgnoreCase
+                WildcardRegexOptions
             );
             return regex;
         }

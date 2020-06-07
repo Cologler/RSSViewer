@@ -73,17 +73,20 @@ namespace RSSViewer.Services
             if (rules is null)
                 return;
 
-            var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
-            var matchers = rules.Where(z => z.Action == MatchAction.Reject)
-                .Select(z => (z, factory.Create(z)))
-                .ToArray();
-            var deciders = rules
-                .Select(z => new MatchRuleStateDecider(z, factory.Create(z)))
-                .ToImmutableArray();
-
-            lock (this._syncRoot)
+            using (this._viewerLogger.EnterEvent("Rebuild matchers"))
             {
-                this._matchRuleStateDeciders = deciders;
+                var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
+                var matchers = rules.Where(z => z.Action == MatchAction.Reject)
+                    .Select(z => (z, factory.Create(z)))
+                    .ToArray();
+                var deciders = rules
+                    .Select(z => new MatchRuleStateDecider(z, factory.Create(z)))
+                    .ToImmutableArray();
+
+                lock (this._syncRoot)
+                {
+                    this._matchRuleStateDeciders = deciders;
+                }
             }
         }
 
