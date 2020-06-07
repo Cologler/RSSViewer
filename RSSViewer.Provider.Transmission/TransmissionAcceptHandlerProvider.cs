@@ -1,24 +1,19 @@
 ﻿
 using RSSViewer.Abstractions;
+using RSSViewer.DefaultImpls;
 using RSSViewer.Utils;
 
+using System;
 using System.Collections.Generic;
 
 namespace RSSViewer.Provider.Transmission
 {
-    internal class TransmissionAcceptHandlerProvider : IAcceptHandlerProvider
+    internal class TransmissionAcceptHandlerProvider : AcceptHandlerProvider<TransmissionAcceptHandler>
     {
-        private static readonly VariableInfo[] VariableInfos = VariablesHelper.GetVariableInfos(typeof(TransmissionAcceptHandler));
-
-        public string ProviderName => "Transmission";
-
-        public IAcceptHandler GetAcceptHandler(string handlerId, Dictionary<string, string> variables)
+        public TransmissionAcceptHandlerProvider(IServiceProvider serviceProvider) : base(serviceProvider)
         {
-            var handler = new TransmissionAcceptHandler();
-            VariablesHelper.Inject(handler, VariableInfos, variables);
-            return handler;
         }
 
-        public IReadOnlyCollection<VariableInfo> GetVariableInfos() => VariableInfos;
+        public override string ProviderName => "Transmission";
     }
 }

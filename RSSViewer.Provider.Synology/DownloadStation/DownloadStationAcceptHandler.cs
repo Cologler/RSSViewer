@@ -22,9 +22,9 @@ namespace RSSViewer.Provider.Synology.DownloadStation
 
         public string HandlerName => $"DownloadStation ({this.Host}:{this.Port})";
 
-        public DownloadStationAcceptHandler(IServiceProvider serviceProvider)
+        public DownloadStationAcceptHandler(SynologyServiceProvider synologyServiceProvider)
         {
-            this._serviceProvider = serviceProvider;
+            this._serviceProvider = synologyServiceProvider.ServiceProvider;
         }
 
         [UserVariable, Required]
