@@ -18,6 +18,7 @@
     <ProjectReference Include="..\RSSViewer.Abstractions\RSSViewer.Abstractions.csproj" />
     <ProjectReference Include="..\RSSViewer.Provider.RssFetcher\RSSViewer.Provider.RssFetcher.csproj" />
     <ProjectReference Include="..\RSSViewer.Provider.Synology\RSSViewer.Provider.Synology.csproj" />
+    <ProjectReference Include="..\RSSViewer.Provider.Transmission\RSSViewer.Provider.Transmission.csproj" />
   </ItemGroup>
 
   <ItemGroup>

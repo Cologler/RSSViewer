@@ -20,13 +20,7 @@ namespace RSSViewer.Provider.Synology.DownloadStation
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public string HandlerName
-        {
-            get
-            {
-                return $"DownloadStation ({this.Host}:{this.Port})";
-            }
-        }
+        public string HandlerName => $"DownloadStation ({this.Host}:{this.Port})";
 
         public DownloadStationAcceptHandler(IServiceProvider serviceProvider)
         {

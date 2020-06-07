@@ -7,6 +7,7 @@ using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
 using RSSViewer.Provider.RssFetcher;
 using RSSViewer.Provider.Synology;
+using RSSViewer.Provider.Transmission;
 using RSSViewer.RulesDb;
 using RSSViewer.Services;
 using RSSViewer.StringMatchers;
@@ -80,6 +81,7 @@ namespace RSSViewer
                 .AddTransient<StringMatcherFactory>()
                 .AddRssFetcher()
                 .AddSynologyProvider()
+                .AddTransmissionProvider()
                 .AddSingleton<IViewerLogger, NoneViewerLogger>()
                 ;
 
