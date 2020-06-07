@@ -5,21 +5,21 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.Utils
 {
-    public class NPTask
+    public class SingletonTaskFactory
     {
         private readonly object _syncRoot = new object();
         private readonly Action _action;
         private readonly Func<Task> _actionTask;
         private Task _runningTask;
 
-        public NPTask(Action action)
+        public SingletonTaskFactory(Action action)
         {
-            this._action = action;
+            this._action = action ?? throw new ArgumentNullException(nameof(action));
         }
 
-        public NPTask(Func<Task> actionTask)
+        public SingletonTaskFactory(Func<Task> actionTask)
         {
-            this._actionTask = actionTask;
+            this._actionTask = actionTask ?? throw new ArgumentNullException(nameof(actionTask));
         }
 
         public virtual Task RunAsync()

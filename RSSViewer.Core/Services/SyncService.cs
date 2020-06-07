@@ -19,7 +19,7 @@ namespace RSSViewer.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
-        private readonly NPTask _task;
+        private readonly SingletonTaskFactory _task;
 
         public event Action OnSynced;
 
@@ -27,7 +27,7 @@ namespace RSSViewer.Services
         {
             this._serviceProvider = serviceProvider;
             this._viewerLogger = viewerLogger;
-            this._task = new ExpirableNPTask(TimeSpan.FromMinutes(10), this.SyncCore);
+            this._task = new TaskFactory(TimeSpan.FromMinutes(10), this.SyncCore);
         }
 
         public Task SyncAsync() => this._task.RunAsync();
@@ -97,6 +97,39 @@ namespace RSSViewer.Services
             }).ToList();
 
             ctx.AddOrIgnoreRange(newItems);
+        }
+
+        public class TaskFactory : SingletonTaskFactory
+        {
+            private readonly TimeSpan _timeout;
+            private DateTime? LastUpdateTime;
+
+            public TaskFactory(TimeSpan timeout, Action action) : base(action)
+            {
+                this._timeout = timeout;
+            }
+
+            public TaskFactory(TimeSpan timeout, Func<Task> actionTask) : base(actionTask)
+            {
+                this._timeout = timeout;
+            }
+
+            public override Task RunAsync()
+            {
+                if (this.LastUpdateTime != null && DateTime.UtcNow - this.LastUpdateTime < this._timeout)
+                {
+                    return Task.CompletedTask;
+                }
+
+                return base.RunAsync();
+            }
+
+            protected override void OnAfterRun()
+            {
+                this.LastUpdateTime = DateTime.UtcNow;
+
+                base.OnAfterRun();
+            }
         }
     }
 }
