@@ -49,6 +49,7 @@ namespace RSSViewer.ViewModels
                         }
                     }
                 }
+                this.Analytics.RefreshProperties();
             });
         }
 
