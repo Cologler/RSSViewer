@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
 using RSSViewer.AcceptHandlers;
 using RSSViewer.LocalDb;
+using RSSViewer.RssItemHelper;
 using RSSViewer.Services;
 using RSSViewer.Utils;
 using System.Collections.Generic;
@@ -29,28 +30,26 @@ namespace RSSViewer.ViewModels
             var serviceProvider = App.RSSViewerHost.ServiceProvider;
             this.Analytics = new AnalyticsViewModel(this);
             this.LoggerMessage = serviceProvider.GetRequiredService<ViewerLoggerViewModel>();
-            serviceProvider.GetRequiredService<AutoService>().AddedSingleRuleEffectedRssItemsStateChanged += 
-                this.OnRssItemsStateChanged;
+            serviceProvider.GetRequiredService<AutoService>().AddedSingleRuleEffectedRssItemsStateChanged += obj => 
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                    this.OnRssItemsStateChanged(obj));
         }
 
         private void OnRssItemsStateChanged(IRssItemsStateChangedInfo obj)
         {
-            _ = Application.Current.Dispatcher.InvokeAsync(() =>
+            foreach (var state in new[] { RssItemState.Accepted, RssItemState.Rejected })
             {
-                foreach (var state in new[] { RssItemState.Accepted , RssItemState.Rejected } )
+                foreach (var item in obj.GetItems(state))
                 {
-                    foreach (var item in obj.GetItems(state))
+                    var viewModel = this._itemsIndexes.GetValueOrDefault(item.GetKey());
+                    if (viewModel != null)
                     {
-                        var viewModel = this._itemsIndexes.GetValueOrDefault(item.GetKey());
-                        if (viewModel != null)
-                        {
-                            viewModel.RssItem.State = state;
-                            viewModel.RefreshProperties();
-                        }
+                        viewModel.RssItem.State = state;
+                        viewModel.RefreshProperties();
                     }
                 }
-                this.Analytics.RefreshProperties();
-            });
+            }
+            this.Analytics.RefreshProperties();
         }
 
         public string SearchText
@@ -163,18 +162,8 @@ namespace RSSViewer.ViewModels
             if (await handler.Accept(rssItems))
             {
                 await App.RSSViewerHost.Modify().AcceptAsync(rssItems);
-
-                foreach (var item in items)
-                {
-                    // ensure notify updated whatever view is recreated or not.
-                    var viewModel = this._itemsIndexes.GetValueOrDefault(item.RssItem.GetKey());
-                    if (viewModel != null)
-                    {
-                        viewModel.RssItem.State = RssItemState.Accepted;
-                        viewModel.RefreshProperties();
-                    }
-                }
-                this.Analytics.RefreshProperties();
+                this.OnRssItemsStateChanged(
+                    RssItemsStateChangedInfo.CreateAccepted(rssItems));
             }
         }
 
@@ -182,18 +171,8 @@ namespace RSSViewer.ViewModels
         {
             var rssItems = items.Select(z => z.RssItem).ToArray();
             await App.RSSViewerHost.Modify().RejectAsync(rssItems);
-            
-            foreach (var item in items)
-            {
-                // ensure notify updated whatever view is recreated or not.
-                var viewModel = this._itemsIndexes.GetValueOrDefault(item.RssItem.GetKey());
-                if (viewModel != null)
-                {
-                    viewModel.RssItem.State = RssItemState.Rejected;
-                    viewModel.RefreshProperties();
-                }
-            }
-            this.Analytics.RefreshProperties();
+            this.OnRssItemsStateChanged(
+                RssItemsStateChangedInfo.CreateRejected(rssItems));
         }
     }
 }

@@ -70,14 +70,20 @@ namespace RSSViewer
         {
             var handler = (IAcceptHandler)((MenuItem)e.OriginalSource).Tag;
             await this.ViewModel.AcceptAsync(
-                this.GroupsListView.SelectedItems.OfType<RssItemGroupViewModel>().SelectMany(z => z.Items).ToArray(),
+                this.GroupsListView.SelectedItems.OfType<RssItemGroupViewModel>()
+                    .SelectMany(z => z.Items)
+                    .Distinct()
+                    .ToArray(),
                 handler);
         }
 
         private async void GroupsRejectMenuItem_Click(object sender, RoutedEventArgs e)
         {
             await this.ViewModel.RejectAsync(
-                this.GroupsListView.SelectedItems.OfType<RssItemGroupViewModel>().SelectMany(z => z.Items).ToArray());
+                this.GroupsListView.SelectedItems.OfType<RssItemGroupViewModel>()
+                .SelectMany(z => z.Items)
+                .Distinct()
+                .ToArray());
         }
 
         private async void ItemsAcceptMenuItem_Click(object sender, RoutedEventArgs e)
