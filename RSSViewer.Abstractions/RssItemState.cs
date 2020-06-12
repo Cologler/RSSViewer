@@ -1,4 +1,5 @@
-﻿namespace RSSViewer.LocalDb
+﻿
+namespace RSSViewer
 {
     public enum RssItemState : int
     {
