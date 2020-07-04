@@ -40,7 +40,7 @@ namespace RSSViewer
             this.RefreshAcceptHandlers();
 
             this.DataContext = new RssViewViewModel();
-            _ = this.ViewModel.SearchAsync();
+            _ = this.ViewModel.SearchAsync(0);
         }
 
         private void RefreshAcceptHandlers()

@@ -48,9 +48,17 @@ namespace RSSViewer.ViewModels
 
         private async void QueryOptionsViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (sender != this || e.PropertyName == nameof(this.SearchText))
+            if (ReferenceEquals(sender, this) && e.PropertyName == nameof(this.SearchText))
             {
-                await this.SearchAsync();
+                await this.SearchAsync(300);
+            } 
+            else if (ReferenceEquals(sender, this.IncludeView))
+            {
+                await this.SearchAsync(500);
+            }
+            else if (ReferenceEquals(sender, this.SortByView))
+            {
+                await this.SearchAsync(0);
             }
         }
 
@@ -100,7 +108,7 @@ namespace RSSViewer.ViewModels
             set => this.ChangeModelProperty(ref this._selectedGroup, value);
         }
 
-        public async Task SearchAsync()
+        public async Task SearchAsync(int delay = 300)
         {
             SearchInfo GetSearchInfo()
             {
@@ -112,7 +120,10 @@ namespace RSSViewer.ViewModels
 
             var searchInfo = GetSearchInfo();
 
-            await Task.Delay(300);
+            if (delay > 0)
+            {
+                await Task.Delay(delay);
+            }
 
             if (searchInfo.Equals(GetSearchInfo()))
             {
