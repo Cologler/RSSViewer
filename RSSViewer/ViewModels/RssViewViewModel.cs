@@ -1,14 +1,21 @@
 ﻿using Jasily.ViewModel;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using RSSViewer.Abstractions;
 using RSSViewer.AcceptHandlers;
 using RSSViewer.LocalDb;
 using RSSViewer.RssItemHelper;
 using RSSViewer.Services;
 using RSSViewer.Utils;
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -33,6 +40,18 @@ namespace RSSViewer.ViewModels
             serviceProvider.GetRequiredService<AutoService>().AddedSingleRuleEffectedRssItemsStateChanged += obj => 
                 Application.Current.Dispatcher.InvokeAsync(() =>
                     this.OnRssItemsStateChanged(obj));
+
+            this.IncludeView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
+            this.SortByView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
+            this.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
+        }
+
+        private async void QueryOptionsViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (sender != this || e.PropertyName == nameof(this.SearchText))
+            {
+                await this.SearchAsync();
+            }
         }
 
         private void OnRssItemsStateChanged(IRssItemsStateChangedInfo obj)
@@ -55,16 +74,13 @@ namespace RSSViewer.ViewModels
         public string SearchText
         {
             get => this._searchText;
-            set
-            {
-                if (this.ChangeModelProperty(ref this._searchText, value))
-                {
-                    _ = this.SearchAsync();
-                }
-            }
+            set => this.ChangeModelProperty(ref this._searchText, value);
+
         }
 
         public IncludeViewModel IncludeView { get; } = new IncludeViewModel();
+
+        public SortByViewModel SortByView { get; } = new SortByViewModel();
 
         public AnalyticsViewModel Analytics { get; }
 
@@ -86,18 +102,36 @@ namespace RSSViewer.ViewModels
 
         public async Task SearchAsync()
         {
-            var text = this.SearchText;
-            await Task.Delay(300);
-            if (text == this.SearchText)
+            SearchInfo GetSearchInfo()
             {
-                await this._searchScheduler.RunAsync(token => this.SearchCoreAsync(text, token));
+                return new SearchInfo(
+                    this.SearchText,
+                    this.IncludeView.GetStateValues(),
+                    this.SortByView.SortBy);
+            }
+
+            var searchInfo = GetSearchInfo();
+
+            await Task.Delay(300);
+
+            if (searchInfo.Equals(GetSearchInfo()))
+            {
+                try
+                {
+                    await this._searchScheduler.RunAsync(token => this.SearchCoreAsync(searchInfo, token));
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
                 this.Analytics.RefreshProperties();
             }
         }
 
-        private async Task SearchCoreAsync(string searchText, CancellationToken token)
+        private async Task SearchCoreAsync(SearchInfo searchInfo, CancellationToken token)
         {
-            searchText = searchText.Trim();
+            var searchText = searchInfo.SearchText.Trim();
 
             var sc = App.RSSViewerHost.ServiceProvider.GetRequiredService<SyncService>();
             await sc.SyncAsync();
@@ -105,11 +139,21 @@ namespace RSSViewer.ViewModels
             token.ThrowIfCancellationRequested();
 
             var sw = Stopwatch.StartNew();
-            var states = this.IncludeView.GetStateValues();
 
-            var items = await App.RSSViewerHost.Query().SearchAsync(searchText, states, token);
+            var items = await App.RSSViewerHost.Query().SearchAsync(searchText, searchInfo.IncludeState, token);
             token.ThrowIfCancellationRequested();
-            items = items.OrderBy(z => z.Title).ToArray();
+
+            switch (searchInfo.SortBy)
+            {
+                case SortBy.Title:
+                    items = items.OrderBy(z => z.Title).ToArray();
+                    break;
+
+                case SortBy.Time:
+                    // already is time sort
+                    items = items.Reverse().ToArray();
+                    break;
+            }
 
             var groupService = App.RSSViewerHost.ServiceProvider.GetRequiredService<GroupService>();
             var groupsMap = await Task.Run(() => groupService.GetGroupsMap(items));
@@ -153,7 +197,10 @@ namespace RSSViewer.ViewModels
             this._itemsIndexes = itemsIndexes;
 
             sw.Stop();
-            this.LoggerMessage.AddLine($"Query \"{searchText}\" takes {sw.Elapsed.TotalSeconds}s.");
+
+            var descState = string.Join(", ", searchInfo.IncludeState.Select(z => z.ToString().ToLower()));
+            var desc = $"\"{searchText}\" from ({descState}) orderby ({searchInfo.SortBy.ToString().ToLower()})";
+            this.LoggerMessage.AddLine($"Query {desc} takes {sw.Elapsed.TotalSeconds}s.");
         }
 
         public async Task AcceptAsync(RssItemViewModel[] items, IAcceptHandler handler)
@@ -173,6 +220,36 @@ namespace RSSViewer.ViewModels
             await App.RSSViewerHost.Modify().RejectAsync(rssItems);
             this.OnRssItemsStateChanged(
                 RssItemsStateChangedInfo.CreateRejected(rssItems));
+        }
+
+        public struct SearchInfo : IEquatable<SearchInfo>
+        {
+            public string SearchText { get; }
+
+            public SearchInfo(string searchText, RssItemState[] includeState, SortBy sortBy) : this()
+            {
+                this.SearchText = searchText;
+                this.IncludeState = includeState;
+                this.SortBy = sortBy;
+            }
+
+            public RssItemState[] IncludeState { get; }
+
+            public SortBy SortBy { get; }
+
+            public bool Equals(SearchInfo other)
+            {
+                if (this.SearchText != other.SearchText)
+                    return false;
+
+                if (!this.IncludeState.SequenceEqual(other.IncludeState))
+                    return false;
+
+                if (this.SortBy != other.SortBy)
+                    return false;
+
+                return true;
+            }
         }
     }
 }

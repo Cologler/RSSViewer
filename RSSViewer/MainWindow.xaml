@@ -57,7 +57,23 @@
 
             <Grid Grid.Row="1"
                   Margin="0,4,0,0">
-                <Grid x:Name="IncludeRangeArea">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Grid x:Name="SortByArea"
+                      Width="80"
+                      Margin="0,0,4,0">
+                    <ComboBox SelectedItem="{Binding SortByView.SortBy, Mode=TwoWay}"
+                              VerticalAlignment="Center"
+                              ItemsSource="{Binding SortByView.SortByOptions}">
+                    </ComboBox>
+                </Grid>
+                
+                <Grid x:Name="IncludeRangeArea"
+                      Grid.Column="1"
+                      VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="90" />
                         <ColumnDefinition Width="90" />
