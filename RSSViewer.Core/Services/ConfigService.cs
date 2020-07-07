@@ -105,16 +105,6 @@ namespace RSSViewer.Services
             this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Add, matchRule));
         }
 
-        public async Task RemoveMatchRuleAsync(MatchRule matchRule)
-        {
-            using var scope = this._serviceProvider.CreateScope();
-            var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
-            ctx.Attach(matchRule);
-            ctx.Remove(matchRule);
-            await ctx.SaveChangesAsync().ConfigureAwait(false);
-            this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Remove, matchRule));
-        }
-
         private void RaiseMatchRulesChanged()
         {
             Task.Run(() =>
