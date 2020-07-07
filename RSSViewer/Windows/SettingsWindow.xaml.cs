@@ -58,7 +58,7 @@ namespace RSSViewer.Windows
             var svm = this.ViewModel;
             foreach (var vm in this.SelectedAutoRejectMatches)
             {
-                svm.AutoRejectView.Matches.Remove(vm);
+                svm.AutoRejectView.RemoveRule(vm);
             }
         }
 
@@ -66,7 +66,7 @@ namespace RSSViewer.Windows
         {
             if (EditStringMatcherWindow.TryCreateConf(this, out var conf))
             {
-                this.ViewModel.AutoRejectView.Add(conf);
+                this.ViewModel.AutoRejectView.AddRule(conf);
             }
         }
 
@@ -78,6 +78,7 @@ namespace RSSViewer.Windows
 
             if (EditStringMatcherWindow.EditConf(this, vm.MatchRule))
             {
+                vm.MarkChanged();
                 vm.RefreshProperties();
             }
         }

@@ -115,36 +115,35 @@ namespace RSSViewer.Services
             this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Remove, matchRule));
         }
 
-        public async Task ReplaceMatchRulesAsync(MatchRule[] matchRules)
+        private void RaiseMatchRulesChanged()
         {
+            Task.Run(() =>
+            {
+                this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Refresh, this.ListMatchRules(true)));
+            });
+        }
+
+        public async Task UpdateMatchRulesAsync(MatchRule[] updateRules, MatchRule[] addRules, MatchRule[] removeRules)
+        {
+            if (updateRules is null)
+                throw new ArgumentNullException(nameof(updateRules));
+            if (removeRules is null)
+                throw new ArgumentNullException(nameof(removeRules));
+
             using var scope = this._serviceProvider.CreateScope();
             var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
-            var ids = matchRules.Select(z => z.Id).ToHashSet();
 
-            foreach (var rule in matchRules)
-            {
-                if (rule.Id == 0)
-                {
-                    ctx.Add(rule);
-                }
-                else
-                {
-                    ctx.Attach(rule);
-                    ctx.Update(rule);
-                }
-            }
+            //ctx.AttachRange(updateRules);
+            ctx.UpdateRange(updateRules);
 
-            var eInDb = ctx.MatchRules.ToDictionary(z => z.Id, z => z);
+            ctx.AddRange(addRules);
 
-            var removed = eInDb
-                .Where(z => !ids.Contains(z.Key))
-                .Select(z => z.Value)
-                .ToArray();
-            ctx.RemoveRange(removed);
+            //ctx.AttachRange(removeRules);
+            ctx.RemoveRange(removeRules);
 
             await ctx.SaveChangesAsync().ConfigureAwait(false);
 
-            this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Refresh, matchRules));
+            this.RaiseMatchRulesChanged();
         }
 
         public Task<MatchRule[]> ListMatchRulesAsync() => Task.Run(() => this.ListMatchRules(true));

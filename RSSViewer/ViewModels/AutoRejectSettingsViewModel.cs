@@ -14,30 +14,50 @@ namespace RSSViewer.ViewModels
 {
     public class AutoRejectSettingsViewModel
     {
+        private readonly List<MatchRuleViewModel> _removedRules = new List<MatchRuleViewModel>();
+
         public ObservableCollection<MatchRuleViewModel> Matches { get; } = new ObservableCollection<MatchRuleViewModel>();
 
         public async Task Load(ConfigService configService)
         {
-            var rules = await configService.ListMatchRulesAsync().ConfigureAwait(false);
+            var rules = await configService.ListMatchRulesAsync();
             this.Matches.Clear();
             rules.Select(z => new MatchRuleViewModel(z))
                 .ToList()
                 .ForEach(this.Matches.Add);
         }
 
-        internal void Add(MatchRule conf)
+        internal void AddRule(MatchRule conf)
         {
-            this.Matches.Add(new MatchRuleViewModel(conf));
+            this.Matches.Add(new MatchRuleViewModel(conf, true));
+        }
+
+        internal void RemoveRule(MatchRuleViewModel ruleViewModel)
+        {
+            if (ruleViewModel is null)
+                throw new System.ArgumentNullException(nameof(ruleViewModel));
+            this._removedRules.Add(ruleViewModel);
+            this.Matches.Remove(ruleViewModel);
         }
 
         internal async void Save(ConfigService configService)
         {
-            var rules = this.Matches.Select(z => z.MatchRule).ToArray();
-            for (var i = 0; i < rules.Length; i++)
+            var ruleViewModels = this.Matches.ToArray();
+            for (var i = 0; i < ruleViewModels.Length; i++)
             {
-                rules[i].OrderCode = i + 1;
+                var orderCode = i + 1;
+                var viewModel = ruleViewModels[i];
+                if (viewModel.MatchRule.OrderCode != orderCode)
+                {
+                    viewModel.MatchRule.OrderCode = i + 1;
+                    viewModel.MarkChanged();
+                }                
             }
-            await configService.ReplaceMatchRulesAsync(rules);
+
+            await configService.UpdateMatchRulesAsync(
+                this.Matches.Where(z => !z.IsAdded && z.IsChanged).Select(z => z.MatchRule).ToArray(),
+                this.Matches.Where(z => z.IsAdded).Select(z => z.MatchRule).ToArray(),
+                this._removedRules.Select(z => z.MatchRule).ToArray());
         }
 
         internal void MoveUp(IEnumerable<MatchRuleViewModel> items)
