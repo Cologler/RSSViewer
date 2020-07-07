@@ -147,20 +147,23 @@ namespace RSSViewer.Services
             this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Refresh, matchRules));
         }
 
-        public async Task<MatchRule[]> ListMatchRulesAsync()
-        {
-            using var scope = this._serviceProvider.CreateScope();
-            var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
-            var items = await ctx.MatchRules.ToArrayAsync().ConfigureAwait(false);
-            var offset = items.Length + 10;
-            return items.OrderBy(z => z.OrderCode == 0 ? offset : z.OrderCode).ToArray();
-        }
+        public Task<MatchRule[]> ListMatchRulesAsync() => Task.Run(() => this.ListMatchRules(true));
 
-        internal MatchRule[] ListMatchRules()
+        /// <summary>
+        /// list match rules on sync way.
+        /// </summary>
+        /// <returns></returns>
+        internal MatchRule[] ListMatchRules(bool sort)
         {
             using var scope = this._serviceProvider.CreateScope();
             var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
-            return ctx.MatchRules.ToArray();
+            var rules = ctx.MatchRules.ToArray();
+            if (sort)
+            {
+                var offset = rules.Length + 10;
+                rules = rules.OrderBy(z => z.OrderCode == 0 ? offset : z.OrderCode).ToArray();
+            }
+            return rules;
         }
     }
 }

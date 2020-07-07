@@ -31,7 +31,7 @@ namespace RSSViewer.Services
 
             var configService = this._serviceProvider.GetRequiredService<ConfigService>();
             configService.MatchRulesChanged += this.ConfigService_MatchRulesChanged;
-            this.OnUpdated(configService.ListMatchRules());
+            this.OnUpdated(configService.ListMatchRules(true));
         }
 
         private void ConfigService_MatchRulesChanged(object sender, CollectionChangeEventArgs e)
