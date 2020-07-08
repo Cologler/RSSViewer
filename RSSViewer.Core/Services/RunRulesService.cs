@@ -100,21 +100,6 @@ namespace RSSViewer.Services
             }
         }
 
-        private static bool IsEnable(MatchStringConf conf, DateTime now)
-        {
-            if (conf.ExpiredAt != null && conf.ExpiredAt.Value < now)
-            {
-                return false;
-            }
-
-            if (conf.DisableAt != null && conf.DisableAt.Value < now)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         internal void AutoReject()
         {
             using (this._viewerLogger.EnterEvent("Auto reject"))

@@ -35,7 +35,7 @@ namespace RSSViewer.RulesDb
         public TimeSpan? AutoDisabledAfterLastMatched { get; set; }
 
         /// <summary>
-        /// The last matched time or create time.
+        /// The last matched time or create time. (UTC)
         /// </summary>
         public DateTime LastMatched { get; set; }
 

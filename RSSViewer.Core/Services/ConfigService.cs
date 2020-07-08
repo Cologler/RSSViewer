@@ -152,6 +152,10 @@ namespace RSSViewer.Services
                 var offset = rules.Length + 10;
                 rules = rules.OrderBy(z => z.OrderCode == 0 ? offset : z.OrderCode).ToArray();
             }
+            if (ctx.UpdateMatchRulesLifetime() > 0)
+            {
+                ctx.SaveChanges();
+            }
             return rules;
         }
     }
