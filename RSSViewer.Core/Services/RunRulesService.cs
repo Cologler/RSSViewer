@@ -90,6 +90,7 @@ namespace RSSViewer.Services
                 var matchers = rules.Select(z => (z, factory.Create(z)))
                     .ToArray();
                 var deciders = rules
+                    .Where(z => !z.IsDisabled)
                     .Select(z => new MatchRuleStateDecider(z, factory.Create(z)))
                     .ToImmutableArray();
 
