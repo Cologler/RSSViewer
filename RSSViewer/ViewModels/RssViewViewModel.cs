@@ -37,7 +37,7 @@ namespace RSSViewer.ViewModels
             var serviceProvider = App.RSSViewerHost.ServiceProvider;
             this.Analytics = new AnalyticsViewModel(this);
             this.LoggerMessage = serviceProvider.GetRequiredService<ViewerLoggerViewModel>();
-            serviceProvider.GetRequiredService<AutoService>().AddedSingleRuleEffectedRssItemsStateChanged += obj => 
+            serviceProvider.GetRequiredService<RunRulesService>().AddedSingleRuleEffectedRssItemsStateChanged += obj => 
                 Application.Current.Dispatcher.InvokeAsync(() =>
                     this.OnRssItemsStateChanged(obj));
 

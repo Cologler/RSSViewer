@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.Services
 {
-    public class AutoService
+    public class RunRulesService
     {
         private readonly object _syncRoot = new object();
         private readonly IServiceProvider _serviceProvider;
@@ -24,7 +24,7 @@ namespace RSSViewer.Services
 
         public event Action<IRssItemsStateChangedInfo> AddedSingleRuleEffectedRssItemsStateChanged;
 
-        public AutoService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
+        public RunRulesService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
             this._serviceProvider = serviceProvider;
             this._viewerLogger = viewerLogger;
@@ -186,7 +186,7 @@ namespace RSSViewer.Services
                 if (deciders.Count == 0)
                     return;
 
-                var state = new Dictionary<int, int>();
+                var rulesMatchedCounter = new Dictionary<int, int>();
 
                 var query = this._queryService;
                 var operation = this._operationService;
@@ -209,7 +209,7 @@ namespace RSSViewer.Services
                                 this.RejectedItems.Add(item);
                             }
 
-                            state[decider.RuleId] = state.GetValueOrDefault(decider.RuleId) + 1;
+                            rulesMatchedCounter[decider.RuleId] = rulesMatchedCounter.GetValueOrDefault(decider.RuleId) + 1;
 
                             break;
                         }
@@ -227,13 +227,13 @@ namespace RSSViewer.Services
                     {
                         var now = DateTime.UtcNow;
                         var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
-                        foreach (var (k, v) in state)
+                        foreach (var (ruleId, count) in rulesMatchedCounter)
                         {
-                            var item = ctx.MatchRules.Find(k);
+                            var item = ctx.MatchRules.Find(ruleId);
                             if (item != null)
                             {
                                 item.LastMatched = now;
-                                item.TotalMatchedCount += v;
+                                item.TotalMatchedCount += count;
                             }
                         }
                         ctx.SaveChanges();

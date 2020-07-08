@@ -168,7 +168,7 @@ namespace RSSViewer
         {
             var mi = (MenuItem)e.OriginalSource;
             mi.IsEnabled = false;
-            await App.RSSViewerHost.ServiceProvider.GetRequiredService<AutoService>()
+            await App.RSSViewerHost.ServiceProvider.GetRequiredService<RunRulesService>()
                 .AutoRejectAsync();
             mi.IsEnabled = true;
             await this.ViewModel.SearchAsync();

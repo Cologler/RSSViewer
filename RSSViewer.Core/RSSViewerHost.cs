@@ -35,7 +35,7 @@ namespace RSSViewer
             scope.ServiceProvider.GetRequiredService<RulesDbContext>()
                 .Database.Migrate();
 
-            var auto = scope.ServiceProvider.GetRequiredService<AutoService>();
+            var auto = scope.ServiceProvider.GetRequiredService<RunRulesService>();
             scope.ServiceProvider.GetRequiredService<AppDirService>().EnsureCreated();
             scope.ServiceProvider.GetRequiredService<SyncService>().OnSynced += () =>
             {
@@ -64,7 +64,7 @@ namespace RSSViewer
                 .AddSingleton<RssItemsOperationService>()
                 .AddSingleton<SyncService>()
                 .AddSingleton<AcceptHandlerService>()
-                .AddSingleton<AutoService>()
+                .AddSingleton<RunRulesService>()
                 .AddSingleton<ConfigService>()
                 .AddSingleton<GroupService>()
                 .AddSingleton<KeywordsService>()
