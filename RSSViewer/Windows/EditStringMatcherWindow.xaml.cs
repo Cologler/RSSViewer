@@ -77,15 +77,15 @@ namespace RSSViewer.Windows
 
             this.RegexOptionsPanel.Visibility = Visibility.Collapsed;
             this.StringComparisonPanel.Visibility = Visibility.Collapsed;
-            switch ((MatchStringMode)Enum.Parse(typeof(MatchStringMode), selected))
+            switch ((MatchMode)Enum.Parse(typeof(MatchMode), selected))
             {
-                case MatchStringMode.Contains:
-                case MatchStringMode.StartsWith:
-                case MatchStringMode.EndsWith:
+                case MatchMode.Contains:
+                case MatchMode.StartsWith:
+                case MatchMode.EndsWith:
                     this.StringComparisonPanel.Visibility = Visibility.Visible;
                     break;
 
-                case MatchStringMode.Regex:
+                case MatchMode.Regex:
                     this.RegexOptionsPanel.Visibility = Visibility.Visible;
                     break;
             }
