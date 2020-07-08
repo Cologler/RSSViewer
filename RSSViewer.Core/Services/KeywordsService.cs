@@ -27,17 +27,17 @@ namespace RSSViewer.Services
 
         public void Reload(AppConf conf)
         {
+            var section = conf.Keywords;
+
+            var finders = new List<IKeywordsFinder>();
+            finders.AddRange(this._serviceProvider.GetServices<IKeywordsFinder>());
+            finders.AddRange(section.Matches
+                .Select(z => new Regex(z, RegexOptions.IgnoreCase))
+                .Select(z => new RegexKeywordsFinder(z)));
+
             lock (this._syncRoot)
             {
-                var section = conf.Keywords;
-
-                var finders = new List<IKeywordsFinder>();
-                finders.AddRange(this._serviceProvider.GetServices<IKeywordsFinder>());
-                finders.AddRange(section.Matches
-                    .Select(z => new Regex(z, RegexOptions.IgnoreCase))
-                    .Select(z => new RegexKeywordsFinder(z)));
                 this._finders = finders.ToImmutableList();
-
                 this._excludes = section.Excludes.ToImmutableHashSet();
             }
         }
@@ -48,6 +48,7 @@ namespace RSSViewer.Services
             var excludes = this._excludes;
 
             return finders.SelectMany(f => f.GetKeywords(rssItem))
+                .Where(z => !string.IsNullOrWhiteSpace(z))
                 .Distinct()
                 .Where(k => !excludes.Contains(k))
                 .ToArray();
