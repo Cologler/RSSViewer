@@ -14,7 +14,7 @@ namespace RSSViewer.Provider.Transmission
 {
     internal class TransmissionAcceptHandler : IAcceptHandler
     {
-        public string HandlerName => $"Transmission ({this.RpcUrl})";
+        public string HandlerName => $"Send To Transmission ({this.RpcUrl})";
 
         [UserVariable, Required]
         public string RpcUrl { get; set; }
