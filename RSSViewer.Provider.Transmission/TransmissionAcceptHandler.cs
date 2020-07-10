@@ -5,6 +5,7 @@ using RSSViewer.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Transmission.API.RPC;
@@ -38,14 +39,17 @@ namespace RSSViewer.Provider.Transmission
                     this.UserName,
                     this.Password);
 
-                foreach (var item in rssItems)
-                {
-                    var ml = item.GetProperty(RssItemProperties.MagnetLink);
-                    if (string.IsNullOrWhiteSpace(ml))
-                    {
-                        return false;
-                    }
+                var magnetLinks = rssItems
+                    .Select(z => z.GetProperty(RssItemProperties.MagnetLink))
+                    .ToArray();
 
+                if (magnetLinks.Any(string.IsNullOrWhiteSpace))
+                {
+                    return false;
+                }
+
+                foreach (var ml in magnetLinks)
+                {
                     var torrent = new NewTorrent
                     {
                         Filename = ml,
