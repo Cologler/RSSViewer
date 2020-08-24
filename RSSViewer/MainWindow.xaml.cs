@@ -176,14 +176,9 @@ namespace RSSViewer
 
         private void ItemsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var groups = ((ListView)(sender)).SelectedItems.OfType<RssItemGroupViewModel>()
-                .Select(z => z.Items.Count)
+            this.ViewModel.Analytics.Selected = ((ListView)sender).SelectedItems.OfType<IRssItemsCount>()
+                .Select(z => z.Count)
                 .Sum();
-
-            var items = ((ListView)(sender)).SelectedItems.OfType<RssItemViewModel>()
-                .Count();
-
-            this.ViewModel.Analytics.Selected = groups + items;
         }
     }
 }

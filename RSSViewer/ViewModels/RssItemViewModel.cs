@@ -4,7 +4,7 @@ using System.Windows;
 
 namespace RSSViewer.ViewModels
 {
-    public class RssItemViewModel : BaseViewModel
+    public class RssItemViewModel : BaseViewModel, IRssItemsCount
     {
         public RssItem RssItem { get; }
 
@@ -33,5 +33,7 @@ namespace RSSViewer.ViewModels
                 return $"{this.RssItem.Title} ({this.RssItem.FeedId})";
             }
         }
+
+        int IRssItemsCount.Count => 1;
     }
 }
