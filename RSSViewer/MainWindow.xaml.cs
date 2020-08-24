@@ -173,5 +173,17 @@ namespace RSSViewer
             mi.IsEnabled = true;
             await this.ViewModel.SearchAsync();
         }
+
+        private void ItemsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var groups = ((ListView)(sender)).SelectedItems.OfType<RssItemGroupViewModel>()
+                .Select(z => z.Items.Count)
+                .Sum();
+
+            var items = ((ListView)(sender)).SelectedItems.OfType<RssItemViewModel>()
+                .Count();
+
+            this.ViewModel.Analytics.Selected = groups + items;
+        }
     }
 }

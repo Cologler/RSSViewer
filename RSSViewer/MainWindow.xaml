@@ -105,6 +105,7 @@
                     <ListView ItemsSource="{Binding Groups}"
                               SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
                               SelectedIndex="0"
+                              SelectionChanged="ItemsListView_SelectionChanged"
                               x:Name="GroupsListView">
                         <ListView.ItemTemplate>
                             <DataTemplate>
@@ -134,7 +135,8 @@
                       DataContext="{Binding SelectedGroup}">
                     
                     <ListView ItemsSource="{Binding Items}"
-                              x:Name="ItemsListView">
+                              x:Name="ItemsListView"
+                              SelectionChanged="ItemsListView_SelectionChanged">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -194,6 +196,9 @@
                 <Separator />
                 <TextBlock Text="Rejected:"/>
                 <TextBlock Text="{Binding Analytics.RejectedInView}" />
+                <Separator />
+                <TextBlock Text="Selected:" />
+                <TextBlock Text="{Binding Analytics.Selected}" />
                 <Separator />
                 <TextBlock Text="{Binding StatusText}" />
             </StatusBar>
