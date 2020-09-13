@@ -96,7 +96,7 @@ namespace RSSViewer.Provider.Synology.DownloadStation
                     var ret = await task.CreateAsync(
                                new TaskCreateParameters
                                {
-                                   Uri = url
+                                   Uri = System.Web.HttpUtility.UrlEncode(url)
                                });
                     if (ret?.Success != true)
                     {
