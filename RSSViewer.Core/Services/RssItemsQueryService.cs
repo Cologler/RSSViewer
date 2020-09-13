@@ -93,7 +93,14 @@ namespace RSSViewer.Services
             return await Task.Run(() =>
             {
                 var regex = RegexUtils.WildcardToRegex(searchText);
-                return items.Where(z => regex.IsMatch(z.Title)).ToArray();
+                return items.Where(z => 
+                {
+                    if (regex.IsMatch(z.Title))
+                        return true;
+                    if (z.MagnetLink?.Contains(searchText) == true)
+                        return true;
+                    return false;
+                }).ToArray();
             }).ConfigureAwait(false);
         }
     }
