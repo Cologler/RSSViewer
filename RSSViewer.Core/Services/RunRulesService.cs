@@ -71,7 +71,7 @@ namespace RSSViewer.Services
 
             Task.Run(() =>
             {
-                var context = new ExecuteContext(this._serviceProvider);
+                var context = new MatchContext(this._serviceProvider);
                 context.Run(ImmutableArray.Create(decider));
                 this._viewerLogger.AddLine(
                     $"{rule.Action}ed {context.RejectedItems.Count} items by new rule ({rule.Argument})");
@@ -103,13 +103,13 @@ namespace RSSViewer.Services
 
         internal void AutoReject()
         {
+            var context = new MatchContext(this._serviceProvider);
             using (this._viewerLogger.EnterEvent("Auto reject"))
             {
-                var context = new ExecuteContext(this._serviceProvider);
                 context.Run(this._matchRuleStateDeciders);
                 this._viewerLogger.AddLine(
                     $"Rejected {context.RejectedItems.Count} items from {context.SourceItems.Count} undecided items.");
-            }                
+            }
         }
 
         public Task AutoRejectAsync() => Task.Run(this.AutoReject);
@@ -138,7 +138,10 @@ namespace RSSViewer.Services
                         this._state = RssItemState.Undecided;
                         break;
                 }
+                this.LastMatched = matchRule.LastMatched;
             }
+
+            public DateTime LastMatched { get; set; }
 
             public int RuleId => this._matchRule.Id;
 
@@ -148,13 +151,13 @@ namespace RSSViewer.Services
             }
         }
 
-        private class ExecuteContext : IRssItemsStateChangedInfo
+        private class MatchContext : IRssItemsStateChangedInfo
         {
             private readonly IServiceProvider _serviceProvider;
             private readonly RssItemsQueryService _queryService;
             private readonly RssItemsOperationService _operationService;
 
-            public ExecuteContext(IServiceProvider serviceProvider)
+            public MatchContext(IServiceProvider serviceProvider)
             {
                 this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
                 this._queryService = serviceProvider.GetRequiredService<RssItemsQueryService>();
@@ -167,17 +170,30 @@ namespace RSSViewer.Services
 
             public List<RssItem> RejectedItems { get; } = new List<RssItem>();
 
+            public Dictionary<int, int> MatchedCounter { get; } = new Dictionary<int, int>();
+
+            public DateTime Now { get; } = DateTime.UtcNow;
+
             public void Run(IReadOnlyCollection<MatchRuleStateDecider> deciders)
             {
+                this.Scan(deciders);
+                this.Commit();
+            }
+
+            private void Scan(IReadOnlyCollection<MatchRuleStateDecider> deciders)
+            {
+                if (deciders is null)
+                    throw new ArgumentNullException(nameof(deciders));
+
                 if (deciders.Count == 0)
                     return;
 
-                var rulesMatchedCounter = new Dictionary<int, int>();
+                var matchedCounter = this.MatchedCounter;
+                deciders = deciders.OrderByDescending(z => z.LastMatched).ToList();
 
-                var query = this._queryService;
                 var operation = this._operationService;
 
-                this.SourceItems.AddRange(query.List(new[] { RssItemState.Undecided }));
+                this.SourceItems.AddRange(this._queryService.List(new[] { RssItemState.Undecided }));
 
                 foreach (var item in this.SourceItems)
                 {
@@ -195,30 +211,34 @@ namespace RSSViewer.Services
                                 this.RejectedItems.Add(item);
                             }
 
-                            rulesMatchedCounter[decider.RuleId] = rulesMatchedCounter.GetValueOrDefault(decider.RuleId) + 1;
-
+                            decider.LastMatched = this.Now;
+                            matchedCounter[decider.RuleId] = matchedCounter.GetValueOrDefault(decider.RuleId) + 1;
                             break;
                         }
                     }
                 }
+            }
+
+            private void Commit()
+            {
+                var matchedCounter = this.MatchedCounter;
 
                 if (this.RejectedItems.Count + this.AcceptedItems.Count > 0)
                 {
-                    operation.ChangeState(this.RejectedItems, RssItemState.Rejected);
+                    this._operationService.ChangeState(this.RejectedItems, RssItemState.Rejected);
 
                     if (this.AcceptedItems.Count > 0)
                         throw new NotImplementedException();
 
                     using (var scope = this._serviceProvider.CreateScope())
                     {
-                        var now = DateTime.UtcNow;
                         var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
-                        foreach (var (ruleId, count) in rulesMatchedCounter)
+                        foreach (var (ruleId, count) in matchedCounter)
                         {
                             var item = ctx.MatchRules.Find(ruleId);
                             if (item != null)
                             {
-                                item.LastMatched = now;
+                                item.LastMatched = this.Now;
                                 item.TotalMatchedCount += count;
                             }
                         }
