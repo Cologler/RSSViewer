@@ -195,26 +195,44 @@ namespace RSSViewer.Services
 
                 this.SourceItems.AddRange(this._queryService.List(new[] { RssItemState.Undecided }));
 
-                foreach (var item in this.SourceItems)
-                {
-                    foreach (var decider in deciders)
+                var results = this.SourceItems.AsParallel()
+                    .Select(item =>
                     {
-                        var decidedState = decider.GetNextState(item);
-                        if (decidedState != RssItemState.Undecided)
+                        foreach (var decider in deciders)
                         {
-                            if (decidedState == RssItemState.Accepted)
+                            var newState = decider.GetNextState(item);
+                            if (newState != RssItemState.Undecided)
                             {
-                                this.AcceptedItems.Add(item);
+                                return new
+                                {
+                                    MatchRuleStateDecider = decider,
+                                    Item = item,
+                                    NewState = newState
+                                };
                             }
-                            else if (decidedState == RssItemState.Rejected)
-                            {
-                                this.RejectedItems.Add(item);
-                            }
-
-                            decider.LastMatched = this.Now;
-                            matchedCounter[decider.RuleId] = matchedCounter.GetValueOrDefault(decider.RuleId) + 1;
-                            break;
                         }
+                        return null;
+                    })
+                    .Where(z => z != null)
+                    .ToList();
+
+                foreach (var result in results)
+                {
+                    var newState = result.NewState;
+                    if (newState != RssItemState.Undecided)
+                    {
+                        if (newState == RssItemState.Accepted)
+                        {
+                            this.AcceptedItems.Add(result.Item);
+                        }
+                        else if (newState == RssItemState.Rejected)
+                        {
+                            this.RejectedItems.Add(result.Item);
+                        }
+
+                        result.MatchRuleStateDecider.LastMatched = this.Now;
+                        matchedCounter[result.MatchRuleStateDecider.RuleId] = 
+                            matchedCounter.GetValueOrDefault(result.MatchRuleStateDecider.RuleId) + 1;
                     }
                 }
             }
