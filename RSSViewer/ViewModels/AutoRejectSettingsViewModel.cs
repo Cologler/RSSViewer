@@ -22,14 +22,14 @@ namespace RSSViewer.ViewModels
         {
             var rules = await configService.ListMatchRulesAsync();
             this.Matches.Clear();
-            rules.Select(z => new MatchRuleViewModel(z))
+            rules.Select((z, i) => new MatchRuleViewModel(z, i))
                 .ToList()
                 .ForEach(this.Matches.Add);
         }
 
         internal void AddRule(MatchRule conf)
         {
-            this.Matches.Add(new MatchRuleViewModel(conf, true));
+            this.Matches.Add(new MatchRuleViewModel(conf, this.Matches.Count, true));
         }
 
         internal void RemoveRule(MatchRuleViewModel ruleViewModel)
@@ -76,6 +76,7 @@ namespace RSSViewer.ViewModels
             foreach (var i in itemIndexes.Where(z => z > start).OrderBy(z => z))
             {
                 var ni = i - 1;
+                (this.Matches[i].Index, this.Matches[ni].Index) = (this.Matches[ni].Index, this.Matches[i].Index);
                 (this.Matches[i], this.Matches[ni]) = (this.Matches[ni], this.Matches[i]);
             }
         }
@@ -97,6 +98,7 @@ namespace RSSViewer.ViewModels
             foreach (var i in itemIndexes.Where(z => z < start).OrderByDescending(z => z))
             {
                 var ni = i + 1;
+                (this.Matches[i].Index, this.Matches[ni].Index) = (this.Matches[ni].Index, this.Matches[i].Index);
                 (this.Matches[i], this.Matches[ni]) = (this.Matches[ni], this.Matches[i]);
             }
         }

@@ -10,9 +10,10 @@ namespace RSSViewer.ViewModels
     {
         public MatchRule MatchRule { get; }
 
-        public MatchRuleViewModel(MatchRule matchRule, bool isAdded = false)
+        public MatchRuleViewModel(MatchRule matchRule, int index, bool isAdded = false)
         {
             this.MatchRule = matchRule;
+            this.Index = index;
             this.IsAdded = isAdded;
         }
 
@@ -21,9 +22,11 @@ namespace RSSViewer.ViewModels
         {
             get
             {
-                return $"({this.MatchRule.Mode}) {this.MatchRule.Argument}";
+                return $"[{this.Index}] ({this.MatchRule.Mode}) {this.MatchRule.Argument}";
             }
         }
+
+        public int Index { get; set; }
 
         public bool IsChanged { get; private set; }
 
