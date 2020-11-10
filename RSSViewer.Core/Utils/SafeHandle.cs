@@ -5,7 +5,8 @@ using System.Text;
 namespace RSSViewer.Utils
 {
     /// <summary>
-    /// Use this handle to wrap the immutable collections to avoid read or write the partial struct.
+    /// Use this handle to wrap the immutable collections to avoid read or write a partial struct
+    /// (not sure how many fields inside their layer).
     /// </summary>
     sealed class SafeHandle<T>
     {
