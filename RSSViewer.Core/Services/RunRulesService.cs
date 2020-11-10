@@ -17,10 +17,9 @@ namespace RSSViewer.Services
 {
     public class RunRulesService
     {
-        private readonly object _syncRoot = new object();
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
-        private ImmutableArray<MatchRuleStateDecider> _matchRuleStateDeciders;
+        private readonly SafeHandle<ImmutableArray<MatchRuleStateDecider>> _matchRuleStateDeciders;
 
         public event Action<IRssItemsStateChangedInfo> AddedSingleRuleEffectedRssItemsStateChanged;
 
@@ -28,6 +27,8 @@ namespace RSSViewer.Services
         {
             this._serviceProvider = serviceProvider;
             this._viewerLogger = viewerLogger;
+
+            this._matchRuleStateDeciders = new SafeHandle<ImmutableArray<MatchRuleStateDecider>>();
 
             var configService = this._serviceProvider.GetRequiredService<ConfigService>();
             configService.MatchRulesChanged += this.ConfigService_MatchRulesChanged;
@@ -63,11 +64,7 @@ namespace RSSViewer.Services
 
             var matcher = factory.Create(rule);
             var decider = new MatchRuleStateDecider(rule, matcher);
-
-            lock (this._syncRoot)
-            {
-                this._matchRuleStateDeciders = this._matchRuleStateDeciders.Add(decider); 
-            }
+            this._matchRuleStateDeciders.Change(v => v.Add(decider));
 
             Task.Run(() =>
             {
@@ -94,10 +91,7 @@ namespace RSSViewer.Services
                     .Select(z => new MatchRuleStateDecider(z, factory.Create(z)))
                     .ToImmutableArray();
 
-                lock (this._syncRoot)
-                {
-                    this._matchRuleStateDeciders = deciders;
-                }
+                this._matchRuleStateDeciders.Value = deciders;
             }
         }
 
@@ -106,7 +100,7 @@ namespace RSSViewer.Services
             var context = new MatchContext(this._serviceProvider);
             using (this._viewerLogger.EnterEvent("Auto reject"))
             {
-                context.Run(this._matchRuleStateDeciders);
+                context.Run(this._matchRuleStateDeciders.Value);
                 this._viewerLogger.AddLine(
                     $"Rejected {context.RejectedItems.Count} items from {context.SourceItems.Count} undecided items.");
             }
