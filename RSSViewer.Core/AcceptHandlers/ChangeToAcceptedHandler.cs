@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.AcceptHandlers
 {
-    class DoNothingAcceptHandler : IAcceptHandler
+    class ChangeToAcceptedHandler : IAcceptHandler
     {
-        public string HandlerName => "Change Status Only";
+        public string HandlerName => "Change To Accepted";
 
         public ValueTask<bool> Accept(IReadOnlyCollection<IRssItem> rssItems) => new ValueTask<bool>(true);
     }
