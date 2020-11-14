@@ -12,14 +12,14 @@ using System.Linq;
 
 namespace RSSViewer.Services
 {
-    public class AcceptHandlerService
+    public class RssItemHandlersService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
         private readonly Dictionary<string, IRssItemHandlerProvider> _sourceProviders;
         private ImmutableArray<IRssItemHandler> _acceptHandlers;
 
-        public AcceptHandlerService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
+        public RssItemHandlersService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
             this._serviceProvider = serviceProvider;
             this._viewerLogger = viewerLogger;

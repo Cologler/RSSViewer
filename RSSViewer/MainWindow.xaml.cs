@@ -35,7 +35,7 @@ namespace RSSViewer
         {
             InitializeComponent();
 
-            App.RSSViewerHost.ServiceProvider.GetRequiredService<AcceptHandlerService>()
+            App.RSSViewerHost.ServiceProvider.GetRequiredService<RssItemHandlersService>()
                 .AcceptHandlersChanged += (_, __) => this.RefreshAcceptHandlers();
             this.RefreshAcceptHandlers();
 
@@ -54,7 +54,7 @@ namespace RSSViewer
 
             // add
             var serviceProvider = App.RSSViewerHost.ServiceProvider;
-            foreach (var handler in serviceProvider.GetRequiredService<AcceptHandlerService>().GetHandlers())
+            foreach (var handler in serviceProvider.GetRequiredService<RssItemHandlersService>().GetHandlers())
             {
                 var groupHandlerMenuItem = new MenuItem
                 {

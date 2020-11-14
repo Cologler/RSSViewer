@@ -64,7 +64,7 @@ namespace RSSViewer
                 .AddSingleton<RssItemsQueryService>()
                 .AddSingleton<RssItemsOperationService>()
                 .AddSingleton<SyncService>()
-                .AddSingleton<AcceptHandlerService>()
+                .AddSingleton<RssItemHandlersService>()
                 .AddSingleton<RunRulesService>()
                 .AddSingleton<ConfigService>()
                 .AddSingleton<GroupService>()

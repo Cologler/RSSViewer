@@ -11,6 +11,8 @@ namespace RSSViewer.Abstractions
 
         string HandlerName { get; }
 
+        bool CanbeRuleTarget { get; }
+
         /// <summary>
         /// 
         /// </summary>

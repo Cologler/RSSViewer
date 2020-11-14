@@ -11,6 +11,8 @@ namespace RSSViewer.RssItemHandlers
 
         public string HandlerName => "Change Undecided To Rejected";
 
+        public bool CanbeRuleTarget => false;
+
         public IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
         {
             return rssItems

@@ -14,6 +14,8 @@ namespace RSSViewer.AcceptHandlers
 
         public string HandlerName => "Copy Magnet Link";
 
+        public bool CanbeRuleTarget => false;
+
         public IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
         {
             var urls = new List<string>();

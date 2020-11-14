@@ -46,6 +46,8 @@ namespace RSSViewer.Provider.Synology.DownloadStation
         [UserVariable, Required]
         public bool IsSsl { get; set; }
 
+        public bool CanbeRuleTarget => true;
+
         public async IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
         {
             if (rssItems is null)
