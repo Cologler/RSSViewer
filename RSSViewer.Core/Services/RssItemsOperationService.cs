@@ -1,7 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+
+using RSSViewer.Abstractions;
 using RSSViewer.LocalDb;
+using RSSViewer.Utils;
+
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RSSViewer.Services
@@ -40,6 +45,10 @@ namespace RSSViewer.Services
                 item.State = state;
             }
             ctx.SaveChanges();
+
+            this._serviceProvider.EmitEvent(EventNames.RssItemsStateChanged, 
+                this, 
+                items.Select(z => ((IRssItem) z, state)).ToList());
         }
     }
 }

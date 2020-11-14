@@ -88,6 +88,7 @@ namespace RSSViewer
                 .AddSingleton<IRssItemHandler, ChangeToRejectedHandler>()
                 .AddSingleton<IRssItemHandler, ChangeUndecidedToAcceptedHandler>()
                 .AddSingleton<IRssItemHandler, ChangeUndecidedToRejectedHandler>()
+                .AddSingleton(typeof(EventEmitter<>))
                 ;
 
             sc.AddSingleton<JsonConverter, TimeSpanConverter>();

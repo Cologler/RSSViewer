@@ -40,6 +40,7 @@ namespace RSSViewer.ViewModels
             serviceProvider.GetRequiredService<RunRulesService>().AddedSingleRuleEffectedRssItemsStateChanged += obj => 
                 Application.Current.Dispatcher.InvokeAsync(() =>
                     this.OnRssItemsStateChanged(obj));
+            serviceProvider.AddListener(EventNames.RssItemsStateChanged, this.OnRssItemsStateChanged);
 
             this.IncludeView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
             this.SortByView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
@@ -60,6 +61,33 @@ namespace RSSViewer.ViewModels
             {
                 await this.SearchAsync(0);
             }
+        }
+
+        private void OnRssItemsStateChanged(object sender, IEnumerable<(IRssItem, RssItemState)> e)
+        {
+            App.Current.Dispatcher.InvokeAsync(() =>
+            {
+                if (this._itemsIndexes is null)
+                {
+                    // first run.
+                    return;
+                }
+
+                foreach (var (rssItem, state) in e)
+                {
+                    if (rssItem is RssItem item)
+                    {
+                        var viewModel = this._itemsIndexes.GetValueOrDefault(item.GetKey());
+                        if (viewModel != null)
+                        {
+                            viewModel.RssItem.State = state;
+                            viewModel.RefreshProperties();
+                        }
+                    }
+                }
+
+                this.Analytics.RefreshProperties();
+            });
         }
 
         private void OnRssItemsStateChanged(IRssItemsStateChangedInfo obj)
@@ -232,8 +260,8 @@ namespace RSSViewer.ViewModels
                     .Cast<RssItem>()
                     .ToList());
 
-                this.OnRssItemsStateChanged(
-                    RssItemsStateChangedInfo.Create(changes.Select(z => ((RssItem)z.Item1, z.Item2))));
+                //this.OnRssItemsStateChanged(
+                //    RssItemsStateChangedInfo.Create(changes.Select(z => ((RssItem)z.Item1, z.Item2))));
             }
         }
 
