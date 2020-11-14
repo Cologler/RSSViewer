@@ -2,13 +2,13 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
-using RSSViewer.AcceptHandlers;
 using RSSViewer.Json;
 using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
 using RSSViewer.Provider.RssFetcher;
 using RSSViewer.Provider.Synology;
 using RSSViewer.Provider.Transmission;
+using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
 using RSSViewer.Services;
 using RSSViewer.StringMatchers;
@@ -85,6 +85,9 @@ namespace RSSViewer
                 .AddTransmissionProvider()
                 .AddSingleton<IViewerLogger, NoneViewerLogger>()
                 .AddSingleton<IRssItemHandler, ChangeToAcceptedHandler>()
+                .AddSingleton<IRssItemHandler, ChangeToRejectedHandler>()
+                .AddSingleton<IRssItemHandler, ChangeUndecidedToAcceptedHandler>()
+                .AddSingleton<IRssItemHandler, ChangeUndecidedToRejectedHandler>()
                 ;
 
             sc.AddSingleton<JsonConverter, TimeSpanConverter>();

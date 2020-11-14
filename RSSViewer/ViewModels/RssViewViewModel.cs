@@ -233,7 +233,7 @@ namespace RSSViewer.ViewModels
                     .ToList());
 
                 this.OnRssItemsStateChanged(
-                    RssItemsStateChangedInfo.Create(rssItems.Select(z => ((RssItem)z.Item1, z.Item2))));
+                    RssItemsStateChangedInfo.Create(changes.Select(z => ((RssItem)z.Item1, z.Item2))));
             }
         }
 
