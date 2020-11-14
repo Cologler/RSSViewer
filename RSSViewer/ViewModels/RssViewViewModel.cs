@@ -216,12 +216,24 @@ namespace RSSViewer.ViewModels
 
         public async Task AcceptAsync(RssItemViewModel[] items, IAcceptHandler handler)
         {
-            var rssItems = items.Select(z => z.RssItem).ToArray();
-            if (await handler.Accept(rssItems))
+            var rssItems = items.Select(z => ((IRssItem)z.RssItem, z.RssItem.State)).ToArray();
+            var changes = await (handler.Accept(rssItems)).ToListAsync();
+            if (changes.Count > 0)
             {
-                await App.RSSViewerHost.Modify().AcceptAsync(rssItems);
+                await App.RSSViewerHost.Modify().AcceptAsync(changes
+                    .Where(z => z.Item2 == RssItemState.Accepted)
+                    .Select(z => z.Item1)
+                    .Cast<RssItem>()
+                    .ToList());
+
+                await App.RSSViewerHost.Modify().RejectAsync(changes
+                    .Where(z => z.Item2 == RssItemState.Rejected)
+                    .Select(z => z.Item1)
+                    .Cast<RssItem>()
+                    .ToList());
+
                 this.OnRssItemsStateChanged(
-                    RssItemsStateChangedInfo.CreateAccepted(rssItems));
+                    RssItemsStateChangedInfo.Create(rssItems.Select(z => ((RssItem)z.Item1, z.Item2))));
             }
         }
 

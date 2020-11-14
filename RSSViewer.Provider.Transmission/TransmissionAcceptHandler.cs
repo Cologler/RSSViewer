@@ -26,30 +26,34 @@ namespace RSSViewer.Provider.Transmission
         [UserVariable]
         public string Password { get; set; }
 
-        public ValueTask<bool> Accept(IReadOnlyCollection<IRssItem> rssItems)
+        public async IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
         {
             if (rssItems is null)
                 throw new ArgumentNullException(nameof(rssItems));
 
-            return new ValueTask<bool>(Task.Run(() =>
+            var rssItemsWithMagnetLink = rssItems
+                .Select(z => z.Item1)
+                .Where(z => !string.IsNullOrWhiteSpace(z.GetProperty(RssItemProperties.MagnetLink)))
+                .ToList();
+
+            if (rssItemsWithMagnetLink.Count == 0)
             {
+                yield break;
+            }
+
+            var task = await Task.Run(() =>
+            {
+                var accepted = new List<IRssItem>();
+
                 var client = new Client(
                     this.RpcUrl, 
                     Guid.NewGuid().ToString(),
                     this.UserName,
                     this.Password);
 
-                var magnetLinks = rssItems
-                    .Select(z => z.GetProperty(RssItemProperties.MagnetLink))
-                    .ToArray();
-
-                if (magnetLinks.Any(string.IsNullOrWhiteSpace))
+                foreach (var rssItem in rssItemsWithMagnetLink)
                 {
-                    return false;
-                }
-
-                foreach (var ml in magnetLinks)
-                {
+                    var ml = rssItem.GetProperty(RssItemProperties.MagnetLink);
                     var torrent = new NewTorrent
                     {
                         Filename = ml,
@@ -57,14 +61,19 @@ namespace RSSViewer.Provider.Transmission
                     };
 
                     var newTorrentInfo = client.TorrentAdd(torrent);
-                    if (newTorrentInfo == null || newTorrentInfo.ID == 0)
+                    if (newTorrentInfo != null && newTorrentInfo.ID != 0)
                     {
-                        return false;
+                        accepted.Add(rssItem);
                     }
                 }
-                
-                return true;
-            }));
+
+                return accepted;
+            }).ConfigureAwait(false);
+
+            foreach (var rssItem in task)
+            {
+                yield return (rssItem, RssItemState.Accepted);
+            }
         }
     }
 }

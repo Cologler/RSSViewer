@@ -3,6 +3,7 @@ using RSSViewer.LocalDb;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace RSSViewer.RssItemHelper
@@ -29,6 +30,16 @@ namespace RSSViewer.RssItemHelper
             return ss;
         }
 
+        public static IRssItemsStateChangedInfo Create(IEnumerable<(RssItem, RssItemState)> rssItems)
+        {
+            if (rssItems is null)
+                throw new ArgumentNullException(nameof(rssItems));
+
+            var ss = new MultiStatesRssItemsStateChangedInfo();
+            ss.Items.AddRange(rssItems);
+            return ss;
+        }
+
         class SingleStateRssItemsStateChangedInfo : IRssItemsStateChangedInfo
         {
             private readonly RssItemState _state;
@@ -48,6 +59,16 @@ namespace RSSViewer.RssItemHelper
                 }
 
                 return Array.Empty<RssItem>();
+            }
+        }
+
+        class MultiStatesRssItemsStateChangedInfo : IRssItemsStateChangedInfo
+        {
+            public List<(RssItem, RssItemState)> Items { get; } = new List<(RssItem, RssItemState)>();
+
+            public IEnumerable<RssItem> GetItems(RssItemState newState)
+            {
+                return Items.Where(z => z.Item2 == newState).Select(z => z.Item1).ToList();
             }
         }
     }

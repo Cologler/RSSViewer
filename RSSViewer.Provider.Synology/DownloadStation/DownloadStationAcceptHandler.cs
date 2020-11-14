@@ -13,6 +13,7 @@ using System.Net.Http;
 using Synology.Api.Auth.Parameters;
 using RSSViewer.Annotations;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace RSSViewer.Provider.Synology.DownloadStation
 {
@@ -42,22 +43,19 @@ namespace RSSViewer.Provider.Synology.DownloadStation
         [UserVariable, Required]
         public bool IsSsl { get; set; }
 
-        public async ValueTask<bool> Accept(IReadOnlyCollection<IRssItem> rssItems)
+        public async IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
         {
-            var urls = new List<string>();
-            foreach (var item in rssItems)
-            {
-                var ml = item.GetProperty(RssItemProperties.MagnetLink);
-                if (string.IsNullOrWhiteSpace(ml))
-                {
-                    return false;
-                }
-                urls.Add(ml);
-            }
+            if (rssItems is null)
+                throw new ArgumentNullException(nameof(rssItems));
 
-            if (urls.Count == 0)
+            var rssItemsWithMagnetLink = rssItems
+                .Select(z => z.Item1)
+                .Where(z => !string.IsNullOrWhiteSpace(z.GetProperty(RssItemProperties.MagnetLink)))
+                .ToList();
+
+            if (rssItemsWithMagnetLink.Count == 0)
             {
-                return true;
+                yield break;
             }
 
             using var scope = this._serviceProvider.CreateScope();
@@ -77,39 +75,44 @@ namespace RSSViewer.Provider.Synology.DownloadStation
                 settings.Port = this.Port;
             }
 
-            var conn = scope.ServiceProvider.GetService<ISynologyConnection>();                     
+            var conn = scope.ServiceProvider.GetService<ISynologyConnection>();
 
+            var accepted = new List<IRssItem>();
             try
             {
                 var resp = await conn.Api().Auth().LoginAsync(new LoginParameters
                 {
-                     Username = this.UserName,
-                     Password = this.Password
+                    Username = this.UserName,
+                    Password = this.Password
                 });
 
                 var task = conn
                     .DownloadStation()
                     .Task();
 
-                foreach (var url in urls)
+                foreach (var rssItem in rssItemsWithMagnetLink)
                 {
+                    var url = rssItem.GetProperty(RssItemProperties.MagnetLink);
                     var ret = await task.CreateAsync(
                                new TaskCreateParameters
                                {
                                    Uri = System.Web.HttpUtility.UrlEncode(url)
-                               });
-                    if (ret?.Success != true)
+                               }).ConfigureAwait(false);
+                    if (ret?.Success == true)
                     {
-                        return false;
+                        accepted.Add(rssItem);
                     }
                 }
             }
             catch (HttpRequestException)
             {
-                return false;
+                // ignore
             }
 
-            return true;
+            foreach (var rssItem in accepted)
+            {
+                yield return (rssItem, RssItemState.Accepted);
+            }
         }
     }
 }

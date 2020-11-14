@@ -9,6 +9,11 @@ namespace RSSViewer.Abstractions
     {
         string HandlerName { get; }
 
-        ValueTask<bool> Accept(IReadOnlyCollection<IRssItem> rssItems);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rssItems"></param>
+        /// <returns>the new state to change</returns>
+        IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems);
     }
 }

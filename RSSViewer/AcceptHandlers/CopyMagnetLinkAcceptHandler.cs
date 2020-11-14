@@ -12,32 +12,34 @@ namespace RSSViewer.AcceptHandlers
     {
         public string HandlerName => "Copy Magnet Link";
 
-        public ValueTask<bool> Accept(IReadOnlyCollection<IRssItem> rssItems)
+        public IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
         {
             var urls = new List<string>();
-            foreach (var item in rssItems)
+            foreach (var (item, _) in rssItems)
             {
                 var ml = item.GetProperty(RssItemProperties.MagnetLink);
                 if (string.IsNullOrWhiteSpace(ml))
                 {
                     MessageBox.Show($"Some item's magnet link is empty: (FeedId={item.FeedId}, RssId={item.RssId})");
-                    return new ValueTask<bool>(false);
                 }
                 urls.Add(ml);
             }
 
-            var text = string.Join("\r\n", urls);
+            if (urls.Count > 0)
+            {
+                var text = string.Join("\r\n", urls);
 
-            try
-            {
-                Clipboard.SetText(text);
-                return new ValueTask<bool>(true);
+                try
+                {
+                    Clipboard.SetText(text);
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show($"Unable to copy: {e}");
+                }
             }
-            catch (Exception e)
-            {
-                MessageBox.Show($"Unable to copy: {e}");
-                return new ValueTask<bool>(false);
-            }
+
+            return AsyncEnumerable.Empty<(IRssItem, RssItemState)>();
         }
     }
 }
