@@ -2,6 +2,7 @@
 
 using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
+using RSSViewer.RssItemHandlers;
 using RSSViewer.Utils;
 
 using System;
@@ -17,7 +18,7 @@ namespace RSSViewer.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
         private readonly Dictionary<string, IRssItemHandlerProvider> _sourceProviders;
-        private ImmutableArray<IRssItemHandler> _acceptHandlers;
+        private ImmutableArray<IRssItemHandler> _handlers;
 
         public RssItemHandlersService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
@@ -71,7 +72,7 @@ namespace RSSViewer.Services
                     .Where(z => z != null)
                     .ToArray();
 
-                this._acceptHandlers = this._serviceProvider.GetServices<IRssItemHandler>()
+                this._handlers = this._serviceProvider.GetServices<IRssItemHandler>()
                     .Concat(dynamicHandlers)
                     .ToImmutableArray();
             }
@@ -79,7 +80,11 @@ namespace RSSViewer.Services
             this.AcceptHandlersChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public IReadOnlyCollection<IRssItemHandler> GetHandlers() => this._acceptHandlers;
+        public IReadOnlyCollection<IRssItemHandler> GetHandlers() => this._handlers;
+
+        public IReadOnlyCollection<IRssItemHandler> GetRuleTargetHandlers() => this._handlers.Where(z => z.CanbeRuleTarget).ToList();
+
+        public IRssItemHandler GetDefaultRuleTargetHandler() => this._handlers.Where(z => z is ChangeToRejectedHandler).Single();
 
         public event EventHandler AcceptHandlersChanged;
     }
