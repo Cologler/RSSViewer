@@ -16,7 +16,7 @@ namespace RSSViewer.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
         private readonly Dictionary<string, IAcceptHandlerProvider> _sourceProviders;
-        private ImmutableArray<IAcceptHandler> _acceptHandlers;
+        private ImmutableArray<IRssItemHandler> _acceptHandlers;
 
         public AcceptHandlerService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
@@ -68,7 +68,7 @@ namespace RSSViewer.Services
                     .Where(z => z != null)
                     .ToArray();
 
-                this._acceptHandlers = this._serviceProvider.GetServices<IAcceptHandler>()
+                this._acceptHandlers = this._serviceProvider.GetServices<IRssItemHandler>()
                     .Concat(dynamicHandlers)
                     .ToImmutableArray();
             }
@@ -76,7 +76,7 @@ namespace RSSViewer.Services
             this.AcceptHandlersChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public IReadOnlyCollection<IAcceptHandler> GetAcceptHandlers() => this._acceptHandlers;
+        public IReadOnlyCollection<IRssItemHandler> GetAcceptHandlers() => this._acceptHandlers;
 
         public event EventHandler AcceptHandlersChanged;
     }

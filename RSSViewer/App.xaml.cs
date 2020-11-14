@@ -25,7 +25,7 @@ namespace RSSViewer
             base.OnStartup(e);
 
             var sc = RSSViewerHost.CreateServices()
-                .AddTransient<IAcceptHandler, CopyMagnetLinkAcceptHandler>()
+                .AddTransient<IRssItemHandler, CopyMagnetLinkAcceptHandler>()
                 .AddSingleton<ViewerLoggerViewModel>()
                 .AddSingleton<IViewerLogger>(p => p.GetRequiredService<ViewerLoggerViewModel>());
             RSSViewerHost = new RSSViewerHost(sc);

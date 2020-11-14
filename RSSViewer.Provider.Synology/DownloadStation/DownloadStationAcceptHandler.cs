@@ -17,7 +17,7 @@ using System.Linq;
 
 namespace RSSViewer.Provider.Synology.DownloadStation
 {
-    internal class DownloadStationAcceptHandler : IAcceptHandler
+    internal class DownloadStationAcceptHandler : IRssItemHandler
     {
         private readonly IServiceProvider _serviceProvider;
 

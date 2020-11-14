@@ -84,7 +84,7 @@ namespace RSSViewer
                 .AddSynologyProvider()
                 .AddTransmissionProvider()
                 .AddSingleton<IViewerLogger, NoneViewerLogger>()
-                .AddSingleton<IAcceptHandler, ChangeToAcceptedHandler>()
+                .AddSingleton<IRssItemHandler, ChangeToAcceptedHandler>()
                 ;
 
             sc.AddSingleton<JsonConverter, TimeSpanConverter>();

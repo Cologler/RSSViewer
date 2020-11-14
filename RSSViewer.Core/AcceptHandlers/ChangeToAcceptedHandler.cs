@@ -8,11 +8,9 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.AcceptHandlers
 {
-    class ChangeToAcceptedHandler : IAcceptHandler
+    class ChangeToAcceptedHandler : IRssItemHandler
     {
         public string HandlerName => "Change To Accepted";
-
-        public ValueTask<bool> Accept(IReadOnlyCollection<IRssItem> rssItems) => new ValueTask<bool>(true);
 
         public IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
         {

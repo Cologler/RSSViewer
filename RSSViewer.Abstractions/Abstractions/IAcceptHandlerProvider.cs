@@ -4,6 +4,6 @@ namespace RSSViewer.Abstractions
 {
     public interface IAcceptHandlerProvider : IObjectFactoryProvider
     {
-        IAcceptHandler GetAcceptHandler(string handlerId, Dictionary<string, string> variables);
+        IRssItemHandler GetAcceptHandler(string handlerId, Dictionary<string, string> variables);
     }
 }

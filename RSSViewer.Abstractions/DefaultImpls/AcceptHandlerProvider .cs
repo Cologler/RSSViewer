@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace RSSViewer.DefaultImpls
 {
     public abstract class AcceptHandlerProvider<T> : ObjectFactoryProvider<T>, IAcceptHandlerProvider
-        where T : IAcceptHandler
+        where T : IRssItemHandler
     {
         public IServiceProvider ServiceProvider { get; }
 
@@ -18,7 +18,7 @@ namespace RSSViewer.DefaultImpls
             this.ServiceProvider = serviceProvider;
         }
 
-        public virtual IAcceptHandler GetAcceptHandler(string handlerId, Dictionary<string, string> variables)
+        public virtual IRssItemHandler GetAcceptHandler(string handlerId, Dictionary<string, string> variables)
         {
             var service = this.ServiceProvider.GetRequiredService<T>();
             VariablesHelper.Inject(service, VariableInfos, variables);

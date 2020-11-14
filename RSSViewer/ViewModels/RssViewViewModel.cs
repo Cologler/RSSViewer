@@ -214,7 +214,7 @@ namespace RSSViewer.ViewModels
             this.LoggerMessage.AddLine($"Query {desc} takes {sw.Elapsed.TotalSeconds}s.");
         }
 
-        public async Task AcceptAsync(RssItemViewModel[] items, IAcceptHandler handler)
+        public async Task AcceptAsync(RssItemViewModel[] items, IRssItemHandler handler)
         {
             var rssItems = items.Select(z => ((IRssItem)z.RssItem, z.RssItem.State)).ToArray();
             var changes = await (handler.Accept(rssItems)).ToListAsync();

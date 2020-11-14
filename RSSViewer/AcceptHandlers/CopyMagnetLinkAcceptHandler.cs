@@ -8,7 +8,7 @@ using System.Windows;
 
 namespace RSSViewer.AcceptHandlers
 {
-    class CopyMagnetLinkAcceptHandler : IAcceptHandler
+    class CopyMagnetLinkAcceptHandler : IRssItemHandler
     {
         public string HandlerName => "Copy Magnet Link";
 
