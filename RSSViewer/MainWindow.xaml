@@ -115,9 +115,7 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                         <ListView.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Handle"
-                                          x:Name="GroupsAcceptMenuItem" Click="GroupsAcceptMenuItem_Click"/>
+                            <ContextMenu x:Name="GroupHandlerMenuItems">
                             </ContextMenu>
                         </ListView.ContextMenu>
                     </ListView>
@@ -156,16 +154,14 @@
                         </ListView.ItemTemplate>
                         
                         <ListView.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Handle"
-                                          x:Name="ItemsAcceptMenuItem"
-                                          Click="ItemsAcceptMenuItem_Click" />
+                            <ContextMenu x:Name="ItemContextMenu">
                                 <MenuItem Header="Copy"
                                           x:Name="ItemsCopyMenuItem"
                                           Click="ItemsCopyMenuItem_Click" />
                                 <MenuItem Header="Add Auto Reject Rule"
                                           x:Name="AddAutoRejectRuleMenuItem" 
                                           Click="AddAutoRejectRuleMenuItem_Click"/>
+                                <Separator />
                             </ContextMenu>
                         </ListView.ContextMenu>
                     </ListView>

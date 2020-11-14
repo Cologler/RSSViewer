@@ -45,28 +45,38 @@ namespace RSSViewer
 
         private void RefreshAcceptHandlers()
         {
-            this.GroupsAcceptMenuItem.Items.Clear();
-            this.ItemsAcceptMenuItem.Items.Clear();
+            // clear
+            this.GroupHandlerMenuItems.Items.Clear();
+            this.ItemContextMenu.Items.OfType<MenuItem>()
+                .Where(z => z.Tag is IRssItemHandler)
+                .ToList()
+                .ForEach(this.ItemContextMenu.Items.Remove);
 
+            // add
             var serviceProvider = App.RSSViewerHost.ServiceProvider;
             foreach (var handler in serviceProvider.GetRequiredService<AcceptHandlerService>().GetAcceptHandlers())
             {
-                this.GroupsAcceptMenuItem.Items.Add(new MenuItem
+                var groupHandlerMenuItem = new MenuItem
                 {
                     Header = handler.HandlerName,
                     Tag = handler
-                });
-                this.ItemsAcceptMenuItem.Items.Add(new MenuItem
+                };
+                groupHandlerMenuItem.Click += this.GroupHandlerMenuItem_Click;
+                this.GroupHandlerMenuItems.Items.Add(groupHandlerMenuItem);
+
+                var itemHandlerMenuItem = new MenuItem
                 {
                     Header = handler.HandlerName,
                     Tag = handler
-                });
+                };
+                itemHandlerMenuItem.Click += this.ItemsHandlerMenuItem_Click;
+                this.ItemContextMenu.Items.Add(itemHandlerMenuItem);
             }
         }
 
         public RssViewViewModel ViewModel => (RssViewViewModel) this.DataContext;
 
-        private async void GroupsAcceptMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void GroupHandlerMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var handler = (IRssItemHandler)((MenuItem)e.OriginalSource).Tag;
             await this.ViewModel.HandleAsync(
@@ -77,7 +87,7 @@ namespace RSSViewer
                 handler);
         }
 
-        private async void ItemsAcceptMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void ItemsHandlerMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var handler = (IRssItemHandler)((MenuItem)e.OriginalSource).Tag;
             await this.ViewModel.HandleAsync(
