@@ -17,13 +17,16 @@ using System.Linq;
 
 namespace RSSViewer.Provider.Synology.DownloadStation
 {
-    internal class DownloadStationAcceptHandler : IRssItemHandler
+    internal class DownloadStationRssItemHandler : IRssItemHandler
     {
+        public string Id { get; set; }
+
+
         private readonly IServiceProvider _serviceProvider;
 
         public string HandlerName => $"Send To DownloadStation ({this.Host}:{this.Port})";
 
-        public DownloadStationAcceptHandler(SynologyServiceProvider synologyServiceProvider)
+        public DownloadStationRssItemHandler(SynologyServiceProvider synologyServiceProvider)
         {
             this._serviceProvider = synologyServiceProvider.ServiceProvider;
         }

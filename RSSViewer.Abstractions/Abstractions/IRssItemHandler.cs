@@ -7,6 +7,8 @@ namespace RSSViewer.Abstractions
 {
     public interface IRssItemHandler
     {
+        string Id { get; }
+
         string HandlerName { get; }
 
         /// <summary>

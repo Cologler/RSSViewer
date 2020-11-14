@@ -10,6 +10,8 @@ namespace RSSViewer.AcceptHandlers
 {
     class CopyMagnetLinkAcceptHandler : IRssItemHandler
     {
+        public string Id => "4de881db-4229-4bc0-98cf-10c6acdef452";
+
         public string HandlerName => "Copy Magnet Link";
 
         public IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)

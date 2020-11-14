@@ -10,6 +10,8 @@ namespace RSSViewer.RssItemHandlers
 {
     class ChangeToAcceptedHandler : IRssItemHandler
     {
+        public string Id => "f385bbb8-6df2-4359-b4b7-4196cce0c4fc";
+
         public string HandlerName => "Change To Accepted";
 
         public IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)

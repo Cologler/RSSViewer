@@ -30,8 +30,8 @@ namespace RSSViewer.Provider.Synology
                 .BuildServiceProvider();
 
             services.AddSingleton(new SynologyServiceProvider(synoServiceProvider))
-                .AddSingleton<IRssItemHandlerProvider, DownloadStationAcceptHandlerProvider>()
-                .AddTransient<DownloadStationAcceptHandler>();
+                .AddSingleton<IRssItemHandlerProvider, DownloadStationRssItemHandlerProvider>()
+                .AddTransient<DownloadStationRssItemHandler>();
 
             return services;
         }

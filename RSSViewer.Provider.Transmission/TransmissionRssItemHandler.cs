@@ -13,8 +13,10 @@ using Transmission.API.RPC.Entity;
 
 namespace RSSViewer.Provider.Transmission
 {
-    internal class TransmissionAcceptHandler : IRssItemHandler
+    internal class TransmissionRssItemHandler : IRssItemHandler
     {
+        public string Id { get; set; }
+
         public string HandlerName => $"Send To Transmission ({this.RpcUrl})";
 
         [UserVariable, Required]

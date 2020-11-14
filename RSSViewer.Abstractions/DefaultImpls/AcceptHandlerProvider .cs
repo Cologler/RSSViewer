@@ -8,12 +8,12 @@ using System.Collections.Generic;
 
 namespace RSSViewer.DefaultImpls
 {
-    public abstract class AcceptHandlerProvider<T> : ObjectFactoryProvider<T>, IRssItemHandlerProvider
+    public abstract class RssItemHandlerProvider<T> : ObjectFactoryProvider<T>, IRssItemHandlerProvider
         where T : IRssItemHandler
     {
         public IServiceProvider ServiceProvider { get; }
 
-        public AcceptHandlerProvider(IServiceProvider serviceProvider)
+        public RssItemHandlerProvider(IServiceProvider serviceProvider)
         {
             this.ServiceProvider = serviceProvider;
         }

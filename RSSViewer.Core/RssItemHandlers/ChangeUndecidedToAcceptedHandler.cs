@@ -7,6 +7,8 @@ namespace RSSViewer.RssItemHandlers
 {
     class ChangeUndecidedToAcceptedHandler : IRssItemHandler
     {
+        public string Id => "2e09db60-8ac2-4d29-879a-670a279a9c80";
+
         public string HandlerName => "Change Undecided To Accepted";
 
         public IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)

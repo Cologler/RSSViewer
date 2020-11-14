@@ -7,6 +7,7 @@ using RSSViewer.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace RSSViewer.Services
@@ -42,7 +43,9 @@ namespace RSSViewer.Services
                         {
                             try
                             {
-                                return sourceProvider.GetRssItemHandler(z.Key, z.Value.Variables);
+                                var handler = sourceProvider.GetRssItemHandler(z.Key, z.Value.Variables);
+                                Debug.Assert(handler.Id == z.Key);
+                                return handler;
                             }
                             catch (VariablesHelper.MissingRequiredVariableException e)
                             {
@@ -76,7 +79,7 @@ namespace RSSViewer.Services
             this.AcceptHandlersChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public IReadOnlyCollection<IRssItemHandler> GetAcceptHandlers() => this._acceptHandlers;
+        public IReadOnlyCollection<IRssItemHandler> GetHandlers() => this._acceptHandlers;
 
         public event EventHandler AcceptHandlersChanged;
     }
