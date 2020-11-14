@@ -214,7 +214,7 @@ namespace RSSViewer.ViewModels
             this.LoggerMessage.AddLine($"Query {desc} takes {sw.Elapsed.TotalSeconds}s.");
         }
 
-        public async Task AcceptAsync(RssItemViewModel[] items, IRssItemHandler handler)
+        public async Task HandleAsync(RssItemViewModel[] items, IRssItemHandler handler)
         {
             var rssItems = items.Select(z => ((IRssItem)z.RssItem, z.RssItem.State)).ToArray();
             var changes = await (handler.Accept(rssItems)).ToListAsync();
@@ -235,14 +235,6 @@ namespace RSSViewer.ViewModels
                 this.OnRssItemsStateChanged(
                     RssItemsStateChangedInfo.Create(changes.Select(z => ((RssItem)z.Item1, z.Item2))));
             }
-        }
-
-        public async Task RejectAsync(RssItemViewModel[] items)
-        {
-            var rssItems = items.Select(z => z.RssItem).ToArray();
-            await App.RSSViewerHost.Modify().RejectAsync(rssItems);
-            this.OnRssItemsStateChanged(
-                RssItemsStateChangedInfo.CreateRejected(rssItems));
         }
 
         public struct SearchInfo : IEquatable<SearchInfo>

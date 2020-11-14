@@ -69,7 +69,7 @@ namespace RSSViewer
         private async void GroupsAcceptMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var handler = (IRssItemHandler)((MenuItem)e.OriginalSource).Tag;
-            await this.ViewModel.AcceptAsync(
+            await this.ViewModel.HandleAsync(
                 this.GroupsListView.SelectedItems.OfType<RssItemGroupViewModel>()
                     .SelectMany(z => z.Items)
                     .Distinct()
@@ -77,27 +77,12 @@ namespace RSSViewer
                 handler);
         }
 
-        private async void GroupsRejectMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            await this.ViewModel.RejectAsync(
-                this.GroupsListView.SelectedItems.OfType<RssItemGroupViewModel>()
-                .SelectMany(z => z.Items)
-                .Distinct()
-                .ToArray());
-        }
-
         private async void ItemsAcceptMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var handler = (IRssItemHandler)((MenuItem)e.OriginalSource).Tag;
-            await this.ViewModel.AcceptAsync(
+            await this.ViewModel.HandleAsync(
                 this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().ToArray(),
                 handler);
-        }
-
-        private async void ItemsRejectMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            await this.ViewModel.RejectAsync(
-                this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().ToArray());
         }
 
         private void ItemsCopyMenuItem_Click(object sender, RoutedEventArgs e)

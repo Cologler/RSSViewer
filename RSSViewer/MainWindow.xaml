@@ -116,10 +116,8 @@
                         </ListView.ItemTemplate>
                         <ListView.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Accept"
+                                <MenuItem Header="Handle"
                                           x:Name="GroupsAcceptMenuItem" Click="GroupsAcceptMenuItem_Click"/>
-                                <MenuItem Header="Reject"
-                                          x:Name="GroupsRejectMenuItem" Click="GroupsRejectMenuItem_Click" />
                             </ContextMenu>
                         </ListView.ContextMenu>
                     </ListView>
@@ -159,12 +157,9 @@
                         
                         <ListView.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Accept"
+                                <MenuItem Header="Handle"
                                           x:Name="ItemsAcceptMenuItem"
                                           Click="ItemsAcceptMenuItem_Click" />
-                                <MenuItem Header="Reject"
-                                          x:Name="ItemsRejectMenuItem"
-                                          Click="ItemsRejectMenuItem_Click" />
                                 <MenuItem Header="Copy"
                                           x:Name="ItemsCopyMenuItem"
                                           Click="ItemsCopyMenuItem_Click" />
