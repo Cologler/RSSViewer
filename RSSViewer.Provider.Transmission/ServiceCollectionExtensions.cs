@@ -8,7 +8,7 @@ namespace RSSViewer.Provider.Transmission
     {
         public static IServiceCollection AddTransmissionProvider(this IServiceCollection services)
         {
-            return services.AddSingleton<IAcceptHandlerProvider, TransmissionAcceptHandlerProvider>()
+            return services.AddSingleton<IRssItemHandlerProvider, TransmissionAcceptHandlerProvider>()
                 .AddTransient<TransmissionAcceptHandler>();
         }
     }

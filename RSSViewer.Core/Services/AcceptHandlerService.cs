@@ -15,14 +15,14 @@ namespace RSSViewer.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
-        private readonly Dictionary<string, IAcceptHandlerProvider> _sourceProviders;
+        private readonly Dictionary<string, IRssItemHandlerProvider> _sourceProviders;
         private ImmutableArray<IRssItemHandler> _acceptHandlers;
 
         public AcceptHandlerService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
             this._serviceProvider = serviceProvider;
             this._viewerLogger = viewerLogger;
-            this._sourceProviders = serviceProvider.GetServices<IAcceptHandlerProvider>().ToDictionary(z => z.ProviderName);
+            this._sourceProviders = serviceProvider.GetServices<IRssItemHandlerProvider>().ToDictionary(z => z.ProviderName);
 
             var configService = serviceProvider.GetRequiredService<ConfigService>();
             configService.OnAppConfChanged += this.Reload;
@@ -42,7 +42,7 @@ namespace RSSViewer.Services
                         {
                             try
                             {
-                                return sourceProvider.GetAcceptHandler(z.Key, z.Value.Variables);
+                                return sourceProvider.GetRssItemHandler(z.Key, z.Value.Variables);
                             }
                             catch (VariablesHelper.MissingRequiredVariableException e)
                             {
