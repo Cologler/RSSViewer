@@ -36,12 +36,9 @@ namespace RSSViewer
             scope.ServiceProvider.GetRequiredService<RulesDbContext>()
                 .Database.Migrate();
 
-            var auto = scope.ServiceProvider.GetRequiredService<RunRulesService>();
+            var runRulesService = scope.ServiceProvider.GetRequiredService<RunRulesService>();
             scope.ServiceProvider.GetRequiredService<AppDirService>().EnsureCreated();
-            scope.ServiceProvider.GetRequiredService<SyncService>().OnSynced += () =>
-            {
-                auto.AutoReject();
-            };
+            this.ServiceProvider.AddListener(EventNames.AddedRssItems, runRulesService.RunForAdded);
         }
 
         public SyncSourceManager SourceProviderManager =>

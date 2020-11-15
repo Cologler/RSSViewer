@@ -21,8 +21,6 @@ namespace RSSViewer.Services
         private readonly IViewerLogger _viewerLogger;
         private readonly SingletonTaskFactory _task;
 
-        public event Action OnSynced;
-
         public SyncService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
             this._serviceProvider = serviceProvider;
@@ -53,7 +51,7 @@ namespace RSSViewer.Services
                 }
             }
 
-            this.OnSynced?.Invoke();
+            this._serviceProvider.EmitEvent(EventNames.AddedRssItems, this, added);
         }
 
         public Task SyncAsync(ISyncSource syncSource)
@@ -63,16 +61,18 @@ namespace RSSViewer.Services
 
             return Task.Run(async () =>
             {
+                List<RssItem> added = new();
+
                 using (var scope = this._serviceProvider.CreateScope())
                 {
                     var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
                     var syncInfo = ctx.SyncSourceInfos
                         .FirstOrDefault(z => z.SyncSourceId == syncSource.SyncSourceId);
-                    await SyncCoreAsync(ctx, syncSource, syncInfo, CancellationToken.None).ConfigureAwait(false);
+                    added.AddRange(await SyncCoreAsync(ctx, syncSource, syncInfo, CancellationToken.None).ConfigureAwait(false));
                     ctx.SaveChanges();
                 }
 
-                this.OnSynced?.Invoke();
+                this._serviceProvider.EmitEvent(EventNames.AddedRssItems, this, added);
             });
         }
 

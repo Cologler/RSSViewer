@@ -55,6 +55,19 @@ namespace RSSViewer.Services
             }
         }
 
+        internal void RunForAdded(object sender, IReadOnlyCollection<IRssItem> e)
+        {
+            var context = new MatchContext(this._serviceProvider);
+            context.Deciders.AddRange(this._matchRuleStateDeciders.Value);
+
+            using (this._viewerLogger.EnterEvent("Auto reject"))
+            {
+                context.RunFor(e);
+                this._viewerLogger.AddLine(
+                    $"Rejected {context.RejectedItems.Count} items from {context.SourceItems.Count} new undecided items.");
+            }
+        }
+
         private void OnAdded(MatchRule rule)
         {
             if (rule is null)
@@ -66,10 +79,12 @@ namespace RSSViewer.Services
             var decider = new MatchRuleStateDecider(rule, matcher);
             this._matchRuleStateDeciders.Change(v => v.Add(decider));
 
+            var context = new MatchContext(this._serviceProvider);
+            context.Deciders.Add(decider);
+
             Task.Run(() =>
             {
-                var context = new MatchContext(this._serviceProvider);
-                context.Run(ImmutableArray.Create(decider));
+                context.RunForAll();
                 this._viewerLogger.AddLine(
                     $"{rule.Action}ed {context.RejectedItems.Count} items by new rule ({rule.Argument})");
                 this.AddedSingleRuleEffectedRssItemsStateChanged?.Invoke(context);
@@ -98,15 +113,20 @@ namespace RSSViewer.Services
         internal void AutoReject()
         {
             var context = new MatchContext(this._serviceProvider);
+            context.Deciders.AddRange(this._matchRuleStateDeciders.Value);
+
             using (this._viewerLogger.EnterEvent("Auto reject"))
             {
-                context.Run(this._matchRuleStateDeciders.Value);
+                context.RunForAll();
                 this._viewerLogger.AddLine(
                     $"Rejected {context.RejectedItems.Count} items from {context.SourceItems.Count} undecided items.");
             }
         }
 
-        public Task AutoRejectAsync() => Task.Run(this.AutoReject);
+        public Task RunAllRulesAsync()
+        {
+            return Task.Run(this.AutoReject);
+        }
 
         private class MatchRuleStateDecider
         {
@@ -158,36 +178,43 @@ namespace RSSViewer.Services
                 this._operationService = serviceProvider.GetRequiredService<RssItemsOperationService>();
             }
 
-            public List<RssItem> SourceItems { get; } = new List<RssItem>();
+            public List<RssItem> SourceItems { get; } = new();
 
-            public List<RssItem> AcceptedItems { get; } = new List<RssItem>();
+            public List<RssItem> AcceptedItems { get; } = new();
 
-            public List<RssItem> RejectedItems { get; } = new List<RssItem>();
+            public List<RssItem> RejectedItems { get; } = new();
 
-            public Dictionary<int, int> MatchedCounter { get; } = new Dictionary<int, int>();
+            public List<MatchRuleStateDecider> Deciders { get; } = new();
+
+            public Dictionary<int, int> MatchedCounter { get; } = new();
 
             public DateTime Now { get; } = DateTime.UtcNow;
 
-            public void Run(IReadOnlyCollection<MatchRuleStateDecider> deciders)
+            public void RunForAll()
             {
-                this.Scan(deciders);
+                if (this.Deciders.Count == 0)
+                    return;
+
+                this.SourceItems.AddRange(this._queryService.List(new[] { RssItemState.Undecided }));
+
+                this.Scan();
                 this.Commit();
             }
 
-            private void Scan(IReadOnlyCollection<MatchRuleStateDecider> deciders)
+            public void RunFor(IReadOnlyCollection<IRssItem> rssItems)
             {
-                if (deciders is null)
-                    throw new ArgumentNullException(nameof(deciders));
-
-                if (deciders.Count == 0)
+                if (this.Deciders.Count == 0)
                     return;
 
-                var matchedCounter = this.MatchedCounter;
-                deciders = deciders.OrderByDescending(z => z.LastMatched).ToList();
+                this.SourceItems.AddRange(rssItems.OfType<RssItem>().Where(z => z.State == RssItemState.Undecided));
 
-                var operation = this._operationService;
+                this.Scan();
+                this.Commit();
+            }
 
-                this.SourceItems.AddRange(this._queryService.List(new[] { RssItemState.Undecided }));
+            private void Scan()
+            {
+                var deciders = this.Deciders.OrderByDescending(z => z.LastMatched).ToList();
 
                 var results = this.SourceItems.AsParallel()
                     .Select(item =>
@@ -210,6 +237,7 @@ namespace RSSViewer.Services
                     .Where(z => z != null)
                     .ToList();
 
+                var matchedCounter = this.MatchedCounter;
                 foreach (var result in results)
                 {
                     var newState = result.NewState;
