@@ -64,7 +64,7 @@ namespace RSSViewer.Windows
 
         private void AddAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
         {
-            if (EditStringMatcherWindow.TryCreateConf(this, out var conf))
+            if (EditRuleWindow.TryCreateConf(this, out var conf))
             {
                 this.ViewModel.AutoRejectView.AddRule(conf);
             }
@@ -76,7 +76,7 @@ namespace RSSViewer.Windows
             if (vm == null)
                 return;
 
-            if (EditStringMatcherWindow.EditConf(this, vm.MatchRule))
+            if (EditRuleWindow.EditConf(this, vm.MatchRule))
             {
                 vm.MarkChanged();
                 vm.RefreshProperties();

@@ -143,7 +143,7 @@ namespace RSSViewer
                 rule.OptionsAsStringComparison = StringComparison.OrdinalIgnoreCase;
                 rule.Argument = text;
 
-                if (EditStringMatcherWindow.EditConf(this, rule))
+                if (EditRuleWindow.EditConf(this, rule))
                 {
                     var cs = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
                     await cs.AddMatchRuleAsync(rule);

@@ -26,11 +26,11 @@ namespace RSSViewer.Windows
     /// <summary>
     /// EditStringMatcherWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class EditStringMatcherWindow : Window
+    public partial class EditRuleWindow : Window
     {
         private readonly RssItemHandlersService _handlersService;
 
-        public EditStringMatcherWindow()
+        public EditRuleWindow()
         {
             this.InitializeComponent();
 
@@ -46,6 +46,26 @@ namespace RSSViewer.Windows
             if (rule is null)
                 throw new ArgumentNullException(nameof(rule));
 
+            // general
+            if (string.IsNullOrEmpty(rule.HandlerId))
+            {
+                this.ActionsList.SelectedItem = this._handlersService.GetDefaultRuleTargetHandler();
+            }
+            else
+            {
+                this.ActionsList.SelectedItem = this._handlersService.GetRuleTargetHandlers()
+                    .FirstOrDefault(z => z.Id == rule.HandlerId);
+            }
+            this.LastMatchedText.Text = rule.LastMatched.ToLocalTime().ToLongDateString();
+            this.TotalMatchedCountText.Text = rule.TotalMatchedCount.ToString();
+            this.AutoDisabledAt.Text = rule.AutoDisabledAfterLastMatched is null
+                ? "Never"
+                : (rule.LastMatched.ToLocalTime() + rule.AutoDisabledAfterLastMatched.Value).ToLongDateString();
+            this.AutoExpiredAt.Text = rule.AutoExpiredAfterLastMatched is null
+                ? "Never"
+                : (rule.LastMatched.ToLocalTime() + rule.AutoExpiredAfterLastMatched.Value).ToLongDateString();
+
+            // 
             this.SelectedMatchStringMode = rule.Mode;
             this.MatchValueTextBox.Text = rule.Argument;
             switch (rule.Mode)
@@ -58,16 +78,6 @@ namespace RSSViewer.Windows
                 case MatchMode.Regex:
                     this.SelectedRegexOptions = rule.OptionsAsRegexOptions;
                     break;
-            }
-
-            if (string.IsNullOrEmpty(rule.HandlerId))
-            {
-                this.ActionsList.SelectedItem = this._handlersService.GetDefaultRuleTargetHandler();
-            }
-            else
-            {
-                this.ActionsList.SelectedItem = this._handlersService.GetRuleTargetHandlers()
-                    .FirstOrDefault(z => z.Id == rule.HandlerId);
             }
         }
 
@@ -232,7 +242,7 @@ namespace RSSViewer.Windows
 
         internal static bool EditConf(Window owner, MatchRule rule)
         {
-            var win = new EditStringMatcherWindow { Owner = owner };
+            var win = new EditRuleWindow { Owner = owner };
             win.LoadFromConf(rule);
             if (win.ShowDialog() == true)
             {
