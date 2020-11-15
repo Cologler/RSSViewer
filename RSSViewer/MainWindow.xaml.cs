@@ -159,7 +159,7 @@ namespace RSSViewer
             }
         }
 
-        private async void RunAutoRejectMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void RunAllRulesMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var mi = (MenuItem)e.OriginalSource;
             mi.IsEnabled = false;

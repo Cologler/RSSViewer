@@ -28,8 +28,8 @@
             <Menu>
                 <MenuItem Header="Run">
                     <MenuItem Header="Auto Reject"
-                              x:Name="RunAutoRejectMenuItem"
-                              Click="RunAutoRejectMenuItem_Click" />
+                              x:Name="RunAllRulesMenuItem"
+                              Click="RunAllRulesMenuItem_Click" />
 
                     <MenuItem Header="Once">
                         <MenuItem Header="SyncSource"
