@@ -1,5 +1,4 @@
-﻿<Window xmlns:Controls="clr-namespace:RSSViewer.Controls" 
-        x:Class="RSSViewer.Windows.EditRuleWindow"
+﻿<Window x:Class="RSSViewer.Windows.EditRuleWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -19,7 +18,7 @@
         <Grid.Resources>
             <Style TargetType="Button">
                 <Setter Property="MinWidth"
-                        Value="62"/>
+                        Value="62" />
             </Style>
             <Style TargetType="TextBlock"
                    x:Key="HeaderStyle">
@@ -39,49 +38,25 @@
             <TabControl>
                 <TabItem Header="General">
                     <Grid>
-                        <StackPanel Margin="8,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="133*" />
+                            <ColumnDefinition Width="213*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="8,0,8,0"
+                                    Grid.ColumnSpan="2">
                             <StackPanel Style="{StaticResource HeaderContentPair}">
                                 <TextBlock Text="Action"
                                            Style="{StaticResource HeaderStyle}" />
 
-                                <ComboBox VerticalAlignment="Top"
-                                          x:Name="ActionsList"
+                                <ComboBox x:Name="ActionsList"
                                           DisplayMemberPath="HandlerName">
                                 </ComboBox>
                             </StackPanel>
 
-                            <StackPanel Style="{StaticResource HeaderContentPair}">
-                                <TextBlock Text="Total Matched Count"
-                                           Style="{StaticResource HeaderStyle}" />
-                                <TextBlock x:Name="TotalMatchedCountText"
-                                           Margin="12,0,0,0"/>
-                            </StackPanel>
-
-                            <StackPanel Style="{StaticResource HeaderContentPair}">
-                                <TextBlock Text="Last Matched"
-                                           Style="{StaticResource HeaderStyle}" />
-                                <TextBlock x:Name="LastMatchedText"
-                                           Margin="12,0,0,0"/>
-                            </StackPanel>
-
-                            <StackPanel Style="{StaticResource HeaderContentPair}">
-                                <TextBlock Text="Auto Disabled At"
-                                           Style="{StaticResource HeaderStyle}" />
-                                <TextBlock x:Name="AutoDisabledAt"
-                                           Margin="12,0,0,0"/>
-                            </StackPanel>
-
-                            <StackPanel Style="{StaticResource HeaderContentPair}">
-                                <TextBlock Text="Auto Expired At"
-                                           Style="{StaticResource HeaderStyle}" />
-                                <TextBlock x:Name="AutoExpiredAt"
-                                           Margin="12,0,0,0"/>
-                            </StackPanel>
-                            
                         </StackPanel>
                     </Grid>
                 </TabItem>
-                
+
                 <TabItem Header="Match">
                     <Grid>
                         <StackPanel Margin="8,0">
@@ -165,7 +140,69 @@
                 </TabItem>
 
                 <TabItem Header="Lifetime">
-                    <Controls:LifeTimeControl x:Name="LifeTimeControl" />
+                    <Grid>
+                        <StackPanel>
+                            <StackPanel Style="{StaticResource HeaderContentPair}">
+                                <TextBlock Text="Total Matched Count"
+                                           Style="{StaticResource HeaderStyle}" />
+                                <TextBlock x:Name="TotalMatchedCountText"
+                                           Margin="12,0,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource HeaderContentPair}">
+                                <TextBlock Text="Last Matched"
+                                           Style="{StaticResource HeaderStyle}" />
+                                <TextBlock x:Name="LastMatchedText"
+                                           Margin="12,0,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource HeaderContentPair}">
+                                <TextBlock Text="Auto Disabled"
+                                           Style="{StaticResource HeaderStyle}" />
+
+                                <StackPanel Margin="12,0,0,0">
+                                    <CheckBox IsChecked="{Binding IsEnabledAutoDisabled}">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Auto disabled after " />
+                                                <TextBox IsEnabled="{Binding IsEnabledAutoDisabled}"
+                                                         Width="40"
+                                                         Text="{Binding AutoDisabledAfterDaysText}"/>
+                                                <TextBlock Text=" days" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Maybe auto disabled at " />
+                                                <TextBlock Text="{Binding AutoDisabledAt}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </CheckBox>                                    
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource HeaderContentPair}">
+                                <TextBlock Text="Auto Expired"
+                                           Style="{StaticResource HeaderStyle}" />
+
+                                <StackPanel Margin="12,0,0,0">
+                                    <CheckBox IsChecked="{Binding IsEnabledAutoExpired}">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Auto expired after " />
+                                                <TextBox IsEnabled="{Binding IsEnabledAutoExpired}"
+                                                         Text="{Binding AutoExpiredAfterDaysText}"
+                                                         Width="40" />
+                                                <TextBlock Text=" days" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Maybe auto expired at " />
+                                                <TextBlock Text="{Binding AutoExpiredAt}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </CheckBox>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
                 </TabItem>
 
                 <TabItem Header="Test">
@@ -201,9 +238,7 @@
                 </TabItem>
             </TabControl>
         </Grid>
-
         
-
         <Grid Grid.Row="1"
               HorizontalAlignment="Right"
               Margin="0,4,0,0">
@@ -211,7 +246,7 @@
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            
+
             <Button Content="OK"
                     Margin="0,0,4,6"
                     Padding="4,2"
@@ -225,6 +260,6 @@
                     x:Name="CancelButton"
                     Click="CancelButton_Click" />
         </Grid>
-        
+
     </Grid>
 </Window>
