@@ -1,4 +1,6 @@
 ﻿
+using Microsoft.Extensions.DependencyInjection;
+
 using RSSViewer.Abstractions;
 using RSSViewer.Annotations;
 
@@ -15,9 +17,15 @@ namespace RSSViewer.Provider.Transmission
 {
     internal class TransmissionRssItemHandler : IRssItemHandler
     {
+        private readonly IServiceProvider _serviceProvider;
+
+        public TransmissionRssItemHandler(IServiceProvider serviceProvider) => this._serviceProvider = serviceProvider;
+
         public string Id { get; set; }
 
-        public string HandlerName => $"Send To Transmission ({this.RpcUrl})";
+        string SiteName => $"Transmission ({this.RpcUrl})";
+
+        public string HandlerName => $"Send To {SiteName}";
 
         [UserVariable, Required]
         public string RpcUrl { get; set; }
@@ -45,6 +53,8 @@ namespace RSSViewer.Provider.Transmission
                 yield break;
             }
 
+            var logger = this._serviceProvider.GetRequiredService<IViewerLogger>();
+
             var task = await Task.Run(() =>
             {
                 var accepted = new List<IRssItem>();
@@ -68,6 +78,7 @@ namespace RSSViewer.Provider.Transmission
                     if (newTorrentInfo != null && newTorrentInfo.ID != 0)
                     {
                         accepted.Add(rssItem);
+                        logger.AddLine($"Sent <{rssItem.Title}> to {SiteName}.");
                     }
                 }
 

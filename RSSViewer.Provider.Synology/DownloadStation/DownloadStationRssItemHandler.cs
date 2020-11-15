@@ -21,14 +21,17 @@ namespace RSSViewer.Provider.Synology.DownloadStation
     {
         public string Id { get; set; }
 
-
+        private readonly SynologyServiceProvider _synologyServiceProvider;
         private readonly IServiceProvider _serviceProvider;
 
-        public string HandlerName => $"Send To DownloadStation ({this.Host}:{this.Port})";
+        string SiteName => $"DownloadStation ({this.Host}:{this.Port})";
 
-        public DownloadStationRssItemHandler(SynologyServiceProvider synologyServiceProvider)
+        public string HandlerName => $"Send To {SiteName}";
+
+        public DownloadStationRssItemHandler(IServiceProvider serviceProvider, SynologyServiceProvider synologyServiceProvider)
         {
-            this._serviceProvider = synologyServiceProvider.ServiceProvider;
+            this._serviceProvider = serviceProvider;
+            this._synologyServiceProvider = synologyServiceProvider;
         }
 
         [UserVariable, Required]
@@ -63,7 +66,8 @@ namespace RSSViewer.Provider.Synology.DownloadStation
                 yield break;
             }
 
-            using var scope = this._serviceProvider.CreateScope();
+            var logger = this._serviceProvider.GetRequiredService<IViewerLogger>();
+            using var scope = this._synologyServiceProvider.ServiceProvider.CreateScope();
 
             var settings = scope.ServiceProvider.GetService<ISynologyConnectionSettings>();
 
@@ -106,6 +110,7 @@ namespace RSSViewer.Provider.Synology.DownloadStation
                     if (ret?.Success == true)
                     {
                         accepted.Add(rssItem);
+                        logger.AddLine($"Sent {rssItem.Title} to {SiteName}.");
                     }
                 }
             }
