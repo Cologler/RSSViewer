@@ -86,13 +86,31 @@ namespace RSSViewer.Services
             var context = new MatchContext(this._serviceProvider);
             context.Rules.Add(decider);
 
-            Task.Run(async () =>
-            {
-                await context.RunForAllAsync();
-                this._viewerLogger.AddLine(
-                    $"{rule.Action}ed {context.RejectedItems.Count} items by new rule ({rule.Argument})");
-                this.AddedSingleRuleEffectedRssItemsStateChanged?.Invoke(context);
-            });
+            _ = Task.Run(async () =>
+              {
+                  await context.RunForAllAsync();
+                  if (context.AcceptedItems.Count > 0 && context.RejectedItems.Count > 0)
+                  {
+                      this._viewerLogger.AddLine(
+                          $"Accepted {context.AcceptedItems.Count} items and rejected {context.RejectedItems.Count } items by new rule ({rule.Argument})");
+                  }
+                  else if (context.AcceptedItems.Count > 0)
+                  {
+                      this._viewerLogger.AddLine(
+                          $"Accepted {context.AcceptedItems.Count} items by new rule ({rule.Argument})");
+                  }
+                  else if (context.RejectedItems.Count > 0)
+                  {
+                      this._viewerLogger.AddLine(
+                          $"Rejected {context.RejectedItems.Count} items by new rule ({rule.Argument})");
+                  }
+                  else
+                  {
+                      this._viewerLogger.AddLine(
+                          $"No items handled by new rule ({rule.Argument})");
+                  }
+                  this.AddedSingleRuleEffectedRssItemsStateChanged?.Invoke(context);
+              });
         }
 
         private void OnUpdated(IEnumerable<MatchRule> rules)
@@ -259,10 +277,8 @@ namespace RSSViewer.Services
 
                 if (this.RejectedItems.Count + this.AcceptedItems.Count > 0)
                 {
+                    this._operationService.ChangeState(this.AcceptedItems, RssItemState.Accepted);
                     this._operationService.ChangeState(this.RejectedItems, RssItemState.Rejected);
-
-                    if (this.AcceptedItems.Count > 0)
-                        throw new NotImplementedException();
 
                     using (var scope = this._serviceProvider.CreateScope())
                     {

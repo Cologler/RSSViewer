@@ -126,7 +126,7 @@ namespace RSSViewer
             win.ShowDialog();
         }
 
-        private async void AddAutoRejectRuleMenuItem_Click(object sender, RoutedEventArgs e)
+        private async void AddAutoRuleMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var vm = this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().FirstOrDefault();
             if (vm is null)
@@ -138,7 +138,7 @@ namespace RSSViewer
             if (StringsPickerWindow.TryPickString(this, kw, out var text))
             {
                 var rule = sp.GetRequiredService<ConfigService>()
-                    .CreateMatchRule(MatchAction.Reject);
+                    .CreateMatchRule();
                 rule.Mode = MatchMode.Contains;
                 rule.OptionsAsStringComparison = StringComparison.OrdinalIgnoreCase;
                 rule.Argument = text;

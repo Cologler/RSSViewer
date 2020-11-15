@@ -31,7 +31,16 @@
 
         <Grid>
             <TabControl>
-                <TabItem Header="Default">
+                <TabItem Header="Action">
+                    <Grid>
+                        <ComboBox VerticalAlignment="Top"
+                                  x:Name="ActionsList"
+                                  DisplayMemberPath="HandlerName">
+                        </ComboBox>
+                    </Grid>
+                </TabItem>
+                
+                <TabItem Header="Match">
                     <Grid>
                         <StackPanel Margin="8,0">
                             <StackPanel.Resources>

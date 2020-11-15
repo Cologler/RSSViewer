@@ -158,9 +158,9 @@
                                 <MenuItem Header="Copy"
                                           x:Name="ItemsCopyMenuItem"
                                           Click="ItemsCopyMenuItem_Click" />
-                                <MenuItem Header="Add Auto Reject Rule"
+                                <MenuItem Header="Add Auto Rule"
                                           x:Name="AddAutoRejectRuleMenuItem" 
-                                          Click="AddAutoRejectRuleMenuItem_Click"/>
+                                          Click="AddAutoRuleMenuItem_Click"/>
                                 <Separator />
                             </ContextMenu>
                         </ListView.ContextMenu>

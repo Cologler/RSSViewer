@@ -70,26 +70,20 @@ namespace RSSViewer.Services
             this.OnAppConfChanged?.Invoke(this.AppConf);
         }
 
-        public MatchRule CreateMatchRule(MatchAction matchAction)
+        public MatchRule CreateMatchRule()
         {
             var rule = new MatchRule
             {
-                Action = matchAction,
+                HandlerId = this._serviceProvider.GetRequiredService<RssItemHandlersService>()
+                    .GetDefaultRuleTargetHandler()
+                    .Id
             };
 
-            switch (matchAction)
-            {
-                case MatchAction.Reject:
-                    rule.Mode = MatchMode.Contains;
-                    rule.OptionsAsStringComparison = StringComparison.OrdinalIgnoreCase;
-                    rule.Argument = string.Empty;
-                    rule.AutoDisabledAfterLastMatched = TimeSpan.FromDays(365 * 2);
-                    rule.AutoExpiredAfterLastMatched = TimeSpan.FromDays(365 * 4);
-                    break;
-
-                case MatchAction.Accept:
-                    break;
-            }
+            rule.Mode = MatchMode.Contains;
+            rule.OptionsAsStringComparison = StringComparison.OrdinalIgnoreCase;
+            rule.Argument = string.Empty;
+            rule.AutoDisabledAfterLastMatched = TimeSpan.FromDays(365 * 2);
+            rule.AutoExpiredAfterLastMatched = TimeSpan.FromDays(365 * 4);
 
             rule.LastMatched = DateTime.UtcNow;
 

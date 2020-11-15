@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+
+using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
 using RSSViewer.LocalDb;
 using RSSViewer.RulesDb;
@@ -26,9 +28,17 @@ namespace RSSViewer.Windows
     /// </summary>
     public partial class EditStringMatcherWindow : Window
     {
+        private readonly RssItemHandlersService _handlersService;
+
         public EditStringMatcherWindow()
         {
             this.InitializeComponent();
+
+            this._handlersService = App.RSSViewerHost.ServiceProvider.GetRequiredService<RssItemHandlersService>();
+            var handlers = this._handlersService.GetRuleTargetHandlers();
+
+            this.ActionsList.ItemsSource = handlers;
+            this.ActionsList.SelectedItem = this._handlersService.GetDefaultRuleTargetHandler();
         }
 
         public void LoadFromConf(MatchRule rule)
@@ -48,6 +58,16 @@ namespace RSSViewer.Windows
                 case MatchMode.Regex:
                     this.SelectedRegexOptions = rule.OptionsAsRegexOptions;
                     break;
+            }
+
+            if (string.IsNullOrEmpty(rule.HandlerId))
+            {
+                this.ActionsList.SelectedItem = this._handlersService.GetDefaultRuleTargetHandler();
+            }
+            else
+            {
+                this.ActionsList.SelectedItem = this._handlersService.GetRuleTargetHandlers()
+                    .FirstOrDefault(z => z.Id == rule.HandlerId);
             }
         }
 
@@ -69,6 +89,8 @@ namespace RSSViewer.Windows
                     rule.OptionsAsRegexOptions = this.SelectedRegexOptions;
                     break;
             }
+
+            rule.HandlerId = ((IRssItemHandler)this.ActionsList.SelectedItem).Id;
         }
 
         private void SelectModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -150,10 +172,18 @@ namespace RSSViewer.Windows
 
         private void OKButton_Click(object sender, RoutedEventArgs e)
         {
-            if (this.TryCreateStringMatcher() != null)
+            // check handler
+            if (!(this.ActionsList.SelectedItem is IRssItemHandler))
             {
-                this.DialogResult = true;
-            }
+                MessageBox.Show("Please select a handler", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }                
+
+            // check match
+            if (this.TryCreateStringMatcher() == null)
+                return;
+
+            this.DialogResult = true;
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -196,9 +226,7 @@ namespace RSSViewer.Windows
 
         internal static bool TryCreateConf(Window owner, out MatchRule rule)
         {
-            rule = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>()
-                .CreateMatchRule(MatchAction.Reject);
-
+            rule = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>().CreateMatchRule();
             return EditConf(owner, rule);
         }
 
