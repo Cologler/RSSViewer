@@ -41,7 +41,7 @@ namespace RSSViewer.Services
             switch (e.Action)
             {
                 case CollectionChangeAction.Add:
-                    this.OnAdded(e.Element as MatchRule);
+                    this.RunForAddedRule(e.Element as MatchRule);
                     break;
 
                 case CollectionChangeAction.Remove:
@@ -56,7 +56,7 @@ namespace RSSViewer.Services
             }
         }
 
-        internal void RunForAdded(object sender, IReadOnlyCollection<IRssItem> e)
+        internal void RunForAddedRssItem(object sender, IReadOnlyCollection<IRssItem> e)
         {
             Task.Run(async () =>
             {
@@ -66,13 +66,12 @@ namespace RSSViewer.Services
                 using (this._viewerLogger.EnterEvent("Run rules"))
                 {
                     await context.RunForAsync(e);
-                    this._viewerLogger.AddLine(
-                        $"Rejected {context.RejectedItems.Count} items from {context.SourceItems.Count} new undecided items.");
+                    this._viewerLogger.AddLine($"{context.GetResultMessage()} from {context.SourceItems.Count} new undecided items.");
                 }
             });
         }
 
-        private void OnAdded(MatchRule rule)
+        private void RunForAddedRule(MatchRule rule)
         {
             if (rule is null)
                 throw new ArgumentNullException(nameof(rule));
@@ -89,26 +88,7 @@ namespace RSSViewer.Services
             _ = Task.Run(async () =>
               {
                   await context.RunForAllAsync();
-                  if (context.AcceptedItems.Count > 0 && context.RejectedItems.Count > 0)
-                  {
-                      this._viewerLogger.AddLine(
-                          $"Accepted {context.AcceptedItems.Count} items and rejected {context.RejectedItems.Count } items by new rule ({rule.Argument})");
-                  }
-                  else if (context.AcceptedItems.Count > 0)
-                  {
-                      this._viewerLogger.AddLine(
-                          $"Accepted {context.AcceptedItems.Count} items by new rule ({rule.Argument})");
-                  }
-                  else if (context.RejectedItems.Count > 0)
-                  {
-                      this._viewerLogger.AddLine(
-                          $"Rejected {context.RejectedItems.Count} items by new rule ({rule.Argument})");
-                  }
-                  else
-                  {
-                      this._viewerLogger.AddLine(
-                          $"No items handled by new rule ({rule.Argument})");
-                  }
+                  this._viewerLogger.AddLine($"{context.GetResultMessage()} by new rule ({rule.Argument}).");
                   this.AddedSingleRuleEffectedRssItemsStateChanged?.Invoke(context);
               });
         }
@@ -142,8 +122,7 @@ namespace RSSViewer.Services
                 using (this._viewerLogger.EnterEvent("Run rules"))
                 {
                     await context.RunForAllAsync();
-                    this._viewerLogger.AddLine(
-                        $"Rejected {context.RejectedItems.Count} items from {context.SourceItems.Count} undecided items.");
+                    this._viewerLogger.AddLine($"{context.GetResultMessage()} from {context.SourceItems.Count} undecided items.");
                 }
             });
         }
@@ -309,6 +288,26 @@ namespace RSSViewer.Services
                 }
 
                 return Array.Empty<RssItem>();
+            }
+
+            public string GetResultMessage()
+            {
+                if (this.AcceptedItems.Count > 0 && this.RejectedItems.Count > 0)
+                {
+                    return $"Accepted {this.AcceptedItems.Count} items and rejected {this.RejectedItems.Count } items";
+                }
+                else if (this.AcceptedItems.Count > 0)
+                {
+                    return  $"Accepted {this.AcceptedItems.Count} items";
+                }
+                else if (this.RejectedItems.Count > 0)
+                {
+                    return  $"Rejected {this.RejectedItems.Count} items";
+                }
+                else
+                {
+                    return $"No items handled";
+                }
             }
         }
     }

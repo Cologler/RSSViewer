@@ -38,7 +38,7 @@ namespace RSSViewer
 
             var runRulesService = scope.ServiceProvider.GetRequiredService<RunRulesService>();
             scope.ServiceProvider.GetRequiredService<AppDirService>().EnsureCreated();
-            this.ServiceProvider.AddListener(EventNames.AddedRssItems, runRulesService.RunForAdded);
+            this.ServiceProvider.AddListener(EventNames.AddedRssItems, runRulesService.RunForAddedRssItem);
         }
 
         public SyncSourceManager SourceProviderManager =>
