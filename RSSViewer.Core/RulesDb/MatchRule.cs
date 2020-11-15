@@ -22,6 +22,8 @@ namespace RSSViewer.RulesDb
 
         public MatchAction Action { get; set; }
 
+        public string HandlerId { get; set; }
+
         public bool IsDisabled { get; set; }
 
         /// <summary>
