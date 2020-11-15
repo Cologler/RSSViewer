@@ -34,6 +34,8 @@ namespace RSSViewer.Services
 
         private async Task SyncCore()
         {
+            List<RssItem> added = new();
+
             using (this._viewerLogger.EnterEvent("Synced sources"))
             {
                 using (var scope = this._serviceProvider.CreateScope())
@@ -44,9 +46,10 @@ namespace RSSViewer.Services
                     foreach (var source in sources)
                     {
                         var syncInfo = syncInfoTable.GetValueOrDefault(source.SyncSourceId);
-                        await SyncCoreAsync(ctx, source, syncInfo, CancellationToken.None).ConfigureAwait(false);
+                        added.AddRange(await SyncCoreAsync(ctx, source, syncInfo, CancellationToken.None).ConfigureAwait(false));
                     }
                     ctx.SaveChanges();
+                    this._viewerLogger.AddLine($"Added {added.Count} items from sync.");
                 }
             }
 
@@ -73,7 +76,7 @@ namespace RSSViewer.Services
             });
         }
 
-        private static async Task SyncCoreAsync(LocalDbContext ctx, ISyncSource syncSource, SyncSourceInfo syncInfo, 
+        private static async Task<List<RssItem>> SyncCoreAsync(LocalDbContext ctx, ISyncSource syncSource, SyncSourceInfo syncInfo, 
             CancellationToken cancellationToken)
         {
             if (syncInfo is null)
@@ -96,7 +99,7 @@ namespace RSSViewer.Services
                 return r;
             }).ToList();
 
-            ctx.AddOrIgnoreRange(newItems);
+            return ctx.AddOrIgnoreRange(newItems);
         }
 
         public class TaskFactory : SingletonTaskFactory

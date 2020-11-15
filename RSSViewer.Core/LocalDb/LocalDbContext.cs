@@ -25,20 +25,27 @@ namespace RSSViewer.LocalDb
             base.OnModelCreating(modelBuilder);
         }
 
-        public void AddOrIgnore(RssItem entity)
+        public bool AddOrIgnore(RssItem entity)
         {
             if (!this.RssItems.Any(e => e.FeedId == entity.FeedId && e.RssId == entity.RssId))
             {
                 this.Add(entity);
+                return true;
             }
+
+            return false;
         }
 
-        public void AddOrIgnoreRange(IEnumerable<RssItem> entities)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <returns>the added items.</returns>
+        public List<RssItem> AddOrIgnoreRange(IEnumerable<RssItem> entities)
         {
-            foreach (var entity in entities)
-            {
-                this.AddOrIgnore(entity);
-            }
+            return entities
+                .Where(this.AddOrIgnore)
+                .ToList();
         }
     }
 }
