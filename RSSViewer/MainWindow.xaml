@@ -27,7 +27,7 @@
             
             <Menu>
                 <MenuItem Header="Run">
-                    <MenuItem Header="Auto Reject"
+                    <MenuItem Header="Auto All Rules"
                               x:Name="RunAllRulesMenuItem"
                               Click="RunAllRulesMenuItem_Click" />
 
