@@ -184,7 +184,10 @@ namespace RSSViewer.ViewModels
 
         private async Task RefreshContentCoreAsync(SearchInfo searchInfo, CancellationToken token)
         {
-            this._stateChangesHook = new List<(IRssItem, RssItemState)>();
+            if (this._stateChangesHook is null)
+            {
+                this._stateChangesHook = new List<(IRssItem, RssItemState)>();
+            }
 
             var searchText = searchInfo.SearchText.Trim();
 
