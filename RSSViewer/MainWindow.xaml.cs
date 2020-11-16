@@ -40,7 +40,7 @@ namespace RSSViewer
             this.RefreshAcceptHandlers();
 
             this.DataContext = new RssViewViewModel();
-            _ = this.ViewModel.SearchAsync(0);
+            _ = this.ViewModel.RefreshContentAsync(0);
         }
 
         private void RefreshAcceptHandlers()
@@ -166,7 +166,7 @@ namespace RSSViewer
             await App.RSSViewerHost.ServiceProvider.GetRequiredService<RunRulesService>()
                 .RunAllRulesAsync();
             mi.IsEnabled = true;
-            await this.ViewModel.SearchAsync();
+            await this.ViewModel.RefreshContentAsync();
         }
 
         private void ItemsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
