@@ -22,8 +22,6 @@ namespace RSSViewer.Services
         private readonly IViewerLogger _viewerLogger;
         private readonly SafeHandle<ImmutableArray<MatchRuleWrapper>> _matchRuleStateDeciders;
 
-        public event Action<IRssItemsStateChangedInfo> AddedSingleRuleEffectedRssItemsStateChanged;
-
         public RunRulesService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
             this._serviceProvider = serviceProvider;
@@ -89,7 +87,6 @@ namespace RSSViewer.Services
               {
                   await context.RunForAllAsync();
                   this._viewerLogger.AddLine($"{context.GetResultMessage()} by new rule ({rule.Argument}).");
-                  this.AddedSingleRuleEffectedRssItemsStateChanged?.Invoke(context);
               });
         }
 
