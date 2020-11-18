@@ -56,17 +56,26 @@ namespace RSSViewer.Provider.Synology.DownloadStation
             if (rssItems is null)
                 throw new ArgumentNullException(nameof(rssItems));
 
+            var logger = this._serviceProvider.GetRequiredService<IViewerLogger>();
+
             var rssItemsWithMagnetLink = rssItems
                 .Select(z => z.Item1)
-                .Where(z => !string.IsNullOrWhiteSpace(z.GetProperty(RssItemProperties.MagnetLink)))
+                .Where(z =>
+                {
+                    if (!string.IsNullOrWhiteSpace(z.GetProperty(RssItemProperties.MagnetLink)))
+                    {
+                        return true;
+                    }
+
+                    logger.AddLine($"Ignore {z.Title} which did't have magnet link.");
+                    return false;
+                })
                 .ToList();
 
             if (rssItemsWithMagnetLink.Count == 0)
             {
                 yield break;
             }
-
-            var logger = this._serviceProvider.GetRequiredService<IViewerLogger>();
             using var scope = this._synologyServiceProvider.ServiceProvider.CreateScope();
 
             var settings = scope.ServiceProvider.GetService<ISynologyConnectionSettings>();
