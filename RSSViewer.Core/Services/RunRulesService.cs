@@ -107,6 +107,8 @@ namespace RSSViewer.Services
 
                 this._matchRuleStateDeciders.Value = deciders;
             }
+
+            _ = this.RunAllRulesAsync();
         }
 
         public Task RunAllRulesAsync()
