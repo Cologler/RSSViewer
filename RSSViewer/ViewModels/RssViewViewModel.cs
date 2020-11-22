@@ -116,7 +116,9 @@ namespace RSSViewer.ViewModels
 
         public ViewerLoggerViewModel LoggerMessage { get; }
 
-        public ObservableCollection<RssItemGroupViewModel> Groups { get; } = new ObservableCollection<RssItemGroupViewModel>();
+        public ObservableCollection<RssItemGroupViewModel> Groups { get; } = new();
+
+        public ObservableCollection<RssItemViewModel> SelectedItems { get; } = new();
 
         public string StatusText
         {
@@ -244,6 +246,15 @@ namespace RSSViewer.ViewModels
             var descState = string.Join(", ", searchInfo.IncludeState.Select(z => z.ToString().ToLower()));
             var desc = $"\"{searchText}\" from ({descState}) orderby ({searchInfo.SortBy.ToString().ToLower()})";
             this.LoggerMessage.AddLine($"Query {desc} takes {sw.Elapsed.TotalSeconds}s.");
+        }
+
+        public void UpdateSelectedItems(IEnumerable<RssItemGroupViewModel> groups)
+        {
+            if (groups is null)
+                throw new ArgumentNullException(nameof(groups));
+
+            this.SelectedItems.Clear();
+            groups.SelectMany(z => z.Items).Distinct().ToList().ForEach(this.SelectedItems.Add);
         }
 
         public async Task HandleAsync(RssItemViewModel[] items, IRssItemHandler handler)

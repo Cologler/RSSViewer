@@ -169,6 +169,13 @@ namespace RSSViewer
             await this.ViewModel.RefreshContentAsync();
         }
 
+        private void GroupsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            this.ViewModel.UpdateSelectedItems(((ListView)sender).SelectedItems.OfType<RssItemGroupViewModel>());
+
+            this.ItemsListView_SelectionChanged(sender, e);
+        }
+
         private void ItemsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             this.ViewModel.Analytics.Selected = ((ListView)sender).SelectedItems.OfType<IRssItemsCount>()

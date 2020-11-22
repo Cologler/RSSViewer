@@ -105,7 +105,7 @@
                     <ListView ItemsSource="{Binding Groups}"
                               SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
                               SelectedIndex="0"
-                              SelectionChanged="ItemsListView_SelectionChanged"
+                              SelectionChanged="GroupsListView_SelectionChanged"
                               x:Name="GroupsListView">
                         <ListView.ItemTemplate>
                             <DataTemplate>
@@ -127,10 +127,9 @@
                               Width="4"/>
 
                 <Grid Grid.Column="2"
-                      Margin="0,0,0,0"
-                      DataContext="{Binding SelectedGroup}">
-                    
-                    <ListView ItemsSource="{Binding Items}"
+                      Margin="0,0,0,0">
+
+                    <ListView ItemsSource="{Binding SelectedItems}"
                               x:Name="ItemsListView"
                               SelectionChanged="ItemsListView_SelectionChanged">
                         <ListView.ItemTemplate>
