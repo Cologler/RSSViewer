@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
-    public class AutoRejectSettingsViewModel
+    public class AutoRulesViewModel
     {
         private readonly List<MatchRuleViewModel> _removedRules = new List<MatchRuleViewModel>();
 

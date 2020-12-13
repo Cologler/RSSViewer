@@ -10,7 +10,7 @@ namespace RSSViewer.ViewModels
 {
     public class SettingsViewModel
     {
-        public AutoRejectSettingsViewModel AutoRejectView { get; } = new AutoRejectSettingsViewModel();
+        public AutoRulesViewModel AutoRejectView { get; } = new AutoRulesViewModel();
 
         public DefaultsViewModel DefaultsView { get; } = new DefaultsViewModel();
 
