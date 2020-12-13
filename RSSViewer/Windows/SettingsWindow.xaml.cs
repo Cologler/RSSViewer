@@ -35,7 +35,7 @@ namespace RSSViewer.Windows
 
         internal SettingsViewModel ViewModel => (SettingsViewModel)this.DataContext;
 
-        private MatchRuleViewModel[] SelectedAutoRejectMatches
+        private MatchRuleViewModel[] SelectedAutoRules
         {
             get
             {
@@ -55,7 +55,7 @@ namespace RSSViewer.Windows
 
         private void AutoRules_Edit(object sender, RoutedEventArgs e)
         {
-            var vm = this.SelectedAutoRejectMatches.FirstOrDefault();
+            var vm = this.SelectedAutoRules.FirstOrDefault();
             if (vm == null)
                 return;
 
@@ -69,7 +69,7 @@ namespace RSSViewer.Windows
         private void AutoRules_Remove(object sender, RoutedEventArgs e)
         {
             var svm = this.ViewModel;
-            foreach (var vm in this.SelectedAutoRejectMatches)
+            foreach (var vm in this.SelectedAutoRules)
             {
                 svm.AutoRulesView.RemoveRule(vm);
             }
@@ -77,16 +77,16 @@ namespace RSSViewer.Windows
 
         private void AutoRules_MoveUp(object sender, RoutedEventArgs e)
         {
-            var selected = this.SelectedAutoRejectMatches;
+            var selected = this.SelectedAutoRules;
             this.ViewModel.AutoRulesView.MoveUp(selected);
-            this.SelectedAutoRejectMatches = selected;
+            this.SelectedAutoRules = selected;
         }
 
         private void AutoRules_MoveDown(object sender, RoutedEventArgs e)
         {
-            var selected = this.SelectedAutoRejectMatches;
+            var selected = this.SelectedAutoRules;
             this.ViewModel.AutoRulesView.MoveDown(selected);
-            this.SelectedAutoRejectMatches = selected;
+            this.SelectedAutoRules = selected;
         }
 
         private void AddAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
