@@ -64,11 +64,13 @@
                                 <ListView.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Edit"
-                                                  x:Name="EditAutoRejectMatchButton"
-                                                  Click="EditAutoRejectMatchButton_Click" />
+                                                  Click="AutoRules_Edit" />
                                         <MenuItem Header="Remove"
-                                                  x:Name="RemoveAutoRejectMatchButton"
-                                                  Click="RemoveAutoRejectMatchButton_Click" />
+                                                  Click="AutoRules_Remove" />
+                                        <MenuItem Header="MoveUp"
+                                                  Click="AutoRules_MoveUp" />
+                                        <MenuItem Header="MoveDown"
+                                                  Click="AutoRules_MoveDown" />
                                     </ContextMenu>
                                 </ListView.ContextMenu>
                             </ListView>
@@ -89,12 +91,12 @@
 
                                 <Button Content="⬆"
                                         x:Name="AutoRejectItemMoveUpButton"
-                                        Click="AutoRejectItemMoveUpButton_Click" />
+                                        Click="AutoRules_MoveUp" />
 
                                 <Button Content="⬇"
                                         Grid.Row="1"
                                         x:Name="AutoRejectItemMoveDownButton"
-                                        Click="AutoRejectItemMoveDownButton_Click" />
+                                        Click="AutoRules_MoveDown" />
                             </Grid>
                         </Grid>
 

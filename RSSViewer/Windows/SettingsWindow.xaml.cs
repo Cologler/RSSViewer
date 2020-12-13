@@ -53,24 +53,7 @@ namespace RSSViewer.Windows
             }
         }
 
-        private void RemoveAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
-        {
-            var svm = this.ViewModel;
-            foreach (var vm in this.SelectedAutoRejectMatches)
-            {
-                svm.AutoRulesView.RemoveRule(vm);
-            }
-        }
-
-        private void AddAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (EditRuleWindow.TryCreateConf(this, out var conf))
-            {
-                this.ViewModel.AutoRulesView.AddRule(conf);
-            }
-        }
-
-        private void EditAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
+        private void AutoRules_Edit(object sender, RoutedEventArgs e)
         {
             var vm = this.SelectedAutoRejectMatches.FirstOrDefault();
             if (vm == null)
@@ -83,6 +66,37 @@ namespace RSSViewer.Windows
             }
         }
 
+        private void AutoRules_Remove(object sender, RoutedEventArgs e)
+        {
+            var svm = this.ViewModel;
+            foreach (var vm in this.SelectedAutoRejectMatches)
+            {
+                svm.AutoRulesView.RemoveRule(vm);
+            }
+        }
+
+        private void AutoRules_MoveUp(object sender, RoutedEventArgs e)
+        {
+            var selected = this.SelectedAutoRejectMatches;
+            this.ViewModel.AutoRulesView.MoveUp(selected);
+            this.SelectedAutoRejectMatches = selected;
+        }
+
+        private void AutoRules_MoveDown(object sender, RoutedEventArgs e)
+        {
+            var selected = this.SelectedAutoRejectMatches;
+            this.ViewModel.AutoRulesView.MoveDown(selected);
+            this.SelectedAutoRejectMatches = selected;
+        }
+
+        private void AddAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (EditRuleWindow.TryCreateConf(this, out var conf))
+            {
+                this.ViewModel.AutoRulesView.AddRule(conf);
+            }
+        }
+
         private void OKButton_Click(object sender, RoutedEventArgs e)
         {
             this.ViewModel.Save();
@@ -92,20 +106,6 @@ namespace RSSViewer.Windows
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = false;
-        }
-
-        private void AutoRejectItemMoveUpButton_Click(object sender, RoutedEventArgs e)
-        {
-            var selected = this.SelectedAutoRejectMatches;
-            this.ViewModel.AutoRulesView.MoveUp(selected);
-            this.SelectedAutoRejectMatches = selected;
-        }
-
-        private void AutoRejectItemMoveDownButton_Click(object sender, RoutedEventArgs e)
-        {
-            var selected = this.SelectedAutoRejectMatches;
-            this.ViewModel.AutoRulesView.MoveDown(selected);
-            this.SelectedAutoRejectMatches = selected;
         }
     }
 }
