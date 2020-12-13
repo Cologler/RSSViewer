@@ -58,7 +58,7 @@ namespace RSSViewer.Windows
             var svm = this.ViewModel;
             foreach (var vm in this.SelectedAutoRejectMatches)
             {
-                svm.AutoRejectView.RemoveRule(vm);
+                svm.AutoRulesView.RemoveRule(vm);
             }
         }
 
@@ -66,7 +66,7 @@ namespace RSSViewer.Windows
         {
             if (EditRuleWindow.TryCreateConf(this, out var conf))
             {
-                this.ViewModel.AutoRejectView.AddRule(conf);
+                this.ViewModel.AutoRulesView.AddRule(conf);
             }
         }
 
@@ -97,14 +97,14 @@ namespace RSSViewer.Windows
         private void AutoRejectItemMoveUpButton_Click(object sender, RoutedEventArgs e)
         {
             var selected = this.SelectedAutoRejectMatches;
-            this.ViewModel.AutoRejectView.MoveUp(selected);
+            this.ViewModel.AutoRulesView.MoveUp(selected);
             this.SelectedAutoRejectMatches = selected;
         }
 
         private void AutoRejectItemMoveDownButton_Click(object sender, RoutedEventArgs e)
         {
             var selected = this.SelectedAutoRejectMatches;
-            this.ViewModel.AutoRejectView.MoveDown(selected);
+            this.ViewModel.AutoRulesView.MoveDown(selected);
             this.SelectedAutoRejectMatches = selected;
         }
     }

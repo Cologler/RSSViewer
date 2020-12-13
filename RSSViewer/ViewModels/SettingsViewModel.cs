@@ -10,7 +10,7 @@ namespace RSSViewer.ViewModels
 {
     public class SettingsViewModel
     {
-        public AutoRulesViewModel AutoRejectView { get; } = new AutoRulesViewModel();
+        public AutoRulesViewModel AutoRulesView { get; } = new AutoRulesViewModel();
 
         public DefaultsViewModel DefaultsView { get; } = new DefaultsViewModel();
 
@@ -18,13 +18,13 @@ namespace RSSViewer.ViewModels
         {
             var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
             this.DefaultsView.Load(configService.AppConf);
-            await this.AutoRejectView.Load(configService);
+            await this.AutoRulesView.Load(configService);
         }
 
         internal void Save()
         {
             var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
-            this.AutoRejectView.Save(configService);
+            this.AutoRulesView.Save(configService);
             this.DefaultsView.Save(configService.AppConf);
             configService.Save();
         }

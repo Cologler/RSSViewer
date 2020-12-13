@@ -41,7 +41,7 @@
                 </TabItem>
                 
                 <TabItem Header="Auto Reject"
-                         DataContext="{Binding AutoRejectView}">
+                         DataContext="{Binding AutoRulesView}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition />
