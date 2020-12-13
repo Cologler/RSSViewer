@@ -54,7 +54,7 @@
                                 <ColumnDefinition Width="30" />
                             </Grid.ColumnDefinitions>
 
-                            <ListView ItemsSource="{Binding Matches}"
+                            <ListView ItemsSource="{Binding Rules}"
                                       x:Name="AutoRejectMatchesListView">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>

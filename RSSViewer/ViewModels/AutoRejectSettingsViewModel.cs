@@ -16,20 +16,20 @@ namespace RSSViewer.ViewModels
     {
         private readonly List<MatchRuleViewModel> _removedRules = new List<MatchRuleViewModel>();
 
-        public ObservableCollection<MatchRuleViewModel> Matches { get; } = new ObservableCollection<MatchRuleViewModel>();
+        public ObservableCollection<MatchRuleViewModel> Rules { get; } = new ObservableCollection<MatchRuleViewModel>();
 
         public async Task Load(ConfigService configService)
         {
             var rules = await configService.ListMatchRulesAsync();
-            this.Matches.Clear();
+            this.Rules.Clear();
             rules.Select((z, i) => new MatchRuleViewModel(z, i))
                 .ToList()
-                .ForEach(this.Matches.Add);
+                .ForEach(this.Rules.Add);
         }
 
         internal void AddRule(MatchRule conf)
         {
-            this.Matches.Add(new MatchRuleViewModel(conf, this.Matches.Count, true));
+            this.Rules.Add(new MatchRuleViewModel(conf, this.Rules.Count, true));
         }
 
         internal void RemoveRule(MatchRuleViewModel ruleViewModel)
@@ -37,12 +37,12 @@ namespace RSSViewer.ViewModels
             if (ruleViewModel is null)
                 throw new System.ArgumentNullException(nameof(ruleViewModel));
             this._removedRules.Add(ruleViewModel);
-            this.Matches.Remove(ruleViewModel);
+            this.Rules.Remove(ruleViewModel);
         }
 
         internal async void Save(ConfigService configService)
         {
-            var ruleViewModels = this.Matches.ToArray();
+            var ruleViewModels = this.Rules.ToArray();
             for (var i = 0; i < ruleViewModels.Length; i++)
             {
                 var orderCode = i + 1;
@@ -55,20 +55,20 @@ namespace RSSViewer.ViewModels
             }
 
             await configService.UpdateMatchRulesAsync(
-                this.Matches.Where(z => !z.IsAdded && z.IsChanged).Select(z => z.MatchRule).ToArray(),
-                this.Matches.Where(z => z.IsAdded).Select(z => z.MatchRule).ToArray(),
+                this.Rules.Where(z => !z.IsAdded && z.IsChanged).Select(z => z.MatchRule).ToArray(),
+                this.Rules.Where(z => z.IsAdded).Select(z => z.MatchRule).ToArray(),
                 this._removedRules.Select(z => z.MatchRule).ToArray());
         }
 
         internal void MoveUp(IEnumerable<MatchRuleViewModel> items)
         {
             var itemIndexes = items
-                .Select(z => this.Matches.IndexOf(z))
+                .Select(z => this.Rules.IndexOf(z))
                 .ToHashSet();
-            if (itemIndexes.Count == this.Matches.Count)
+            if (itemIndexes.Count == this.Rules.Count)
                 return; // ignore move all
 
-            var start = Enumerable.Range(0, this.Matches.Count)
+            var start = Enumerable.Range(0, this.Rules.Count)
                 .Where(z => !itemIndexes.Contains(z))
                 .First();
 
@@ -76,21 +76,21 @@ namespace RSSViewer.ViewModels
             foreach (var i in itemIndexes.Where(z => z > start).OrderBy(z => z))
             {
                 var ni = i - 1;
-                (this.Matches[i].Index, this.Matches[ni].Index) = (this.Matches[ni].Index, this.Matches[i].Index);
-                (this.Matches[i], this.Matches[ni]) = (this.Matches[ni], this.Matches[i]);
+                (this.Rules[i].Index, this.Rules[ni].Index) = (this.Rules[ni].Index, this.Rules[i].Index);
+                (this.Rules[i], this.Rules[ni]) = (this.Rules[ni], this.Rules[i]);
             }
         }
 
         internal void MoveDown(IEnumerable<MatchRuleViewModel> items)
         {
             var itemIndexes = items
-                .Select(z => this.Matches.IndexOf(z))
+                .Select(z => this.Rules.IndexOf(z))
                 .ToHashSet();
-            if (itemIndexes.Count == this.Matches.Count)
+            if (itemIndexes.Count == this.Rules.Count)
                 return; // ignore move all
 
-            var start = Enumerable.Range(0, this.Matches.Count)
-                .Select(z => this.Matches.Count - z - 1)
+            var start = Enumerable.Range(0, this.Rules.Count)
+                .Select(z => this.Rules.Count - z - 1)
                 .Where(z => !itemIndexes.Contains(z))
                 .First();
 
@@ -98,8 +98,8 @@ namespace RSSViewer.ViewModels
             foreach (var i in itemIndexes.Where(z => z < start).OrderByDescending(z => z))
             {
                 var ni = i + 1;
-                (this.Matches[i].Index, this.Matches[ni].Index) = (this.Matches[ni].Index, this.Matches[i].Index);
-                (this.Matches[i], this.Matches[ni]) = (this.Matches[ni], this.Matches[i]);
+                (this.Rules[i].Index, this.Rules[ni].Index) = (this.Rules[ni].Index, this.Rules[i].Index);
+                (this.Rules[i], this.Rules[ni]) = (this.Rules[ni], this.Rules[i]);
             }
         }
     }
