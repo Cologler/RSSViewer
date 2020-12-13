@@ -1,22 +1,56 @@
 ﻿using Accessibility;
+
+using Jasily.ViewModel;
+
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using RSSViewer.Configuration;
 using RSSViewer.RulesDb;
 using RSSViewer.Services;
 
 using SQLitePCL;
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Data;
 
 namespace RSSViewer.ViewModels
 {
-    public class AutoRulesViewModel
+    public class AutoRulesViewModel : BaseViewModel
     {
         private readonly List<MatchRuleViewModel> _removedRules = new List<MatchRuleViewModel>();
+        private string _searchText;
+
+        public AutoRulesViewModel()
+        {
+            this.RulesView = new ListCollectionView(this.Rules);
+        }
 
         public ObservableCollection<MatchRuleViewModel> Rules { get; } = new ObservableCollection<MatchRuleViewModel>();
+
+        public string SearchText
+        {
+            get => this._searchText;
+            set
+            {
+                if (this.ChangeModelProperty(ref this._searchText, value))
+                {
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        this.RulesView.Filter = null;
+                    }
+                    else
+                    {
+                        var t = value.Trim();
+                        this.RulesView.Filter = (v) => ((MatchRuleViewModel)v).MatchRule.Argument.Contains(t, StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+            }
+        }
+
+        public ListCollectionView RulesView { get; }
 
         public async Task Load(ConfigService configService)
         {
@@ -51,7 +85,7 @@ namespace RSSViewer.ViewModels
                 {
                     viewModel.MatchRule.OrderCode = i + 1;
                     viewModel.MarkChanged();
-                }                
+                }
             }
 
             await configService.UpdateMatchRulesAsync(
