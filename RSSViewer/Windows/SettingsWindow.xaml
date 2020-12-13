@@ -67,10 +67,14 @@
                                                   Click="AutoRules_Edit" />
                                         <MenuItem Header="Remove"
                                                   Click="AutoRules_Remove" />
+                                        <MenuItem Header="MoveTop"
+                                                  Click="AutoRules_MoveTop" />
                                         <MenuItem Header="MoveUp"
                                                   Click="AutoRules_MoveUp" />
                                         <MenuItem Header="MoveDown"
                                                   Click="AutoRules_MoveDown" />
+                                        <MenuItem Header="MoveBottom"
+                                                  Click="AutoRules_MoveBottom" />
                                     </ContextMenu>
                                 </ListView.ContextMenu>
                             </ListView>

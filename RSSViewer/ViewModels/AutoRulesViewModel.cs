@@ -62,6 +62,9 @@ namespace RSSViewer.ViewModels
 
         internal void MoveUp(IEnumerable<MatchRuleViewModel> items)
         {
+            if (items is null)
+                throw new System.ArgumentNullException(nameof(items));
+
             var itemIndexes = items
                 .Select(z => this.Rules.IndexOf(z))
                 .ToHashSet();
@@ -83,6 +86,9 @@ namespace RSSViewer.ViewModels
 
         internal void MoveDown(IEnumerable<MatchRuleViewModel> items)
         {
+            if (items is null)
+                throw new System.ArgumentNullException(nameof(items));
+
             var itemIndexes = items
                 .Select(z => this.Rules.IndexOf(z))
                 .ToHashSet();
@@ -100,6 +106,47 @@ namespace RSSViewer.ViewModels
                 var ni = i + 1;
                 (this.Rules[i].Index, this.Rules[ni].Index) = (this.Rules[ni].Index, this.Rules[i].Index);
                 (this.Rules[i], this.Rules[ni]) = (this.Rules[ni], this.Rules[i]);
+            }
+        }
+
+        internal void MoveTop(IList<MatchRuleViewModel> items)
+        {
+            if (items is null)
+                throw new System.ArgumentNullException(nameof(items));
+
+            foreach (var item in items)
+            {
+                this.Rules.Remove(item);
+            }
+
+            for (var i = 0; i < items.Count; i++)
+            {
+                this.Rules.Insert(i, items[i]);
+            }
+
+            this.UpdateAllIndexes();
+        }
+
+        internal void MoveBottom(IList<MatchRuleViewModel> items)
+        {
+            if (items is null)
+                throw new System.ArgumentNullException(nameof(items));
+
+            foreach (var item in items)
+            {
+                this.Rules.Remove(item);
+                this.Rules.Add(item);
+            }
+
+            this.UpdateAllIndexes();
+        }
+
+        private void UpdateAllIndexes()
+        {
+            for (var i = 0; i < this.Rules.Count; i++)
+            {
+                this.Rules[i].Index = i;
+                this.Rules[i].RefreshProperties();
             }
         }
     }
