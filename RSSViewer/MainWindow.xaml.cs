@@ -11,6 +11,7 @@ using RSSViewer.Windows;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -79,11 +80,34 @@ namespace RSSViewer
 
         public RssViewViewModel ViewModel => (RssViewViewModel) this.DataContext;
 
+        private static IEnumerable GetSelectedTargets(MenuItem menuItem)
+        {
+            if (menuItem is null)
+                throw new ArgumentNullException(nameof(menuItem));
+
+            ContextMenu contextMenu;
+            do
+            {
+                contextMenu = menuItem.Parent as ContextMenu;
+            } while (contextMenu is null && menuItem.Parent is not null);
+
+            Debug.Assert(contextMenu is not null);
+
+            if (contextMenu.PlacementTarget is ListBox listSources)
+            {
+                return listSources.SelectedItems;
+            }
+
+            return Enumerable.Empty<object>();
+        }
+
         private async void GroupHandlerMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var handler = (IRssItemHandler)((MenuItem)e.OriginalSource).Tag;
+            var menuItem = (MenuItem)e.OriginalSource;
+            var selectedTargets = GetSelectedTargets(menuItem);
+            var handler = (IRssItemHandler)menuItem.Tag;
             await this.ViewModel.HandleAsync(
-                this.GroupsListView.SelectedItems.OfType<RssItemGroupViewModel>()
+                selectedTargets.Cast<RssItemGroupViewModel>()
                     .SelectMany(z => z.Items)
                     .Distinct()
                     .ToArray(),
@@ -92,20 +116,23 @@ namespace RSSViewer
 
         private async void ItemsHandlerMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var handler = (IRssItemHandler)((MenuItem)e.OriginalSource).Tag;
+            var menuItem = (MenuItem)e.OriginalSource;
+            var selectedTargets = GetSelectedTargets(menuItem);
+            var handler = (IRssItemHandler)menuItem.Tag;
             await this.ViewModel.HandleAsync(
-                this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().ToArray(),
+                selectedTargets.Cast<RssItemViewModel>().ToArray(),
                 handler);
         }
 
         private void ItemsCopyMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var vm = this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().FirstOrDefault();
-            if (vm is null) 
+            var menuItem = (MenuItem)e.OriginalSource;
+            var viewModel = GetSelectedTargets(menuItem).Cast<RssItemViewModel>().FirstOrDefault();
+            if (viewModel is null) 
                 return;
 
             var kws = App.RSSViewerHost.ServiceProvider.GetRequiredService<KeywordsService>();
-            var kw = kws.GetKeywords(vm.RssItem);
+            var kw = kws.GetKeywords(viewModel.RssItem);
             if (StringsPickerWindow.TryPickString(this, kw, out var text))
             {
                 try
@@ -119,25 +146,16 @@ namespace RSSViewer
             }
         }
 
-        private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            var win = new SettingsWindow
-            {
-                Owner = this
-            };
-
-            win.ShowDialog();
-        }
-
         private async void AddAutoRuleMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var vm = this.ItemsListView.SelectedItems.OfType<RssItemViewModel>().FirstOrDefault();
-            if (vm is null)
+            var menuItem = (MenuItem)e.OriginalSource;
+            var viewModel = GetSelectedTargets(menuItem).Cast<RssItemViewModel>().FirstOrDefault();
+            if (viewModel is null)
                 return;
 
             var sp = App.RSSViewerHost.ServiceProvider;
             var kws = sp.GetRequiredService<KeywordsService>();
-            var kw = kws.GetKeywords(vm.RssItem);
+            var kw = kws.GetKeywords(viewModel.RssItem);
             if (StringsPickerWindow.TryPickString(this, kw, out var text))
             {
                 var rule = sp.GetRequiredService<ConfigService>()
@@ -152,6 +170,16 @@ namespace RSSViewer
                     await cs.AddMatchRuleAsync(rule);
                 }
             }
+        }
+
+        private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new SettingsWindow
+            {
+                Owner = this
+            };
+
+            win.ShowDialog();
         }
 
         private void RunSyncSourceOnceMenuItem_Click(object sender, RoutedEventArgs e)
