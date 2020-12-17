@@ -44,12 +44,23 @@
         </Grid>
 
         <Grid Margin="4"
-              Grid.Row="1">
+              Grid.Row="1"
+              x:Name="SessionPanel">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
             </Grid.RowDefinitions>
+            <Grid.Resources>
+                <ContextMenu x:Key="GroupsHandlerContextMenu" />
+                <ContextMenu x:Key="ItemsHandlerContextMenu">
+                    <MenuItem Header="Copy"
+                              Click="ItemsCopyMenuItem_Click" />
+                    <MenuItem Header="Add Auto Rule"
+                              Click="AddAutoRuleMenuItem_Click" />
+                    <Separator />
+                </ContextMenu>
+            </Grid.Resources>
 
             <TextBox x:Name="SearchBox"
                      Padding="2"
@@ -146,7 +157,8 @@
                               SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
                               SelectedIndex="0"
                               SelectionChanged="GroupsListView_SelectionChanged"
-                              x:Name="GroupsListView">
+                              x:Name="GroupsListView"
+                              ContextMenu="{StaticResource GroupsHandlerContextMenu}">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -154,10 +166,6 @@
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
-                        <ListView.ContextMenu>
-                            <ContextMenu x:Name="GroupHandlerMenuItems">
-                            </ContextMenu>
-                        </ListView.ContextMenu>
                     </ListView>
                 </Grid>
 
@@ -171,7 +179,8 @@
 
                     <ListView ItemsSource="{Binding SelectedItems}"
                               x:Name="ItemsListView"
-                              SelectionChanged="ItemsListView_SelectionChanged">
+                              SelectionChanged="ItemsListView_SelectionChanged"
+                              ContextMenu="{StaticResource ItemsHandlerContextMenu}">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -191,18 +200,6 @@
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
-                        
-                        <ListView.ContextMenu>
-                            <ContextMenu x:Name="ItemContextMenu">
-                                <MenuItem Header="Copy"
-                                          x:Name="ItemsCopyMenuItem"
-                                          Click="ItemsCopyMenuItem_Click" />
-                                <MenuItem Header="Add Auto Rule"
-                                          x:Name="AddAutoRejectRuleMenuItem" 
-                                          Click="AddAutoRuleMenuItem_Click"/>
-                                <Separator />
-                            </ContextMenu>
-                        </ListView.ContextMenu>
                     </ListView>
                 </Grid>
             </Grid>

@@ -46,11 +46,14 @@ namespace RSSViewer
         private void RefreshAcceptHandlers()
         {
             // clear
-            this.GroupHandlerMenuItems.Items.Clear();
-            this.ItemContextMenu.Items.OfType<MenuItem>()
+            var groupsHandlerContextMenu = (ContextMenu) this.SessionPanel.FindResource("GroupsHandlerContextMenu");
+            var ItemsHandlerContextMenu = (ContextMenu)this.SessionPanel.FindResource("ItemsHandlerContextMenu");
+
+            groupsHandlerContextMenu.Items.Clear();
+            ItemsHandlerContextMenu.Items.OfType<MenuItem>()
                 .Where(z => z.Tag is IRssItemHandler)
                 .ToList()
-                .ForEach(this.ItemContextMenu.Items.Remove);
+                .ForEach(ItemsHandlerContextMenu.Items.Remove);
 
             // add
             var serviceProvider = App.RSSViewerHost.ServiceProvider;
@@ -62,7 +65,7 @@ namespace RSSViewer
                     Tag = handler
                 };
                 groupHandlerMenuItem.Click += this.GroupHandlerMenuItem_Click;
-                this.GroupHandlerMenuItems.Items.Add(groupHandlerMenuItem);
+                groupsHandlerContextMenu.Items.Add(groupHandlerMenuItem);
 
                 var itemHandlerMenuItem = new MenuItem
                 {
@@ -70,7 +73,7 @@ namespace RSSViewer
                     Tag = handler
                 };
                 itemHandlerMenuItem.Click += this.ItemsHandlerMenuItem_Click;
-                this.ItemContextMenu.Items.Add(itemHandlerMenuItem);
+                ItemsHandlerContextMenu.Items.Add(itemHandlerMenuItem);
             }
         }
 
