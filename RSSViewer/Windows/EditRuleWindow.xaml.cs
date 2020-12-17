@@ -242,7 +242,7 @@ namespace RSSViewer.Windows
             {
                 var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<StringMatcherFactory>();
                 var query = App.RSSViewerHost.Query();
-                var items = await query.ListAsync(new[] { RssItemState.Undecided }, CancellationToken.None);
+                var items = await query.ListAsync(new[] { RssItemState.Undecided }, null, CancellationToken.None);
                 items = items.Where(z => matcher.IsMatch(z.Title)).ToArray();
                 this.MatchedRssItemsListView.Items.Clear();
                 foreach (var item in items)

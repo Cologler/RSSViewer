@@ -49,7 +49,7 @@ namespace RSSViewer.Services
             return CreateQueryable(ctx.RssItems).ToArray();
         }
 
-        public Task<RssItem[]> ListAsync(RssItemState[] includes, CancellationToken token)
+        public Task<RssItem[]> ListAsync(RssItemState[] includes, string feedId, CancellationToken token)
         {
             if (includes is null)
                 throw new ArgumentNullException(nameof(includes));
@@ -61,6 +61,11 @@ namespace RSSViewer.Services
 
             IQueryable<RssItem> CreateQueryable(IQueryable<RssItem> queryable)
             {
+                if (feedId is not null)
+                {
+                    queryable = queryable.Where(z => z.FeedId == feedId);
+                }
+
                 if (includes.Length == 3) // all
                     return queryable;
                 else if (includes.Length == 1)
@@ -77,14 +82,14 @@ namespace RSSViewer.Services
             }, token);
         }
 
-        public async Task<RssItem[]> SearchAsync(string searchText, RssItemState[] includes, CancellationToken token)
+        public async Task<RssItem[]> SearchAsync(string searchText, RssItemState[] includes, string feedId, CancellationToken token)
         {
             if (searchText is null)
                 throw new ArgumentNullException(nameof(searchText));
             if (includes is null)
                 throw new ArgumentNullException(nameof(includes));
 
-            var items = await this.ListAsync(includes, token).ConfigureAwait(false);
+            var items = await this.ListAsync(includes, feedId, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             
             if (string.IsNullOrWhiteSpace(searchText))
@@ -102,6 +107,13 @@ namespace RSSViewer.Services
                     return false;
                 }).ToArray();
             }).ConfigureAwait(false);
+        }
+
+        public string[] GetFeedIds()
+        {
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
+            return ctx.RssItems.AsQueryable().Select(z => z.FeedId).Distinct().ToArray();
         }
     }
 }

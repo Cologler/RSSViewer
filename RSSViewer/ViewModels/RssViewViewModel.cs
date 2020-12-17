@@ -36,10 +36,12 @@ namespace RSSViewer.ViewModels
         public RssViewViewModel()
         {
             var serviceProvider = App.RSSViewerHost.ServiceProvider;
+
             this.Analytics = new AnalyticsViewModel(this);
             this.LoggerMessage = serviceProvider.GetRequiredService<ViewerLoggerViewModel>();
             serviceProvider.AddListener(EventNames.RssItemsStateChanged, this.OnRssItemsStateChanged);
 
+            this.SourcesView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
             this.IncludeView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
             this.SortByView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
             this.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
@@ -55,7 +57,7 @@ namespace RSSViewer.ViewModels
             {
                 await this.RefreshContentAsync(500);
             }
-            else if (ReferenceEquals(sender, this.SortByView))
+            else if (ReferenceEquals(sender, this.SortByView) || ReferenceEquals(sender, this.SourcesView))
             {
                 await this.RefreshContentAsync(0);
             }
@@ -108,6 +110,8 @@ namespace RSSViewer.ViewModels
 
         }
 
+        public SourcesViewModel SourcesView { get; } = new();
+
         public IncludeViewModel IncludeView { get; } = new IncludeViewModel();
 
         public SortByViewModel SortByView { get; } = new SortByViewModel();
@@ -138,6 +142,7 @@ namespace RSSViewer.ViewModels
             {
                 return new SearchInfo(
                     this.SearchText,
+                    this.SourcesView.SelectedItem.FeedId,
                     this.IncludeView.GetStateValues(),
                     this.SortByView.SortBy);
             }
@@ -180,7 +185,7 @@ namespace RSSViewer.ViewModels
 
             var sw = Stopwatch.StartNew();
 
-            var items = await App.RSSViewerHost.Query().SearchAsync(searchText, searchInfo.IncludeState, token);
+            var items = await App.RSSViewerHost.Query().SearchAsync(searchText, searchInfo.IncludeState, searchInfo.FeedId, token);
             token.ThrowIfCancellationRequested();
 
             switch (searchInfo.SortBy)
@@ -284,9 +289,12 @@ namespace RSSViewer.ViewModels
         {
             public string SearchText { get; }
 
-            public SearchInfo(string searchText, RssItemState[] includeState, SortBy sortBy) : this()
+            public string FeedId { get; }
+
+            public SearchInfo(string searchText, string feedId, RssItemState[] includeState, SortBy sortBy) : this()
             {
                 this.SearchText = searchText;
+                this.FeedId = feedId;
                 this.IncludeState = includeState;
                 this.SortBy = sortBy;
             }
@@ -298,6 +306,9 @@ namespace RSSViewer.ViewModels
             public bool Equals(SearchInfo other)
             {
                 if (this.SearchText != other.SearchText)
+                    return false;
+
+                if (this.FeedId != other.FeedId)
                     return false;
 
                 if (!this.IncludeState.SequenceEqual(other.IncludeState))

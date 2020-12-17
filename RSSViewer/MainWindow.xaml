@@ -71,6 +71,24 @@
                                 Value="Center" />
                     </Style>
                 </Grid.Resources>
+
+                <Grid Margin="0,0,4,0"
+                      DataContext="{Binding SourcesView}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="110" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="From"
+                               Style="{StaticResource HeaderStyle}" />
+
+                    <ComboBox SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                              Grid.Column="1"
+                              VerticalAlignment="Center"
+                              ItemsSource="{Binding Items}"
+                              DisplayMemberPath="Name" >
+                    </ComboBox>
+                </Grid>
                 
                 <Grid Grid.Column="1"
                       VerticalAlignment="Center">
