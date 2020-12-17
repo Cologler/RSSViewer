@@ -7,13 +7,13 @@ namespace RSSViewer.ViewModels
 {
     public class AnalyticsViewModel : BaseViewModel
     {
-        private RssViewViewModel _rssViewViewModel;
+        private SessionViewModel _targetViewModel;
         private int _selected;
 
-        public AnalyticsViewModel(RssViewViewModel rssViewViewModel) => this._rssViewViewModel = rssViewViewModel;
+        public AnalyticsViewModel(SessionViewModel rssViewViewModel) => this._targetViewModel = rssViewViewModel;
 
         private IReadOnlyCollection<RssItemViewModel> GetItems()
-            => (IReadOnlyCollection<RssItemViewModel>)this._rssViewViewModel.Groups.FirstOrDefault()?.Items ?? Array.Empty<RssItemViewModel>();
+            => (IReadOnlyCollection<RssItemViewModel>)this._targetViewModel.Groups.FirstOrDefault()?.Items ?? Array.Empty<RssItemViewModel>();
 
         [ModelProperty]
         public int TotalCount => this.GetItems().Count;

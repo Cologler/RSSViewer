@@ -40,8 +40,10 @@ namespace RSSViewer
                 .AcceptHandlersChanged += (_, __) => this.RefreshAcceptHandlers();
             this.RefreshAcceptHandlers();
 
-            this.DataContext = new RssViewViewModel();
-            _ = this.ViewModel.RefreshContentAsync(0);
+            var viewModel = new RssViewViewModel();
+            viewModel.SelectFirst();
+            this.DataContext = viewModel;
+            _ = viewModel.Items.First().RefreshContentAsync(0);
         }
 
         private void RefreshAcceptHandlers()
@@ -78,7 +80,9 @@ namespace RSSViewer
             }
         }
 
-        public RssViewViewModel ViewModel => (RssViewViewModel) this.DataContext;
+        public RssViewViewModel ViewModel => (RssViewViewModel)this.DataContext;
+
+        public SessionViewModel CurrentSession => this.ViewModel.SelectedItem;
 
         private static IEnumerable GetSelectedTargets(MenuItem menuItem)
         {
@@ -106,7 +110,7 @@ namespace RSSViewer
             var menuItem = (MenuItem)e.OriginalSource;
             var selectedTargets = GetSelectedTargets(menuItem);
             var handler = (IRssItemHandler)menuItem.Tag;
-            await this.ViewModel.HandleAsync(
+            await this.CurrentSession.HandleAsync(
                 selectedTargets.Cast<RssItemGroupViewModel>()
                     .SelectMany(z => z.Items)
                     .Distinct()
@@ -119,7 +123,7 @@ namespace RSSViewer
             var menuItem = (MenuItem)e.OriginalSource;
             var selectedTargets = GetSelectedTargets(menuItem);
             var handler = (IRssItemHandler)menuItem.Tag;
-            await this.ViewModel.HandleAsync(
+            await this.CurrentSession.HandleAsync(
                 selectedTargets.Cast<RssItemViewModel>().ToArray(),
                 handler);
         }
@@ -197,19 +201,19 @@ namespace RSSViewer
             await App.RSSViewerHost.ServiceProvider.GetRequiredService<RunRulesService>()
                 .RunAllRulesAsync();
             mi.IsEnabled = true;
-            await this.ViewModel.RefreshContentAsync();
+            await this.CurrentSession.RefreshContentAsync();
         }
 
         private void GroupsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            this.ViewModel.UpdateSelectedItems(((ListView)sender).SelectedItems.OfType<RssItemGroupViewModel>());
+            this.CurrentSession.UpdateSelectedItems(((ListView)sender).SelectedItems.OfType<RssItemGroupViewModel>());
 
             this.ItemsListView_SelectionChanged(sender, e);
         }
 
         private void ItemsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            this.ViewModel.Analytics.Selected = ((ListView)sender).SelectedItems.OfType<IRssItemsCount>()
+            this.CurrentSession.Analytics.Selected = ((ListView)sender).SelectedItems.OfType<IRssItemsCount>()
                 .Select(z => z.Count)
                 .Sum();
         }

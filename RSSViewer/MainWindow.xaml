@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:RSSViewer"
         mc:Ignorable="d"
         Title="RSSViewer" 
-        Height="700"
-        Width="1000"
+        Height="750"
+        Width="1100"
         WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
@@ -46,11 +46,6 @@
         <Grid Margin="4"
               Grid.Row="1"
               x:Name="SessionPanel">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
             <Grid.Resources>
                 <ContextMenu x:Key="GroupsHandlerContextMenu" />
                 <ContextMenu x:Key="ItemsHandlerContextMenu">
@@ -62,148 +57,168 @@
                 </ContextMenu>
             </Grid.Resources>
 
-            <TextBox x:Name="SearchBox"
-                     Padding="2"
-                     Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-
-            <Grid Grid.Row="1"
-                  Margin="0,4,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Grid.Resources>
-                    <Style TargetType="TextBlock"
-                           x:Key="HeaderStyle">
-                        <Setter Property="Margin"
-                                Value="0,0,6,0" />
-                        <Setter Property="VerticalAlignment"
-                                Value="Center" />
-                    </Style>
-                </Grid.Resources>
-
-                <Grid Margin="0,0,4,0"
-                      DataContext="{Binding SourcesView}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="110" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Text="From"
-                               Style="{StaticResource HeaderStyle}" />
-
-                    <ComboBox SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                              Grid.Column="1"
-                              VerticalAlignment="Center"
-                              ItemsSource="{Binding Items}"
-                              DisplayMemberPath="Name" >
-                    </ComboBox>
-                </Grid>
+            <TabControl ItemsSource="{Binding Items}"
+                        SelectedItem="{Binding SelectedItem}">
+                <TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Title}" />
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
                 
-                <Grid Grid.Column="1"
-                      VerticalAlignment="Center">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="86" />
-                        <ColumnDefinition Width="86" />
-                        <ColumnDefinition Width="86" />
-                    </Grid.ColumnDefinitions>
+                <TabControl.ContentTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
 
-                    <TextBlock Text="Include"
-                               Style="{StaticResource HeaderStyle}" />
+                            <TextBox x:Name="SearchBox"
+                                     Padding="2"
+                                     Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                    <CheckBox Content="Undecided"
-                              Grid.Column="1"
-                              IsChecked="{Binding IncludeView.Undecided, Mode=TwoWay}" />
+                            <Grid Grid.Row="1"
+                                  Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.Resources>
+                                    <Style TargetType="TextBlock"
+                                           x:Key="HeaderStyle">
+                                        <Setter Property="Margin"
+                                                Value="0,0,6,0" />
+                                        <Setter Property="VerticalAlignment"
+                                                Value="Center" />
+                                    </Style>
+                                </Grid.Resources>
 
-                    <CheckBox Content="Accepted"
-                              Grid.Column="2"
-                              IsChecked="{Binding IncludeView.Accepted, Mode=TwoWay}" />
-
-                    <CheckBox Content="Injected"
-                              Grid.Column="3"
-                              IsChecked="{Binding IncludeView.Rejected, Mode=TwoWay}" />
-                </Grid>
-
-                <Grid Grid.Column="2"
-                      Margin="0,0,4,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="80" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Text="Order by"
-                               Style="{StaticResource HeaderStyle}" />
-
-                    <ComboBox SelectedItem="{Binding SortByView.SortBy, Mode=TwoWay}"
-                              Grid.Column="1"
-                              VerticalAlignment="Center"
-                              ItemsSource="{Binding SortByView.SortByOptions}">
-                    </ComboBox>
-                </Grid>
-            </Grid>
-
-            <Grid Grid.Row="2"
-                  Margin="0,4,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="300" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-
-                <Grid>
-                    <ListView ItemsSource="{Binding Groups}"
-                              SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
-                              SelectedIndex="0"
-                              SelectionChanged="GroupsListView_SelectionChanged"
-                              x:Name="GroupsListView"
-                              ContextMenu="{StaticResource GroupsHandlerContextMenu}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <TextBlock Text="{Binding DisplayName}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </Grid>
-
-                <GridSplitter Grid.Column="1"
-                              HorizontalAlignment="Center"
-                              VerticalAlignment="Stretch"
-                              Width="4"/>
-
-                <Grid Grid.Column="2"
-                      Margin="0,0,0,0">
-
-                    <ListView ItemsSource="{Binding SelectedItems}"
-                              x:Name="ItemsListView"
-                              SelectionChanged="ItemsListView_SelectionChanged"
-                              ContextMenu="{StaticResource ItemsHandlerContextMenu}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid>
+                                <Grid Margin="0,0,4,0"
+                                      DataContext="{Binding SourcesView}">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="20" />
-                                        <ColumnDefinition />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="110" />
                                     </Grid.ColumnDefinitions>
 
-                                    <TextBlock Text="✅"
-                                               Visibility="{Binding AcceptedImageVisibility}" />
+                                    <TextBlock Text="From"
+                                               Style="{StaticResource HeaderStyle}" />
 
-                                    <TextBlock Text="❎"
-                                               Visibility="{Binding RejectedImageVisibility}" />
-
-                                    <TextBlock Text="{Binding Title}"
-                                               Grid.Column="1" />
+                                    <ComboBox SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                              Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              ItemsSource="{Binding Items}"
+                                              DisplayMemberPath="Name">
+                                    </ComboBox>
                                 </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </Grid>
-            </Grid>
 
+                                <Grid Grid.Column="1"
+                                      VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="86" />
+                                        <ColumnDefinition Width="86" />
+                                        <ColumnDefinition Width="86" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="Include"
+                                               Style="{StaticResource HeaderStyle}" />
+
+                                    <CheckBox Content="Undecided"
+                                              Grid.Column="1"
+                                              IsChecked="{Binding IncludeView.Undecided, Mode=TwoWay}" />
+
+                                    <CheckBox Content="Accepted"
+                                              Grid.Column="2"
+                                              IsChecked="{Binding IncludeView.Accepted, Mode=TwoWay}" />
+
+                                    <CheckBox Content="Injected"
+                                              Grid.Column="3"
+                                              IsChecked="{Binding IncludeView.Rejected, Mode=TwoWay}" />
+                                </Grid>
+
+                                <Grid Grid.Column="2"
+                                      Margin="0,0,4,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="80" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="Order by"
+                                               Style="{StaticResource HeaderStyle}" />
+
+                                    <ComboBox SelectedItem="{Binding SortByView.SortBy, Mode=TwoWay}"
+                                              Grid.Column="1"
+                                              VerticalAlignment="Center"
+                                              ItemsSource="{Binding SortByView.SortByOptions}">
+                                    </ComboBox>
+                                </Grid>
+                            </Grid>
+
+                            <Grid Grid.Row="2"
+                                  Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="270" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+
+                                <Grid>
+                                    <ListView ItemsSource="{Binding Groups}"
+                                              SelectedItem="{Binding SelectedGroup, Mode=TwoWay}"
+                                              SelectedIndex="0"
+                                              SelectionChanged="GroupsListView_SelectionChanged"
+                                              x:Name="GroupsListView"
+                                              ContextMenu="{StaticResource GroupsHandlerContextMenu}">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <TextBlock Text="{Binding DisplayName}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </Grid>
+
+                                <GridSplitter Grid.Column="1"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Stretch"
+                                              Width="4" />
+
+                                <Grid Grid.Column="2"
+                                      Margin="0,0,0,0">
+
+                                    <ListView ItemsSource="{Binding SelectedItems}"
+                                              x:Name="ItemsListView"
+                                              SelectionChanged="ItemsListView_SelectionChanged"
+                                              ContextMenu="{StaticResource ItemsHandlerContextMenu}">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="20" />
+                                                        <ColumnDefinition />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock Text="✅"
+                                                               Visibility="{Binding AcceptedImageVisibility}" />
+
+                                                    <TextBlock Text="❎"
+                                                               Visibility="{Binding RejectedImageVisibility}" />
+
+                                                    <TextBlock Text="{Binding Title}"
+                                                               Grid.Column="1" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
+            </TabControl>
         </Grid>
 
         <Grid Grid.Row="2"
@@ -213,7 +228,8 @@
                      Height="100" />
         </Grid>
 
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="3"
+              DataContext="{Binding SelectedItem}">
             <StatusBar>
                 <TextBlock Text="Total:"/>
                 <TextBlock Text="{Binding Analytics.TotalCount}" />

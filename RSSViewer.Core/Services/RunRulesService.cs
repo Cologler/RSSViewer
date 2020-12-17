@@ -31,7 +31,7 @@ namespace RSSViewer.Services
 
             var configService = this._serviceProvider.GetRequiredService<ConfigService>();
             configService.MatchRulesChanged += this.ConfigService_MatchRulesChanged;
-            this.OnUpdated(configService.ListMatchRules(true));
+            this.OnUpdated(configService.ListMatchRules(true), false);
         }
 
         private void ConfigService_MatchRulesChanged(object sender, CollectionChangeEventArgs e)
@@ -46,7 +46,7 @@ namespace RSSViewer.Services
                     break;
 
                 case CollectionChangeAction.Refresh:
-                    this.OnUpdated(e.Element as IEnumerable<MatchRule>);
+                    this.OnUpdated(e.Element as IEnumerable<MatchRule>, true);
                     break;
 
                 default:
@@ -90,7 +90,7 @@ namespace RSSViewer.Services
               });
         }
 
-        private void OnUpdated(IEnumerable<MatchRule> rules)
+        private void OnUpdated(IEnumerable<MatchRule> rules, bool changed)
         {
             if (rules is null)
                 return;
@@ -108,7 +108,10 @@ namespace RSSViewer.Services
                 this._matchRuleStateDeciders.Value = deciders;
             }
 
-            _ = this.RunAllRulesAsync();
+            if (changed)
+            {
+                _ = this.RunAllRulesAsync();
+            }
         }
 
         public Task RunAllRulesAsync()
