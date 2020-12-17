@@ -7,27 +7,36 @@ namespace RSSViewer.ViewModels
 {
     public class AnalyticsViewModel : BaseViewModel
     {
-        private SessionViewModel _targetViewModel;
         private int _selected;
 
-        public AnalyticsViewModel(SessionViewModel rssViewViewModel) => this._targetViewModel = rssViewViewModel;
-
-        private IReadOnlyCollection<RssItemViewModel> GetItems()
-            => (IReadOnlyCollection<RssItemViewModel>)this._targetViewModel.Groups.FirstOrDefault()?.Items ?? Array.Empty<RssItemViewModel>();
+        [ModelProperty]
+        public int TotalCount { get; private set; }
 
         [ModelProperty]
-        public int TotalCount => this.GetItems().Count;
+        public int AcceptedCount { get; private set; }
 
         [ModelProperty]
-        public int AcceptedInView => this.GetItems().Count(z => z.RssItem.State == RssItemState.Accepted);
+        public int RejectedCount { get; private set; }
 
-        [ModelProperty]
-        public int RejectedInView => this.GetItems().Count(z => z.RssItem.State == RssItemState.Rejected);
-
-        public int Selected
+        public int SelectedCount
         {
             get => this._selected; 
             set => this.ChangeModelProperty(ref this._selected, value); 
+        }
+
+        public void RefreshPropertiesFrom(SessionViewModel sessionViewModel)
+        {
+            if (sessionViewModel is null)
+                throw new ArgumentNullException(nameof(sessionViewModel));
+
+            var items = (IReadOnlyCollection<RssItemViewModel>) sessionViewModel.Groups.FirstOrDefault()?.Items 
+                ?? Array.Empty<RssItemViewModel>();
+
+            this.TotalCount = items.Count;
+            this.AcceptedCount = items.Count(z => z.RssItem.State == RssItemState.Accepted);
+            this.RejectedCount = items.Count(z => z.RssItem.State == RssItemState.Rejected);
+
+            base.RefreshProperties();
         }
     }
 }

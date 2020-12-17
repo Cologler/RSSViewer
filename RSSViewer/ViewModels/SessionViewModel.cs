@@ -27,6 +27,7 @@ namespace RSSViewer.ViewModels
         private List<(IRssItem, RssItemState)> _stateChangesHook;
         private string _title;
         private readonly IViewerLogger _viewerLogger;
+        public event EventHandler SessionStateChanged;
 
         public SessionViewModel()
         {
@@ -34,7 +35,6 @@ namespace RSSViewer.ViewModels
 
             this._viewerLogger = serviceProvider.GetRequiredService<IViewerLogger>();
 
-            this.Analytics = new AnalyticsViewModel(this);
             serviceProvider.AddListener(EventNames.RssItemsStateChanged, this.OnRssItemsStateChanged);
 
             this.SourcesView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
@@ -96,7 +96,7 @@ namespace RSSViewer.ViewModels
                 }
             }
 
-            this.Analytics.RefreshProperties();
+            this.SessionStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public string SearchText
@@ -110,10 +110,6 @@ namespace RSSViewer.ViewModels
         public IncludeViewModel IncludeView { get; } = new IncludeViewModel();
 
         public SortByViewModel SortByView { get; } = new SortByViewModel();
-
-        public AnalyticsViewModel Analytics { get; }
-
-        public ViewerLoggerViewModel LoggerMessage { get; }
 
         public ObservableCollection<RssItemGroupViewModel> Groups { get; } = new();
 
@@ -154,13 +150,12 @@ namespace RSSViewer.ViewModels
                 try
                 {
                     await this._searchScheduler.RunAsync(token => this.RefreshContentCoreAsync(searchInfo, token));
+                    this.SessionStateChanged?.Invoke(this, EventArgs.Empty);
                 }
                 catch (OperationCanceledException)
                 {
                     return;
                 }
-
-                this.Analytics.RefreshProperties();
             }
         }
 
@@ -266,7 +261,7 @@ namespace RSSViewer.ViewModels
         public async Task HandleAsync(RssItemViewModel[] items, IRssItemHandler handler)
         {
             var rssItems = items.Select(z => ((IRssItem)z.RssItem, z.RssItem.State)).ToArray();
-            var changes = await (handler.Accept(rssItems)).ToListAsync();
+            var changes = await handler.Accept(rssItems).ToListAsync();
             if (changes.Count > 0)
             {
                 await App.RSSViewerHost.Modify().AcceptAsync(changes

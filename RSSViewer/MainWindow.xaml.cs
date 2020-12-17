@@ -213,7 +213,7 @@ namespace RSSViewer
 
         private void ItemsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            this.CurrentSession.Analytics.Selected = ((ListView)sender).SelectedItems.OfType<IRssItemsCount>()
+            this.ViewModel.AnalyticsView.SelectedCount = ((ListView)sender).SelectedItems.OfType<IRssItemsCount>()
                 .Select(z => z.Count)
                 .Sum();
         }

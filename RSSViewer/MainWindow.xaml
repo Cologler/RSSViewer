@@ -228,22 +228,19 @@
                      Height="100" />
         </Grid>
 
-        <Grid Grid.Row="3"
-              DataContext="{Binding SelectedItem}">
+        <Grid Grid.Row="3">
             <StatusBar>
                 <TextBlock Text="Total:"/>
-                <TextBlock Text="{Binding Analytics.TotalCount}" />
+                <TextBlock Text="{Binding AnalyticsView.TotalCount}" />
                 <Separator />
                 <TextBlock Text="Accepted:"/>
-                <TextBlock Text="{Binding Analytics.AcceptedInView}" />
+                <TextBlock Text="{Binding AnalyticsView.AcceptedCount}" />
                 <Separator />
                 <TextBlock Text="Rejected:"/>
-                <TextBlock Text="{Binding Analytics.RejectedInView}" />
+                <TextBlock Text="{Binding AnalyticsView.RejectedCount}" />
                 <Separator />
                 <TextBlock Text="Selected:" />
-                <TextBlock Text="{Binding Analytics.Selected}" />
-                <Separator />
-                <TextBlock Text="{Binding StatusText}" />
+                <TextBlock Text="{Binding AnalyticsView.SelectedCount}" />
             </StatusBar>
         </Grid>
     </Grid>

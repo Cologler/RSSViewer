@@ -24,12 +24,30 @@ namespace RSSViewer.ViewModels
 
         public ViewerLoggerViewModel LoggerMessage { get; }
 
+        public AnalyticsViewModel AnalyticsView { get; } = new();
+
         protected override IEnumerable<SessionViewModel> LoadItems()
         {
             return new[]
             {
-                new SessionViewModel()
+                this.CreateSession()
             };
+        }
+
+        private SessionViewModel CreateSession()
+        {
+            var session = new SessionViewModel();
+            session.SessionStateChanged += this.Session_SessionStateChanged;
+            return session;
+        }
+
+        private void Session_SessionStateChanged(object sender, System.EventArgs e)
+        {
+            var session = (SessionViewModel)sender;
+            if (session == this.SelectedItem)
+            {
+                this.AnalyticsView.RefreshPropertiesFrom(session);
+            }
         }
     }
 }
