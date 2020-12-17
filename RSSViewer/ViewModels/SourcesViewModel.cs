@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
 using RSSViewer.Services;
+using RSSViewer.ViewModels.Bases;
 
 namespace RSSViewer.ViewModels
 {

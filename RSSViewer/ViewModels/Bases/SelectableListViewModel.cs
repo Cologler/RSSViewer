@@ -1,23 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
-using Jasily.ViewModel;
-
-namespace RSSViewer.ViewModels
+namespace RSSViewer.ViewModels.Bases
 {
-    public abstract class SelectableListViewModel<T> : BaseViewModel
+    public abstract class SelectableListViewModel<T> : ListViewModel<T>
     {
         private T _selectedItem;
 
         public SelectableListViewModel()
         {
-            this.Items = new(this.LoadItems() ?? Enumerable.Empty<T>());
-            this.LoadItemsAsync();
         }
-
-        public ObservableCollection<T> Items { get; }
 
         public T SelectedItem
         {
@@ -26,15 +17,9 @@ namespace RSSViewer.ViewModels
             {
                 var oldValue = this._selectedItem;
                 if (this.ChangeModelProperty(ref this._selectedItem, value))
-                {
                     this.OnSelectedItemChanged(oldValue, value);
-                }
             }
         }
-
-        protected virtual IEnumerable<T> LoadItems() => Enumerable.Empty<T>();
-
-        protected virtual ValueTask LoadItemsAsync() => ValueTask.CompletedTask;
 
         protected virtual void OnSelectedItemChanged(T oldValue, T newValue) { }
 
