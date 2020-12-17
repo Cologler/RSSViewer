@@ -60,36 +60,58 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-
-                <Grid x:Name="SortByArea"
-                      Width="80"
-                      Margin="0,0,4,0">
-                    <ComboBox SelectedItem="{Binding SortByView.SortBy, Mode=TwoWay}"
-                              VerticalAlignment="Center"
-                              ItemsSource="{Binding SortByView.SortByOptions}">
-                    </ComboBox>
-                </Grid>
+                <Grid.Resources>
+                    <Style TargetType="TextBlock"
+                           x:Key="HeaderStyle">
+                        <Setter Property="Margin"
+                                Value="0,0,6,0" />
+                        <Setter Property="VerticalAlignment"
+                                Value="Center" />
+                    </Style>
+                </Grid.Resources>
                 
-                <Grid x:Name="IncludeRangeArea"
-                      Grid.Column="1"
+                <Grid Grid.Column="1"
                       VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="90" />
-                        <ColumnDefinition Width="90" />
-                        <ColumnDefinition Width="90" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="86" />
+                        <ColumnDefinition Width="86" />
+                        <ColumnDefinition Width="86" />
                     </Grid.ColumnDefinitions>
-                    
+
+                    <TextBlock Text="Include"
+                               Style="{StaticResource HeaderStyle}" />
+
                     <CheckBox Content="Undecided"
+                              Grid.Column="1"
                               IsChecked="{Binding IncludeView.Undecided, Mode=TwoWay}" />
 
                     <CheckBox Content="Accepted"
-                              Grid.Column="1"
+                              Grid.Column="2"
                               IsChecked="{Binding IncludeView.Accepted, Mode=TwoWay}" />
 
                     <CheckBox Content="Injected"
-                              Grid.Column="2"
+                              Grid.Column="3"
                               IsChecked="{Binding IncludeView.Rejected, Mode=TwoWay}" />
+                </Grid>
+
+                <Grid Grid.Column="2"
+                      Margin="0,0,4,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="80" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Order by"
+                               Style="{StaticResource HeaderStyle}" />
+
+                    <ComboBox SelectedItem="{Binding SortByView.SortBy, Mode=TwoWay}"
+                              Grid.Column="1"
+                              VerticalAlignment="Center"
+                              ItemsSource="{Binding SortByView.SortByOptions}">
+                    </ComboBox>
                 </Grid>
             </Grid>
 
