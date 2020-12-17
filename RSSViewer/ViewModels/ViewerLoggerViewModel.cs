@@ -2,6 +2,7 @@
 using RSSViewer.Abstractions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Threading;
@@ -14,7 +15,7 @@ namespace RSSViewer.ViewModels
         private volatile bool _isUpdated = false;
         private Queue<string> _messages = new Queue<string>();
 
-        private void AddMessage(string message)
+        private void EnqueueMessage(string message)
         {
             this._messages.Enqueue($"[{DateTime.Now.ToLongTimeString()}] {message}");
         }
@@ -25,19 +26,31 @@ namespace RSSViewer.ViewModels
                 this._messages.Dequeue();
         }
 
-        private void Updated()
+        private void OnMessagesAddedLocally()
         {
-            Application.Current.Dispatcher.BeginInvoke(() =>
+            lock (this._syncRoot)
             {
-                lock (this._syncRoot)
+                if (this._isUpdated)
                 {
-                    if (this._isUpdated)
-                    {
-                        this.RefreshProperties();
-                        this._isUpdated = false;
-                    }
-                }                
-            });
+                    this.RefreshProperties();
+                    this._isUpdated = false;
+                }
+            }
+        }
+
+        private void OnMessagesAdded()
+        {
+            var dispatcher = Application.Current.Dispatcher;
+            Debug.Assert(dispatcher is not null);
+
+            if (dispatcher.CheckAccess())
+            {
+                OnMessagesAddedLocally();
+            }
+            else
+            {
+                dispatcher.BeginInvoke(() => OnMessagesAddedLocally());
+            }
         }
 
         public void AddLine(string line)
@@ -47,12 +60,12 @@ namespace RSSViewer.ViewModels
             
             lock (this._syncRoot)
             {
-                this.AddMessage(line);
+                this.EnqueueMessage(line);
                 this._isUpdated = true;
                 this.TrimMessages();
             }
 
-            this.Updated();
+            this.OnMessagesAdded();
         }
 
         public void AddLines(IEnumerable<string> lines)
@@ -64,13 +77,13 @@ namespace RSSViewer.ViewModels
             {
                 foreach (var line in lines)
                 {
-                    this.AddMessage(line);
+                    this.EnqueueMessage(line);
                 }
                 this._isUpdated = true;
                 this.TrimMessages();
             }
 
-            this.Updated();
+            this.OnMessagesAdded();
         }
 
         [ModelProperty]

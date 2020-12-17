@@ -23,17 +23,18 @@ namespace RSSViewer.ViewModels
         private CancelableTaskScheduler _searchScheduler = new CancelableTaskScheduler();
         private string _searchText = string.Empty;
         private RssItemGroupViewModel _selectedGroup;
-        private string _statusText;
         private Dictionary<(string, string), RssItemViewModel> _itemsIndexes;
         private List<(IRssItem, RssItemState)> _stateChangesHook;
         private string _title;
+        private readonly IViewerLogger _viewerLogger;
 
         public SessionViewModel()
         {
             var serviceProvider = App.RSSViewerHost.ServiceProvider;
 
+            this._viewerLogger = serviceProvider.GetRequiredService<IViewerLogger>();
+
             this.Analytics = new AnalyticsViewModel(this);
-            this.LoggerMessage = serviceProvider.GetRequiredService<ViewerLoggerViewModel>();
             serviceProvider.AddListener(EventNames.RssItemsStateChanged, this.OnRssItemsStateChanged);
 
             this.SourcesView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
@@ -122,12 +123,6 @@ namespace RSSViewer.ViewModels
         {
             get => _title;
             set => this.ChangeModelProperty(ref _title, value);
-        }
-
-        public string StatusText
-        {
-            get => this._statusText;
-            private set => this.ChangeModelProperty(ref this._statusText, value);
         }
 
         public RssItemGroupViewModel SelectedGroup
@@ -250,7 +245,7 @@ namespace RSSViewer.ViewModels
 
             var descState = string.Join(", ", searchInfo.IncludeState.Select(z => z.ToString().ToLower()));
             var desc = $"\"{searchText}\" from ({descState}) orderby ({searchInfo.SortBy.ToString().ToLower()})";
-            this.LoggerMessage.AddLine($"Query {desc} takes {sw.Elapsed.TotalSeconds}s.");
+            this._viewerLogger.AddLine($"Query {desc} takes {sw.Elapsed.TotalSeconds}s.");
 
             this.Title = searchText.Length == 0
                 ? "*"
