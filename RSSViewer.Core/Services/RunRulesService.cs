@@ -258,8 +258,9 @@ namespace RSSViewer.Services
 
                 if (this.RejectedItems.Count + this.AcceptedItems.Count > 0)
                 {
-                    this._operationService.ChangeState(this.AcceptedItems, RssItemState.Accepted);
-                    this._operationService.ChangeState(this.RejectedItems, RssItemState.Rejected);
+                    var operationSession = this._operationService.CreateOperationSession(false);
+                    operationSession.ChangeState(this.AcceptedItems, RssItemState.Accepted);
+                    operationSession.ChangeState(this.RejectedItems, RssItemState.Rejected);
 
                     using (var scope = this._serviceProvider.CreateScope())
                     {

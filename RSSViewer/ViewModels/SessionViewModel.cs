@@ -264,13 +264,14 @@ namespace RSSViewer.ViewModels
             var changes = await handler.Accept(rssItems).ToListAsync();
             if (changes.Count > 0)
             {
-                await App.RSSViewerHost.Modify().AcceptAsync(changes
+                var service = App.RSSViewerHost.Modify();
+                var operationSession = service.CreateOperationSession(true);
+                await operationSession.AcceptAsync(changes
                     .Where(z => z.Item2 == RssItemState.Accepted)
                     .Select(z => z.Item1)
                     .Cast<RssItem>()
                     .ToList());
-
-                await App.RSSViewerHost.Modify().RejectAsync(changes
+                await operationSession.RejectAsync(changes
                     .Where(z => z.Item2 == RssItemState.Rejected)
                     .Select(z => z.Item1)
                     .Cast<RssItem>()

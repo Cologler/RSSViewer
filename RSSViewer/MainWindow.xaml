@@ -27,6 +27,9 @@
             
             <Menu>
                 <MenuItem Header="Run">
+                    <MenuItem Header="Undo"
+                              Click="UndoMenuItem_Click" />
+                    
                     <MenuItem Header="Auto All Rules"
                               x:Name="RunAllRulesMenuItem"
                               Click="RunAllRulesMenuItem_Click" />
@@ -133,7 +136,7 @@
                                               Grid.Column="2"
                                               IsChecked="{Binding IncludeView.Accepted, Mode=TwoWay}" />
 
-                                    <CheckBox Content="Injected"
+                                    <CheckBox Content="Rejected"
                                               Grid.Column="3"
                                               IsChecked="{Binding IncludeView.Rejected, Mode=TwoWay}" />
                                 </Grid>

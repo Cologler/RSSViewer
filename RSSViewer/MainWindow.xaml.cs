@@ -217,5 +217,10 @@ namespace RSSViewer
                 .Select(z => z.Count)
                 .Sum();
         }
+
+        private void UndoMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            _ = App.RSSViewerHost.Modify().UndoAsync();
+        }
     }
 }
