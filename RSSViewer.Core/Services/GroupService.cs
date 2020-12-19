@@ -15,21 +15,35 @@ namespace RSSViewer.Services
         private readonly object _syncRoot = new object();
         private ImmutableList<Regex> _regexes;
         public readonly Dictionary<string, string> _groupsCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly IViewerLogger _viewerLogger;
 
-        public GroupService(ConfigService config)
+        public GroupService(ConfigService config, IViewerLogger viewerLogger)
         {
             this.Reload(config.AppConf);
             config.OnAppConfChanged += this.Reload;
+            this._viewerLogger = viewerLogger;
         }
 
         private void Reload(AppConf config)
         {
-            var regexes = config.Group.Matches
-                .Select(z => new Regex(z, RegexOptions.IgnoreCase))
-                .ToImmutableList();
+            var regexes = new List<Regex>();
+
+            foreach (var match in config.Group.Matches.Where(z => z is not null))
+            {
+                try
+                {
+                    var regex = new Regex(match, RegexOptions.IgnoreCase);
+                    regexes.Add(regex);
+                }
+                catch (ArgumentException)
+                {
+                    this._viewerLogger.AddLine($"Unable convert \"{match}\" to regex.");
+                }
+            }
+
             lock (this._syncRoot)
             {
-                this._regexes = regexes;
+                this._regexes = regexes.ToImmutableList();
                 this._groupsCache.Clear();
             }
         }
@@ -43,12 +57,12 @@ namespace RSSViewer.Services
                 {
                     if (match.Groups.ContainsKey("name"))
                     {
-                        return match.Groups["name"].Value;
+                        return match.Groups["name"].Value.Trim();
                     }
 
                     if (match.Groups.Count > 1)
                     {
-                        return match.Groups[1].Value;
+                        return match.Groups[1].Value.Trim();
                     }
 
                     return match.Groups[0].Value;
