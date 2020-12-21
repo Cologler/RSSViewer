@@ -21,8 +21,8 @@ namespace RSSViewer.Services
         {
             this._viewerLogger = viewerLogger;
 
-            this.Reload(config.AppConf);
             config.OnAppConfChanged += this.Reload;
+            this.Reload(config.AppConf);
         }
 
         private void Reload(AppConf config)

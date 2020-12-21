@@ -15,12 +15,14 @@ namespace RSSViewer.Services
     {
         private readonly object _syncRoot = new object();
         private readonly IServiceProvider _serviceProvider;
+        private readonly IViewerLogger _viewerLogger;
         private ImmutableHashSet<string> _excludes;
         private ImmutableList<IKeywordsFinder> _finders;
 
-        public KeywordsService(IServiceProvider serviceProvider, ConfigService config)
+        public KeywordsService(IServiceProvider serviceProvider, IViewerLogger viewerLogger, ConfigService config)
         {
             this._serviceProvider = serviceProvider;
+            this._viewerLogger = viewerLogger;
             config.OnAppConfChanged += this.Reload;
             this.Reload(config.AppConf);
         }
@@ -31,9 +33,19 @@ namespace RSSViewer.Services
 
             var finders = new List<IKeywordsFinder>();
             finders.AddRange(this._serviceProvider.GetServices<IKeywordsFinder>());
-            finders.AddRange(section.Matches
-                .Select(z => new Regex(z, RegexOptions.IgnoreCase))
-                .Select(z => new RegexKeywordsFinder(z)));
+
+            foreach (var match in section.Matches.Where(z => z is not null))
+            {
+                try
+                {
+                    var regex = new Regex(match, RegexOptions.IgnoreCase);
+                    finders.Add(new RegexKeywordsFinder(regex));
+                }
+                catch (ArgumentException)
+                {
+                    this._viewerLogger.AddLine($"Unable convert \"{match}\" to regex.");
+                }
+            }
 
             lock (this._syncRoot)
             {
