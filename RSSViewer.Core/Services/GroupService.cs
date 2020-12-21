@@ -19,9 +19,10 @@ namespace RSSViewer.Services
 
         public GroupService(ConfigService config, IViewerLogger viewerLogger)
         {
+            this._viewerLogger = viewerLogger;
+
             this.Reload(config.AppConf);
             config.OnAppConfChanged += this.Reload;
-            this._viewerLogger = viewerLogger;
         }
 
         private void Reload(AppConf config)
