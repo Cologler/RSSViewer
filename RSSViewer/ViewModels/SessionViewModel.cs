@@ -244,8 +244,6 @@ namespace RSSViewer.ViewModels
 
             this.Title = searchText.Length == 0
                 ? "*"
-                : searchText.Length > 10
-                ? searchText[..10] + "..."
                 : searchText;
         }
 

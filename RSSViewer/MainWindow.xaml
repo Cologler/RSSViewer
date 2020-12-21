@@ -64,7 +64,9 @@
                         SelectedItem="{Binding SelectedItem}">
                 <TabControl.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Title}" />
+                        <TextBlock Text="{Binding Title}"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxWidth="100"/>
                     </DataTemplate>
                 </TabControl.ItemTemplate>
                 
