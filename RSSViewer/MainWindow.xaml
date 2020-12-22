@@ -60,13 +60,21 @@
                 </ContextMenu>
             </Grid.Resources>
 
-            <TabControl ItemsSource="{Binding Items}"
-                        SelectedItem="{Binding SelectedItem}">
+            <TabControl ItemsSource="{Binding ItemsView}"
+                        SelectedItem="{Binding SelectedItem, TargetNullValue={x:Static CollectionView.NewItemPlaceholder}}">
                 <TabControl.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Title}"
-                                   TextTrimming="CharacterEllipsis"
-                                   MaxWidth="100"/>
+                        <Grid>
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Remove" 
+                                              Click="RemoveTab_Click"/>
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                            <TextBlock Text="{Binding Title}"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxWidth="100" />
+                        </Grid>
                     </DataTemplate>
                 </TabControl.ItemTemplate>
                 

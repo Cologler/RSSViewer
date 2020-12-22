@@ -127,6 +127,8 @@ namespace RSSViewer.ViewModels
             set => this.ChangeModelProperty(ref this._selectedGroup, value);
         }
 
+        public bool Removable { get; set; }
+
         public async Task RefreshContentAsync(int delay = 300)
         {
             SearchInfo GetSearchInfo()

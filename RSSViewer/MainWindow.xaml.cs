@@ -222,5 +222,14 @@ namespace RSSViewer
         {
             _ = App.RSSViewerHost.Modify().UndoAsync();
         }
+
+        private void RemoveTab_Click(object sender, RoutedEventArgs e)
+        {
+            var session = (SessionViewModel)((MenuItem)sender).DataContext;
+            Debug.Assert(session is not null);
+
+            this.ViewModel.SelectFirst();
+            this.ViewModel.ItemsView.Remove(session);
+        }
     }
 }

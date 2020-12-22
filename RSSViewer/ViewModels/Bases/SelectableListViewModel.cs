@@ -10,7 +10,7 @@ namespace RSSViewer.ViewModels.Bases
         {
         }
 
-        public T SelectedItem
+        public virtual T SelectedItem
         {
             get => _selectedItem;
             set
