@@ -68,7 +68,8 @@
                             <Grid.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="Remove" 
-                                              Click="RemoveTab_Click"/>
+                                              Click="RemoveTab_Click"
+                                              IsEnabled="{Binding Removable}"/>
                                 </ContextMenu>
                             </Grid.ContextMenu>
                             <TextBlock Text="{Binding Title}"

@@ -228,8 +228,11 @@ namespace RSSViewer
             var session = (SessionViewModel)((MenuItem)sender).DataContext;
             Debug.Assert(session is not null);
 
-            this.ViewModel.SelectFirst();
-            this.ViewModel.ItemsView.Remove(session);
+            if (session.Removable)
+            {
+                this.ViewModel.SelectFirst();
+                this.ViewModel.ItemsView.Remove(session);
+            }
         }
     }
 }
