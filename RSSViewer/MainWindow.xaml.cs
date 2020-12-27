@@ -164,7 +164,16 @@ namespace RSSViewer
             {
                 var rule = sp.GetRequiredService<ConfigService>()
                     .CreateMatchRule();
-                rule.Mode = MatchMode.Contains;
+
+                var title = viewModel.RssItem.Title ?? string.Empty;
+                if (title.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+                {
+                    rule.Mode = MatchMode.StartsWith;
+                }
+                else
+                {
+                    rule.Mode = MatchMode.Contains;
+                }
                 rule.OptionsAsStringComparison = StringComparison.OrdinalIgnoreCase;
                 rule.Argument = text;
 
