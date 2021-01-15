@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Threading;
 
 namespace RSSViewer.Utils
 {
     public class EventEmitter<TArgs>
     {
-        private readonly object _syncRoot = new object();
-        private ImmutableDictionary<string, EventBox> _boxes = ImmutableDictionary<string, EventBox>.Empty
+        private ImmutableDictionary<string, EventHandlersContainer> _events = ImmutableDictionary<string, EventHandlersContainer>.Empty
             .WithComparers(StringComparer.OrdinalIgnoreCase);
 
-        private class EventBox
+        private class EventHandlersContainer
         {
             public event EventHandler<TArgs> Handlers;
 
@@ -21,33 +21,35 @@ namespace RSSViewer.Utils
             }
         }
 
-        private EventBox GetEventBox(string eventName, bool create)
+        private EventHandlersContainer GetEvents(string eventName, bool create)
         {
-            if (this._boxes.TryGetValue(eventName, out var eb))
-                return eb;
+            if (this._events.TryGetValue(eventName, out var c))
+                return c;
 
             if (!create)
                 return null;
 
-            lock (this._syncRoot)
-            {
-                if (this._boxes.TryGetValue(eventName, out eb))
-                    return eb;
+            var newContainer = new EventHandlersContainer();
 
-                eb = new EventBox();
-                this._boxes = this._boxes.SetItem(eventName, eb);
-                return eb;
+            while (true)
+            {
+                var events = this._events;
+                var newEvents = events.SetItem(eventName, newContainer);
+                if (ReferenceEquals(Interlocked.CompareExchange(ref this._events, newEvents, events), events))
+                    return newContainer;
+                if (this._events.TryGetValue(eventName, out var e))
+                    return e;
             }
         }
 
         public void AddListener(string eventName, EventHandler<TArgs> handler)
         {
-            this.GetEventBox(eventName, true).Handlers += handler;
+            this.GetEvents(eventName, true).Handlers += handler;
         }
 
         public void Emit(string eventName, object sender, TArgs args)
         {
-            this.GetEventBox(eventName, false)?.Emit(sender, args);
+            this.GetEvents(eventName, false)?.Emit(sender, args);
         }
     }
 }
