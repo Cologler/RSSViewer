@@ -47,6 +47,11 @@ namespace RSSViewer.Utils
             this.GetEvents(eventName, true).Handlers += handler;
         }
 
+        public void RemoveListener(string eventName, EventHandler<TArgs> handler)
+        {
+            this.GetEvents(eventName, true).Handlers -= handler;
+        }
+
         public void Emit(string eventName, object sender, TArgs args)
         {
             this.GetEvents(eventName, false)?.Emit(sender, args);

@@ -241,6 +241,7 @@ namespace RSSViewer
             {
                 this.ViewModel.SelectFirst();
                 this.ViewModel.ItemsView.Remove(session);
+                session.Dispose();
             }
         }
     }

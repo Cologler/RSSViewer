@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
-    public class SessionViewModel : BaseViewModel
+    public class SessionViewModel : BaseViewModel, IDisposable
     {
         private CancelableTaskScheduler _searchScheduler = new CancelableTaskScheduler();
         private string _searchText = string.Empty;
@@ -41,6 +41,13 @@ namespace RSSViewer.ViewModels
             this.IncludeView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
             this.SortByView.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
             this.PropertyChanged += this.QueryOptionsViewModel_PropertyChanged;
+        }
+
+        public void Dispose()
+        {
+            var serviceProvider = App.RSSViewerHost.ServiceProvider;
+
+            serviceProvider.RemoveListener(EventNames.RssItemsStateChanged, this.OnRssItemsStateChanged);
         }
 
         private async void QueryOptionsViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
