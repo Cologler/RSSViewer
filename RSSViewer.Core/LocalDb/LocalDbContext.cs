@@ -47,5 +47,10 @@ namespace RSSViewer.LocalDb
                 .Where(this.AddOrIgnore)
                 .ToList();
         }
+
+        public string[] GetFeedIds()
+        {
+            return this.RssItems.AsQueryable().Select(z => z.FeedId).Distinct().ToArray();
+        }
     }
 }

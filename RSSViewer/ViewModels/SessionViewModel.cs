@@ -45,8 +45,9 @@ namespace RSSViewer.ViewModels
 
         public void Dispose()
         {
-            var serviceProvider = App.RSSViewerHost.ServiceProvider;
+            this.SourcesView.Dispose();
 
+            var serviceProvider = App.RSSViewerHost.ServiceProvider;
             serviceProvider.RemoveListener(EventNames.RssItemsStateChanged, this.OnRssItemsStateChanged);
         }
 

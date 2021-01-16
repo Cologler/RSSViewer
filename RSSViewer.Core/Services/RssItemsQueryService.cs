@@ -113,7 +113,7 @@ namespace RSSViewer.Services
         {
             using var scope = this._serviceProvider.CreateScope();
             var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-            return ctx.RssItems.AsQueryable().Select(z => z.FeedId).Distinct().ToArray();
+            return ctx.GetFeedIds();
         }
     }
 }
