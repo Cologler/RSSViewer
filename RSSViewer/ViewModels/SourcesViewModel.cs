@@ -41,7 +41,7 @@ namespace RSSViewer.ViewModels
         private void OnAddedRssItems(object sender, IReadOnlyCollection<IRssItem> e)
         {
             var feedIds = e.Select(z => z.FeedId).Distinct().ToArray();
-            Dispatcher.CurrentDispatcher.BeginInvoke(() =>
+            System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
             {
                 foreach (var item in feedIds.Except(this.Items.Select(z => z.FeedId)).ToArray())
                 {
