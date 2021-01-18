@@ -22,7 +22,7 @@ namespace RSSViewer.ViewModels
 
         public void Dispose()
         {
-            
+            App.RSSViewerHost.ServiceProvider.RemoveListener(EventNames.AddedRssItems, this.OnAddedRssItems);
         }
 
         protected override IEnumerable<SourceViewModel> LoadItems() 
