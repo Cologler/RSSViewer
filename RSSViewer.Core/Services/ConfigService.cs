@@ -1,9 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
+using Newtonsoft.Json.Linq;
+
 using RSSViewer.Configuration;
 using RSSViewer.RulesDb;
 using RSSViewer.Utils;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -99,11 +103,14 @@ namespace RSSViewer.Services
             this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Add, matchRule));
         }
 
-        private void RaiseMatchRulesChanged()
+        private void RaiseMatchRulesChanged(IEnumerable<MatchRule> changedRules)
         {
+            if (changedRules is null)
+                throw new ArgumentNullException(nameof(changedRules));
+
             Task.Run(() =>
             {
-                this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Refresh, this.ListMatchRules(true)));
+                this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Refresh, SortMatchRules(changedRules.ToArray())));
             });
         }
 
@@ -111,6 +118,8 @@ namespace RSSViewer.Services
         {
             if (updateRules is null)
                 throw new ArgumentNullException(nameof(updateRules));
+            if (addRules is null)
+                throw new ArgumentNullException(nameof(addRules));
             if (removeRules is null)
                 throw new ArgumentNullException(nameof(removeRules));
 
@@ -127,7 +136,7 @@ namespace RSSViewer.Services
 
             await ctx.SaveChangesAsync().ConfigureAwait(false);
 
-            this.RaiseMatchRulesChanged();
+            this.RaiseMatchRulesChanged(updateRules.Concat(addRules));
         }
 
         public Task<MatchRule[]> ListMatchRulesAsync() => Task.Run(() => this.ListMatchRules(true));
@@ -143,14 +152,22 @@ namespace RSSViewer.Services
             var rules = ctx.MatchRules.ToArray();
             if (sort)
             {
-                var offset = rules.Length + 10;
-                rules = rules.OrderBy(z => z.OrderCode == 0 ? offset : z.OrderCode).ToArray();
+                rules = SortMatchRules(rules);
             }
             if (ctx.UpdateMatchRulesLifetime() > 0)
             {
                 ctx.SaveChanges();
             }
             return rules;
+        }
+
+        private static MatchRule[] SortMatchRules(MatchRule[] rules)
+        {
+            if (rules is null)
+                throw new ArgumentNullException(nameof(rules));
+
+            var offset = rules.Length + 10;
+            return rules.OrderBy(z => z.OrderCode == 0 ? offset : z.OrderCode).ToArray();
         }
     }
 }
