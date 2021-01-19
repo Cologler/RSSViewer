@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
+using RSSViewer.Helpers;
 using RSSViewer.LocalDb;
 using RSSViewer.RulesDb;
 using RSSViewer.StringMatchers;
@@ -20,14 +21,14 @@ namespace RSSViewer.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
-        private readonly SafeHandle<ImmutableArray<MatchRuleWrapper>> _matchRuleStateDeciders;
+        private readonly SafeHandle<ImmutableArray<RssItemMatcher>> _matchRuleStateDeciders;
 
         public RunRulesService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
             this._serviceProvider = serviceProvider;
             this._viewerLogger = viewerLogger;
 
-            this._matchRuleStateDeciders = new SafeHandle<ImmutableArray<MatchRuleWrapper>>();
+            this._matchRuleStateDeciders = new SafeHandle<ImmutableArray<RssItemMatcher>>();
 
             var configService = this._serviceProvider.GetRequiredService<ConfigService>();
             configService.MatchRulesChanged += this.ConfigService_MatchRulesChanged;
@@ -77,7 +78,7 @@ namespace RSSViewer.Services
             var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
 
             var matcher = factory.Create(rule);
-            var wrapper = new MatchRuleWrapper(rule, matcher);
+            var wrapper = new RssItemMatcher(rule, matcher);
             this._matchRuleStateDeciders.Change(v => v.Add(wrapper));
 
             var context = new MatchContext(this._serviceProvider);
@@ -102,7 +103,7 @@ namespace RSSViewer.Services
                     .ToArray();
                 var deciders = rules
                     .Where(z => !z.IsDisabled)
-                    .Select(z => new MatchRuleWrapper(z, factory.Create(z)))
+                    .Select(z => new RssItemMatcher(z, factory.Create(z)))
                     .ToImmutableArray();
 
                 this._matchRuleStateDeciders.Value = deciders;
@@ -129,33 +130,6 @@ namespace RSSViewer.Services
             });
         }
 
-        private class MatchRuleWrapper
-        {
-            private readonly MatchRule _matchRule;
-            private readonly IStringMatcher _stringMatcher;
-
-            public MatchRuleWrapper(MatchRule matchRule, IStringMatcher stringMatcher)
-            {
-                this._matchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
-                this._stringMatcher = stringMatcher ?? throw new ArgumentNullException(nameof(stringMatcher));
-                this.LastMatched = matchRule.LastMatched;
-            }
-
-            public DateTime LastMatched { get; set; }
-
-            public int RuleId => this._matchRule.Id;
-
-            public bool IsMatch(RssItem rssItem)
-            {
-                if (this._matchRule.OnFeedId is not null && this._matchRule.OnFeedId != rssItem.FeedId)
-                    return false;
-
-                return this._stringMatcher.IsMatch(rssItem.Title);
-            }
-
-            public string HandlerId => this._matchRule.HandlerId;
-        }
-
         private class MatchContext : IRssItemsStateChangedInfo
         {
             private readonly IServiceProvider _serviceProvider;
@@ -175,7 +149,7 @@ namespace RSSViewer.Services
 
             public List<RssItem> RejectedItems { get; } = new();
 
-            public List<MatchRuleWrapper> Rules { get; } = new();
+            public List<RssItemMatcher> Rules { get; } = new();
 
             public Dictionary<int, int> MatchedCounter { get; } = new();
 

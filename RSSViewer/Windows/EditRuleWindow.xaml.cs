@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
+using RSSViewer.Helpers;
 using RSSViewer.LocalDb;
 using RSSViewer.RulesDb;
 using RSSViewer.Services;
@@ -210,7 +211,7 @@ namespace RSSViewer.Windows
             }
 
             // check match
-            if (this.TryCreateStringMatcher() == null)
+            if (this.TryCreateRssItemMatcher() == null)
                 return;
 
             this.DialogResult = true;
@@ -221,7 +222,7 @@ namespace RSSViewer.Windows
             this.DialogResult = false;
         }
 
-        private IStringMatcher TryCreateStringMatcher()
+        private RssItemMatcher TryCreateRssItemMatcher()
         {
             var rule = new MatchRule();
             this.WriteToConf(rule);
@@ -229,7 +230,7 @@ namespace RSSViewer.Windows
 
             try
             {
-                return factory.Create(rule);
+                return new RssItemMatcher(rule, factory.Create(rule));
             }
             catch (ArgumentException e)
             {
@@ -240,12 +241,12 @@ namespace RSSViewer.Windows
 
         private async void RunTestButton_Click(object sender, RoutedEventArgs e)
         {
-            if (this.TryCreateStringMatcher() is IStringMatcher matcher)
+            if (this.TryCreateRssItemMatcher() is RssItemMatcher matcher)
             {
                 var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<StringMatcherFactory>();
                 var query = App.RSSViewerHost.Query();
                 var items = await query.ListAsync(new[] { RssItemState.Undecided }, null, CancellationToken.None);
-                items = items.Where(z => matcher.IsMatch(z.Title)).ToArray();
+                items = items.Where(z => matcher.IsMatch(z)).ToArray();
                 this.MatchedRssItemsListView.Items.Clear();
                 foreach (var item in items)
                 {
