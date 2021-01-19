@@ -77,11 +77,11 @@ namespace RSSViewer.Services
             var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
 
             var matcher = factory.Create(rule);
-            var decider = new MatchRuleWrapper(rule, matcher);
-            this._matchRuleStateDeciders.Change(v => v.Add(decider));
+            var wrapper = new MatchRuleWrapper(rule, matcher);
+            this._matchRuleStateDeciders.Change(v => v.Add(wrapper));
 
             var context = new MatchContext(this._serviceProvider);
-            context.Rules.Add(decider);
+            context.Rules.Add(wrapper);
 
             _ = Task.Run(async () =>
               {
@@ -145,7 +145,13 @@ namespace RSSViewer.Services
 
             public int RuleId => this._matchRule.Id;
 
-            public bool IsMatch(RssItem rssItem) => this._stringMatcher.IsMatch(rssItem.Title);
+            public bool IsMatch(RssItem rssItem)
+            {
+                if (this._matchRule.OnFeedId is not null && this._matchRule.OnFeedId != rssItem.FeedId)
+                    return false;
+
+                return this._stringMatcher.IsMatch(rssItem.Title);
+            }
 
             public string HandlerId => this._matchRule.HandlerId;
         }

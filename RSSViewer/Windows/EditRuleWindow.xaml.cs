@@ -8,6 +8,8 @@ using RSSViewer.LocalDb;
 using RSSViewer.RulesDb;
 using RSSViewer.Services;
 using RSSViewer.StringMatchers;
+using RSSViewer.ViewModels;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -292,13 +294,13 @@ namespace RSSViewer.Windows
 
             public string AutoDisabledAfterDaysText
             {
-                get => _autoDisabledAfterDaysText; 
+                get => _autoDisabledAfterDaysText;
                 set
                 {
                     if (this.ChangeModelProperty(ref _autoDisabledAfterDaysText, value))
                     {
                         this.RefreshProperties(10);
-                    } 
+                    }
                 }
             }
 
@@ -354,6 +356,8 @@ namespace RSSViewer.Windows
 
             public void From(MatchRule rule)
             {
+                this.SourcesView.SelectedItem = this.SourcesView.Items.FirstOrDefault(z => z.FeedId == rule.OnFeedId);
+
                 this._lastMatched = rule.LastMatched.ToLocalTime();
 
                 // lifetime: disabled
@@ -382,6 +386,8 @@ namespace RSSViewer.Windows
 
             public void Write(MatchRule rule)
             {
+                rule.OnFeedId = this.SourcesView.SelectedItem?.FeedId;
+
                 // lifetime
                 // lifetime: disabled
                 if (this.IsEnabledAutoDisabled)
@@ -394,6 +400,8 @@ namespace RSSViewer.Windows
                     rule.AutoExpiredAfterLastMatched = TimeSpan.FromDays(int.Parse(this.AutoExpiredAfterDaysText));
                 }
             }
+
+            public SourcesViewModel SourcesView { get; } = new(false);
         }
     }
 }

@@ -15,20 +15,29 @@ namespace RSSViewer.ViewModels
 {
     public class SourcesViewModel : SelectableListViewModel<SourcesViewModel.SourceViewModel>, IDisposable
     {
-        public SourcesViewModel() : base()
+        private readonly bool _watchChanges;
+
+        public SourcesViewModel(bool watchChanges = true) : base()
         {
             this.SelectFirst();
+            this._watchChanges = watchChanges;
         }
 
         public void Dispose()
         {
-            App.RSSViewerHost.ServiceProvider.RemoveListener(EventNames.AddedRssItems, this.OnAddedRssItems);
+            if (this._watchChanges)
+            {
+                App.RSSViewerHost.ServiceProvider.RemoveListener(EventNames.AddedRssItems, this.OnAddedRssItems);
+            }
         }
 
         protected override IEnumerable<SourceViewModel> LoadItems() 
         {
             var serviceProvider = App.RSSViewerHost.ServiceProvider;
-            serviceProvider.AddListener(EventNames.AddedRssItems, this.OnAddedRssItems);
+            if (this._watchChanges)
+            {
+                serviceProvider.AddListener(EventNames.AddedRssItems, this.OnAddedRssItems);
+            }
             using var scope = serviceProvider.CreateScope();
             var sources = new List<SourceViewModel> { new SourceViewModel(null) };
             sources.AddRange(

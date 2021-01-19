@@ -42,7 +42,7 @@
                             <ColumnDefinition Width="133*" />
                             <ColumnDefinition Width="213*" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel Margin="8,0,8,0"
+                        <StackPanel Margin="8,0"
                                     Grid.ColumnSpan="2">
                             <StackPanel Style="{StaticResource HeaderContentPair}">
                                 <TextBlock Text="Action"
@@ -50,6 +50,17 @@
 
                                 <ComboBox x:Name="ActionsList"
                                           DisplayMemberPath="HandlerName">
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Style="{StaticResource HeaderContentPair}"
+                                        DataContext="{Binding SourcesView}">
+                                <TextBlock Text="On Source"
+                                           Style="{StaticResource HeaderStyle}" />
+
+                                <ComboBox SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                          ItemsSource="{Binding Items}"
+                                          DisplayMemberPath="Name">
                                 </ComboBox>
                             </StackPanel>
 
