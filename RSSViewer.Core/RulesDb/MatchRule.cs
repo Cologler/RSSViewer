@@ -56,5 +56,7 @@ namespace RSSViewer.RulesDb
             get => (RegexOptions)this.ExtraOptions;
             set => this.ExtraOptions = (int)value;
         }
+
+        public string OnFeedId { get; set; }
     }
 }
