@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,9 +15,22 @@ namespace RSSViewer.Utils
 
         public IEnumerable<string> GetQueryString(string key)
         {
+            if (key is null)
+                throw new ArgumentNullException(nameof(key));
+
             return this.QueryStrings
-                .Where(z => z.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
+                .Where(z => key.Equals(z.Key, StringComparison.OrdinalIgnoreCase))
                 .Select(z => z.Value);
+        }
+
+        public void AddQueryString(string key, string value)
+        {
+            if (key is null)
+                throw new ArgumentNullException(nameof(key));
+            if (value is null)
+                throw new ArgumentNullException(nameof(value));
+
+            this.QueryStrings.Add(new(key, value));
         }
 
         public string InfoHash
@@ -73,7 +87,9 @@ namespace RSSViewer.Utils
 
             void AddQueryString(string key, string value)
             {
-                magnetLink.QueryStrings.Add(new(key, WebUtility.UrlDecode(value)));
+                if (key == "tr")
+                    value = WebUtility.UrlDecode(value);
+                magnetLink.QueryStrings.Add(new(key, value));
             }
 
             while (true)
@@ -101,7 +117,20 @@ namespace RSSViewer.Utils
                 } 
             }
 
+            Debug.Assert(magnetLink.ToString() == magnetLinkUrl, $"{magnetLink} != {magnetLinkUrl}");
+
             return magnetLink;
+        }
+
+        public override string ToString()
+        {
+            return "magnet:?" + string.Join("&", this.QueryStrings.Select(z =>
+            {
+                if (z.Key == "tr")
+                    return $"{z.Key}={WebUtility.UrlEncode(z.Value)}";
+                else
+                    return $"{z.Key}={z.Value}";
+            }));
         }
     }
 }
