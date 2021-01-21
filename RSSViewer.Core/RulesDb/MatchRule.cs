@@ -18,6 +18,8 @@ namespace RSSViewer.RulesDb
         /// </summary>
         public string Argument { get; set; }
 
+        public bool IgnoreCase { get; set; }
+
         public int ExtraOptions { get; set; }
 
         public string HandlerId { get; set; }
