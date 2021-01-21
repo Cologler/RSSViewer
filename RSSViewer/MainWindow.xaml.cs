@@ -174,7 +174,7 @@ namespace RSSViewer
                 {
                     rule.Mode = MatchMode.Contains;
                 }
-                rule.OptionsAsStringComparison = StringComparison.OrdinalIgnoreCase;
+                rule.IgnoreCase = true;
                 rule.Argument = text;
 
                 if (EditRuleWindow.EditConf(this, rule))

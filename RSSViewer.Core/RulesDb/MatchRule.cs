@@ -20,8 +20,6 @@ namespace RSSViewer.RulesDb
 
         public bool IgnoreCase { get; set; }
 
-        public int ExtraOptions { get; set; }
-
         public string HandlerId { get; set; }
 
         public bool IsDisabled { get; set; }
@@ -44,20 +42,6 @@ namespace RSSViewer.RulesDb
         public int TotalMatchedCount { get; set; }
 
         public int OrderCode { get; set; }
-
-        [NotMapped]
-        public StringComparison OptionsAsStringComparison
-        {
-            get => (StringComparison)this.ExtraOptions;
-            set => this.ExtraOptions = (int)value;
-        }
-
-        [NotMapped]
-        public RegexOptions OptionsAsRegexOptions
-        {
-            get => (RegexOptions)this.ExtraOptions;
-            set => this.ExtraOptions = (int)value;
-        }
 
         public string OnFeedId { get; set; }
     }

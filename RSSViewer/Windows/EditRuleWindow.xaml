@@ -25,7 +25,7 @@
                 <Setter Property="FontSize"
                         Value="14" />
                 <Setter Property="Margin"
-                        Value="4,0,0,6" />
+                        Value="4,4,0,6" />
             </Style>
             <Style TargetType="StackPanel"
                    x:Key="HeaderContentPair">
@@ -88,8 +88,7 @@
 
                             <ComboBox Width="140"
                                       HorizontalAlignment="Left"
-                                      x:Name="SelectModeComboBox"
-                                      SelectionChanged="SelectModeComboBox_SelectionChanged">
+                                      x:Name="SelectModeComboBox" >
                                 <ComboBox.Items>
                                     <ComboBoxItem Content="Contains" />
                                     <ComboBoxItem Content="StartsWith" />
@@ -99,52 +98,15 @@
                                 </ComboBox.Items>
                             </ComboBox>
 
-                            <Separator Margin="6" />
-
                             <TextBlock Text="Value"
                                        Style="{StaticResource HeaderStyle}" />
 
                             <TextBox Height="19"
                                      x:Name="MatchValueTextBox" />
 
-                            <Separator Margin="6" />
-
-                            <StackPanel x:Name="StringComparisonPanel"
-                                        Visibility="Collapsed">
-                                <TextBlock Text="String Comparison Options"
-                                           Style="{StaticResource HeaderStyle}" />
-
-                                <RadioButton Content="CurrentCulture"
-                                             Grid.Column="0" />
-                                <RadioButton Content="CurrentCultureIgnoreCase"
-                                             Grid.Column="1" />
-                                <RadioButton Content="InvariantCulture"
-                                             Grid.Column="2" />
-                                <RadioButton Content="InvariantCultureIgnoreCase"
-                                             Grid.Column="0"
-                                             Grid.Row="1" />
-                                <RadioButton Content="Ordinal"
-                                             Grid.Column="1"
-                                             Grid.Row="1" />
-                                <RadioButton Content="OrdinalIgnoreCase"
-                                             Grid.Column="2"
-                                             Grid.Row="1" />
-                            </StackPanel>
-
-                            <StackPanel x:Name="RegexOptionsPanel">
-                                <TextBlock Text="Regex Options"
-                                           Style="{StaticResource HeaderStyle}" />
-
-                                <CheckBox Content="IgnoreCase" />
-                                <CheckBox Content="Multiline" />
-                                <CheckBox Content="ExplicitCapture" />
-                                <CheckBox Content="Compiled" />
-                                <CheckBox Content="Singleline" />
-                                <CheckBox Content="IgnorePatternWhitespace" />
-                                <CheckBox Content="RightToLeft" />
-                                <CheckBox Content="ECMAScript" />
-                                <CheckBox Content="CultureInvariant" />
-                            </StackPanel>
+                            <CheckBox Content="IgnoreCase"
+                                      IsChecked="{Binding IgnoreCase}"
+                                      Margin="4"/>
 
                         </StackPanel>
                     </Grid>

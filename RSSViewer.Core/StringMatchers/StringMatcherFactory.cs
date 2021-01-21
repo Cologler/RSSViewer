@@ -41,15 +41,15 @@ namespace RSSViewer.StringMatchers
             switch (rule.Mode)
             {
                 case MatchMode.Contains:
-                    return new ContainsStringMatcher(rule.Argument, (StringComparison)rule.ExtraOptions);
+                    return new ContainsStringMatcher(rule.Argument, rule.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
                 case MatchMode.StartsWith:
-                    return new StartsWithStringMatcher(rule.Argument, (StringComparison)rule.ExtraOptions);
+                    return new StartsWithStringMatcher(rule.Argument, rule.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
                 case MatchMode.EndsWith:
-                    return new EndsWithStringMatcher(rule.Argument, (StringComparison)rule.ExtraOptions);
+                    return new EndsWithStringMatcher(rule.Argument, rule.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
                 case MatchMode.Wildcard:
                     return new RegexStringMatcher(this.GetOrCreateWildcardRegex(rule.Argument));
                 case MatchMode.Regex:
-                    return new RegexStringMatcher(this.GetOrCreateRegex(rule.Argument, (RegexOptions)rule.ExtraOptions));
+                    return new RegexStringMatcher(this.GetOrCreateRegex(rule.Argument, rule.IgnoreCase ? RegexOptions.IgnoreCase : RegexOptions.None));
                 default:
                     throw new NotImplementedException();
             }

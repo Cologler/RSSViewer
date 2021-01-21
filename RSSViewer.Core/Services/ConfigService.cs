@@ -84,7 +84,7 @@ namespace RSSViewer.Services
             };
 
             rule.Mode = MatchMode.Contains;
-            rule.OptionsAsStringComparison = StringComparison.OrdinalIgnoreCase;
+            rule.IgnoreCase = true;
             rule.Argument = string.Empty;
             rule.AutoDisabledAfterLastMatched = TimeSpan.FromDays(365 * 2);
             rule.AutoExpiredAfterLastMatched = TimeSpan.FromDays(365 * 4);

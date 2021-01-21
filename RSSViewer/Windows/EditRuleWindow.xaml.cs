@@ -68,17 +68,6 @@ namespace RSSViewer.Windows
             // match
             this.SelectedMatchStringMode = rule.Mode;
             this.MatchValueTextBox.Text = rule.Argument;
-            switch (rule.Mode)
-            {
-                case MatchMode.Contains:
-                case MatchMode.StartsWith:
-                case MatchMode.EndsWith:
-                    this.SelectedStringComparison = rule.OptionsAsStringComparison;
-                    break;
-                case MatchMode.Regex:
-                    this.SelectedRegexOptions = rule.OptionsAsRegexOptions;
-                    break;
-            }
 
             this.LastMatchedText.Text = rule.LastMatched.ToLocalTime().ToLongDateString();
             this.TotalMatchedCountText.Text = rule.TotalMatchedCount.ToString();
@@ -97,39 +86,12 @@ namespace RSSViewer.Windows
             // match
             rule.Mode = this.SelectedMatchStringMode;
             rule.Argument = this.MatchValueTextBox.Text;
-            switch (rule.Mode)
-            {
-                case MatchMode.Contains:
-                case MatchMode.StartsWith:
-                case MatchMode.EndsWith:
-                    rule.OptionsAsStringComparison = this.SelectedStringComparison;
-                    break;
-                case MatchMode.Regex:
-                    rule.OptionsAsRegexOptions = this.SelectedRegexOptions;
-                    break;
-            }
 
             this.ViewModel.Write(rule);
         }
 
         private void SelectModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var selected = (string)((ComboBoxItem)this.SelectModeComboBox.SelectedItem).Content;
-
-            this.RegexOptionsPanel.Visibility = Visibility.Collapsed;
-            this.StringComparisonPanel.Visibility = Visibility.Collapsed;
-            switch ((MatchMode)Enum.Parse(typeof(MatchMode), selected))
-            {
-                case MatchMode.Contains:
-                case MatchMode.StartsWith:
-                case MatchMode.EndsWith:
-                    this.StringComparisonPanel.Visibility = Visibility.Visible;
-                    break;
-
-                case MatchMode.Regex:
-                    this.RegexOptionsPanel.Visibility = Visibility.Visible;
-                    break;
-            }
         }
 
         private MatchMode SelectedMatchStringMode
@@ -145,47 +107,6 @@ namespace RSSViewer.Windows
                 this.SelectModeComboBox.SelectedItem = this.SelectModeComboBox.Items
                     .OfType<ComboBoxItem>()
                     .Single(z => ((string)z.Content) == mode);
-            }
-        }
-
-        private StringComparison SelectedStringComparison
-        {
-            get
-            {
-                var selected = (string)this.StringComparisonPanel.Children
-                    .OfType<RadioButton>()
-                    .Single(z => z.IsChecked == true)
-                    .Content;
-                return (StringComparison)Enum.Parse(typeof(StringComparison), selected);
-            }
-            set
-            {
-                var mode = value.ToString();
-                this.StringComparisonPanel.Children
-                    .OfType<RadioButton>()
-                    .Single(z => ((string)z.Content) == mode)
-                    .IsChecked = true;
-            }
-        }
-
-        private RegexOptions SelectedRegexOptions
-        {
-            get
-            {
-                return this.StringComparisonPanel.Children.OfType<CheckBox>()
-                    .Where(z => z.IsChecked == true)
-                    .Select(z => z.Content)
-                    .Cast<string>()
-                    .Select(z => (RegexOptions)Enum.Parse(typeof(RegexOptions), z))
-                    .Aggregate(RegexOptions.None, (f1, f2) => f1 | f2);
-            }
-            set
-            {
-                foreach (var cb in this.StringComparisonPanel.Children.OfType<CheckBox>())
-                {
-                    var cbo = (RegexOptions)Enum.Parse(typeof(RegexOptions), (string)cb.Content);
-                    cb.IsChecked = (value & cbo) == cbo;
-                }
             }
         }
 
@@ -280,6 +201,7 @@ namespace RSSViewer.Windows
             private bool _isEnabledAutoExpired;
             private string _autoDisabledAfterDaysText;
             private string _autoExpiredAfterDaysText;
+            private bool _ignoreCase;
 
             public bool IsEnabledAutoDisabled
             {
@@ -359,6 +281,8 @@ namespace RSSViewer.Windows
             {
                 this.SourcesView.SelectedItem = this.SourcesView.Items.FirstOrDefault(z => z.FeedId == rule.OnFeedId);
 
+                this.IgnoreCase = rule.IgnoreCase;
+
                 this._lastMatched = rule.LastMatched.ToLocalTime();
 
                 // lifetime: disabled
@@ -389,6 +313,8 @@ namespace RSSViewer.Windows
             {
                 rule.OnFeedId = this.SourcesView.SelectedItem?.FeedId;
 
+                rule.IgnoreCase = this.IgnoreCase;
+
                 // lifetime
                 // lifetime: disabled
                 if (this.IsEnabledAutoDisabled)
@@ -403,6 +329,8 @@ namespace RSSViewer.Windows
             }
 
             public SourcesViewModel SourcesView { get; } = new(false);
+
+            public bool IgnoreCase { get => _ignoreCase; set => this.ChangeModelProperty(ref _ignoreCase, value); }
         }
     }
 }
