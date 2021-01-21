@@ -21,18 +21,42 @@ namespace RSSViewer.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
-        private readonly SafeHandle<ImmutableArray<RssItemMatcher>> _matchRuleStateDeciders;
+        private readonly SafeHandle<ImmutableArray<RssItemMatcher>> _matchRules;
+        private readonly StringMatcherFactory _stringMatcherFactory;
 
         public RunRulesService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
             this._serviceProvider = serviceProvider;
             this._viewerLogger = viewerLogger;
 
-            this._matchRuleStateDeciders = new SafeHandle<ImmutableArray<RssItemMatcher>>();
+            this._stringMatcherFactory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
+
+            this._matchRules = new SafeHandle<ImmutableArray<RssItemMatcher>>();
 
             var configService = this._serviceProvider.GetRequiredService<ConfigService>();
             configService.MatchRulesChanged += this.ConfigService_MatchRulesChanged;
-            this.OnUpdated(configService.ListMatchRules(true), false);
+            this.RebuildRules();
+        }
+
+        private RssItemMatcher ToMatcher(MatchRule rule)
+            => new RssItemMatcher(rule, this._stringMatcherFactory.Create(rule));
+
+        private void RebuildRules()
+        {
+            lock (this._matchRules.SyncRoot)
+            {
+                var rules = this._serviceProvider.GetRequiredService<ConfigService>().ListMatchRules(true);
+
+                using (this._viewerLogger.EnterEvent("Rebuild matchers"))
+                {
+                    var matchers = rules
+                        .Where(z => !z.IsDisabled)
+                        .Select(this.ToMatcher)
+                        .ToImmutableArray();
+
+                    this._matchRules.Value = matchers;
+                }
+            }
         }
 
         private void ConfigService_MatchRulesChanged(object sender, CollectionChangeEventArgs e)
@@ -47,27 +71,12 @@ namespace RSSViewer.Services
                     break;
 
                 case CollectionChangeAction.Refresh:
-                    this.OnUpdated(e.Element as IEnumerable<MatchRule>, true);
+                    this.RunForChangedRules((IEnumerable<MatchRule>) e.Element);
                     break;
 
                 default:
                     break;
             }
-        }
-
-        internal void RunForAddedRssItem(object sender, IReadOnlyCollection<IRssItem> e)
-        {
-            Task.Run(async () =>
-            {
-                var context = new MatchContext(this._serviceProvider);
-                context.Rules.AddRange(this._matchRuleStateDeciders.Value);
-
-                using (this._viewerLogger.EnterEvent("Run rules"))
-                {
-                    await context.RunForAsync(e);
-                    this._viewerLogger.AddLine($"{context.GetResultMessage()} from {context.SourceItems.Count} new undecided items.");
-                }
-            });
         }
 
         private void RunForAddedRule(MatchRule rule)
@@ -77,42 +86,47 @@ namespace RSSViewer.Services
 
             var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
 
-            var matcher = factory.Create(rule);
-            var wrapper = new RssItemMatcher(rule, matcher);
-            this._matchRuleStateDeciders.Change(v => v.Add(wrapper));
+            var matcher = this.ToMatcher(rule);
+            this._matchRules.Change(v => v.Add(matcher));
 
             var context = new MatchContext(this._serviceProvider);
-            context.Rules.Add(wrapper);
-
+            context.Rules.Add(matcher);
             _ = Task.Run(async () =>
-              {
-                  await context.RunForAllAsync();
-                  this._viewerLogger.AddLine($"{context.GetResultMessage()} by new rule ({rule.Argument}).");
-              });
+            {
+                await context.RunForAllAsync();
+                this._viewerLogger.AddLine($"{context.GetResultMessage()} by new rule ({rule.Argument}).");
+            });
         }
 
-        private void OnUpdated(IEnumerable<MatchRule> rules, bool changed)
+        private void RunForChangedRules(IEnumerable<MatchRule> rules)
         {
             if (rules is null)
-                return;
+                throw new ArgumentNullException(nameof(rules));
 
-            using (this._viewerLogger.EnterEvent("Rebuild matchers"))
+            this.RebuildRules();
+
+            var context = new MatchContext(this._serviceProvider);
+            context.Rules.AddRange(rules.Select(this.ToMatcher));
+            _ = Task.Run(async () =>
             {
-                var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
-                var matchers = rules.Select(z => (z, factory.Create(z)))
-                    .ToArray();
-                var deciders = rules
-                    .Where(z => !z.IsDisabled)
-                    .Select(z => new RssItemMatcher(z, factory.Create(z)))
-                    .ToImmutableArray();
+                await context.RunForAllAsync();
+                this._viewerLogger.AddLine($"{context.GetResultMessage()} by changed rules.");
+            });
+        }
 
-                this._matchRuleStateDeciders.Value = deciders;
-            }
-
-            if (changed)
+        internal void RunForAddedRssItem(object sender, IReadOnlyCollection<IRssItem> e)
+        {
+            Task.Run(async () =>
             {
-                _ = this.RunAllRulesAsync();
-            }
+                var context = new MatchContext(this._serviceProvider);
+                context.Rules.AddRange(this._matchRules.Value);
+
+                using (this._viewerLogger.EnterEvent("Run rules"))
+                {
+                    await context.RunForAsync(e);
+                    this._viewerLogger.AddLine($"{context.GetResultMessage()} from {context.SourceItems.Count} new undecided items.");
+                }
+            });
         }
 
         public Task RunAllRulesAsync()
@@ -120,7 +134,7 @@ namespace RSSViewer.Services
             return Task.Run(async () =>
             {
                 var context = new MatchContext(this._serviceProvider);
-                context.Rules.AddRange(this._matchRuleStateDeciders.Value);
+                context.Rules.AddRange(this._matchRules.Value);
 
                 using (this._viewerLogger.EnterEvent("Run rules"))
                 {
