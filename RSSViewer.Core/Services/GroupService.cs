@@ -17,12 +17,10 @@ namespace RSSViewer.Services
         private readonly object _syncRoot = new object();
         private ImmutableList<Regex> _regexes;
         public readonly Dictionary<string, string> _groupsCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private readonly IViewerLogger _viewerLogger;
         private readonly RegexCache _regexCache;
 
-        public GroupService(ConfigService config, IViewerLogger viewerLogger, RegexCache regexCache)
+        public GroupService(ConfigService config, RegexCache regexCache)
         {
-            this._viewerLogger = viewerLogger;
             this._regexCache = regexCache;
             config.OnAppConfChanged += this.Reload;
             this.Reload(config.AppConf);
