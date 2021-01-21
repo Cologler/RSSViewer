@@ -1,8 +1,6 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
 
-using RSSViewer.AcceptHandlers;
-using RSSViewer.RssItemHelper;
 using RSSViewer.ViewModels.Bases;
 
 using System.Collections.Generic;

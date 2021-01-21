@@ -144,7 +144,7 @@ namespace RSSViewer.Services
             });
         }
 
-        private class MatchContext : IRssItemsStateChangedInfo
+        private class MatchContext
         {
             private readonly IServiceProvider _serviceProvider;
             private readonly RssItemsQueryService _queryService;
@@ -271,20 +271,6 @@ namespace RSSViewer.Services
                         ctx.SaveChanges();
                     }
                 }
-            }
-
-            IEnumerable<RssItem> IRssItemsStateChangedInfo.GetItems(RssItemState newState)
-            {
-                switch (newState)
-                {
-                    case RssItemState.Rejected:
-                        return this.RejectedItems;
-
-                    case RssItemState.Accepted:
-                        return this.AcceptedItems;
-                }
-
-                return Array.Empty<RssItem>();
             }
 
             public string GetResultMessage()
