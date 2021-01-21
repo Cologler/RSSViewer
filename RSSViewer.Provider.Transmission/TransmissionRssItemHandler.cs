@@ -7,6 +7,7 @@ using RSSViewer.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,8 +19,13 @@ namespace RSSViewer.Provider.Transmission
     internal class TransmissionRssItemHandler : IRssItemHandler
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly ITrackersService _trackersService;
 
-        public TransmissionRssItemHandler(IServiceProvider serviceProvider) => this._serviceProvider = serviceProvider;
+        public TransmissionRssItemHandler(IServiceProvider serviceProvider, ITrackersService trackersService)
+        {
+            this._serviceProvider = serviceProvider;
+            this._trackersService = trackersService;
+        }
 
         public string Id { get; set; }
 
@@ -64,9 +70,12 @@ namespace RSSViewer.Provider.Transmission
                 yield break;
             }
 
+            var trackers = await this._trackersService.GetExtraTrackersAsync();
+
             var task = await Task.Run(() =>
             {
                 var accepted = new List<IRssItem>();
+                var ids = new List<int>();
 
                 var client = new Client(
                     this.RpcUrl, 
@@ -86,8 +95,25 @@ namespace RSSViewer.Provider.Transmission
                     var newTorrentInfo = client.TorrentAdd(torrent);
                     if (newTorrentInfo != null && newTorrentInfo.ID != 0)
                     {
+                        ids.Add(newTorrentInfo.ID);
                         accepted.Add(rssItem);
                         logger.AddLine($"Sent <{rssItem.Title}> to {SiteName}.");
+                    }
+                }
+
+                if (trackers.Length > 0)
+                {
+                    try
+                    {
+                        client.TorrentSet(new()
+                        {
+                            IDs = ids.Cast<object>().ToArray(),
+                            TrackerAdd = trackers
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e.ToString());
                     }
                 }
 

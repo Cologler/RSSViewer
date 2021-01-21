@@ -28,6 +28,9 @@ namespace RSSViewer
         {
             this.ServiceProvider = services.BuildServiceProvider();
 
+            this.ServiceProvider.GetRequiredService<AppDirService>().EnsureCreated();
+            _ = this.ServiceProvider.GetRequiredService<ITrackersService>().GetExtraTrackersAsync();
+
             using var scope = this.ServiceProvider.CreateScope();
 
             scope.ServiceProvider.GetRequiredService<LocalDbContext>()
@@ -37,7 +40,6 @@ namespace RSSViewer
                 .Database.Migrate();
 
             var runRulesService = scope.ServiceProvider.GetRequiredService<RunRulesService>();
-            scope.ServiceProvider.GetRequiredService<AppDirService>().EnsureCreated();
             this.ServiceProvider.AddListener(EventNames.AddedRssItems, runRulesService.RunForAddedRssItem);
         }
 
@@ -62,6 +64,7 @@ namespace RSSViewer
                 .AddSingleton<RssItemsOperationService>()
                 .AddSingleton<SyncService>()
                 .AddSingleton<RssItemHandlersService>()
+                .AddSingleton<ITrackersService, TrackersService>()
                 .AddSingleton<RunRulesService>()
                 .AddSingleton<ConfigService>()
                 .AddSingleton<GroupService>()
