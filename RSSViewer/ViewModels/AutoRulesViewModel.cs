@@ -83,7 +83,7 @@ namespace RSSViewer.ViewModels
                 var viewModel = ruleViewModels[i];
                 if (viewModel.MatchRule.OrderCode != orderCode)
                 {
-                    viewModel.MatchRule.OrderCode = i + 1;
+                    viewModel.MatchRule.OrderCode = orderCode;
                     viewModel.MarkChanged();
                 }
             }
