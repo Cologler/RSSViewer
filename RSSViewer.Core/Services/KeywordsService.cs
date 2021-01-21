@@ -3,6 +3,8 @@ using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
 using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
+using RSSViewer.Utils;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,13 +18,15 @@ namespace RSSViewer.Services
         private readonly object _syncRoot = new object();
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
+        private readonly RegexCache _regexCache;
         private ImmutableHashSet<string> _excludes;
         private ImmutableList<IKeywordsFinder> _finders;
 
-        public KeywordsService(IServiceProvider serviceProvider, IViewerLogger viewerLogger, ConfigService config)
+        public KeywordsService(IServiceProvider serviceProvider, IViewerLogger viewerLogger, ConfigService config, RegexCache regexCache)
         {
             this._serviceProvider = serviceProvider;
             this._viewerLogger = viewerLogger;
+            this._regexCache = regexCache;
             config.OnAppConfChanged += this.Reload;
             this.Reload(config.AppConf);
         }
@@ -36,14 +40,10 @@ namespace RSSViewer.Services
 
             foreach (var match in section.Matches.Where(z => z is not null))
             {
-                try
+                var regex = this._regexCache.TryGet(match, RegexOptions.IgnoreCase);
+                if (regex is not null)
                 {
-                    var regex = new Regex(match, RegexOptions.IgnoreCase);
                     finders.Add(new RegexKeywordsFinder(regex));
-                }
-                catch (ArgumentException)
-                {
-                    this._viewerLogger.AddLine($"Unable convert \"{match}\" to regex.");
                 }
             }
 

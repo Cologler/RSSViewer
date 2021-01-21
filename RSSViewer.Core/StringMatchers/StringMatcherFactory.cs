@@ -3,34 +3,18 @@ using RSSViewer.RulesDb;
 using RSSViewer.Utils;
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace RSSViewer.StringMatchers
 {
     public class StringMatcherFactory
     {
-        private ImmutableDictionary<(string, RegexOptions), Regex> _regexesCache = ImmutableDictionary<(string, RegexOptions), Regex>.Empty;
+        private readonly RegexCache _regexCache;
 
-        private Regex GetOrCreateRegex(string pattern, RegexOptions options)
+        public StringMatcherFactory(RegexCache regexCache)
         {
-            var key = (pattern, options);
-            if (!this._regexesCache.TryGetValue(key, out var r))
-            {
-                r = new Regex(pattern, options);
-                this._regexesCache = this._regexesCache.SetItem(key, r);
-            }
-            return r;
-        }
-
-        private Regex GetOrCreateWildcardRegex(string value)
-        {
-            var key = (value, RegexUtils.WildcardRegexOptions);
-            if (!this._regexesCache.TryGetValue(key, out var r))
-            {
-                r = RegexUtils.WildcardToRegex(value);
-                this._regexesCache = this._regexesCache.SetItem(key, r);
-            }
-            return r;
+            this._regexCache = regexCache;
         }
 
         public IStringMatcher Create(MatchRule rule)
@@ -47,9 +31,15 @@ namespace RSSViewer.StringMatchers
                 case MatchMode.EndsWith:
                     return new EndsWithStringMatcher(rule.Argument, rule.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
                 case MatchMode.Wildcard:
-                    return new RegexStringMatcher(this.GetOrCreateWildcardRegex(rule.Argument));
+                    return new RegexStringMatcher(
+                        this._regexCache.TryGet(
+                            WildcardUtils.WildcardEscape(rule.Argument), 
+                            rule.IgnoreCase ? RegexOptions.IgnoreCase : RegexOptions.None));
                 case MatchMode.Regex:
-                    return new RegexStringMatcher(this.GetOrCreateRegex(rule.Argument, rule.IgnoreCase ? RegexOptions.IgnoreCase : RegexOptions.None));
+                    return new RegexStringMatcher(
+                        this._regexCache.TryGet(
+                            rule.Argument, 
+                            rule.IgnoreCase ? RegexOptions.IgnoreCase : RegexOptions.None));
                 default:
                     throw new NotImplementedException();
             }

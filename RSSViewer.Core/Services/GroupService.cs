@@ -1,6 +1,8 @@
 ﻿using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
 using RSSViewer.LocalDb;
+using RSSViewer.Utils;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,11 +18,12 @@ namespace RSSViewer.Services
         private ImmutableList<Regex> _regexes;
         public readonly Dictionary<string, string> _groupsCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly IViewerLogger _viewerLogger;
+        private readonly RegexCache _regexCache;
 
-        public GroupService(ConfigService config, IViewerLogger viewerLogger)
+        public GroupService(ConfigService config, IViewerLogger viewerLogger, RegexCache regexCache)
         {
             this._viewerLogger = viewerLogger;
-
+            this._regexCache = regexCache;
             config.OnAppConfChanged += this.Reload;
             this.Reload(config.AppConf);
         }
@@ -31,14 +34,10 @@ namespace RSSViewer.Services
 
             foreach (var match in config.Group.Matches.Where(z => z is not null))
             {
-                try
+                var regex = this._regexCache.TryGet(match, RegexOptions.IgnoreCase);
+                if (regex is not null)
                 {
-                    var regex = new Regex(match, RegexOptions.IgnoreCase);
                     regexes.Add(regex);
-                }
-                catch (ArgumentException)
-                {
-                    this._viewerLogger.AddLine($"Unable convert \"{match}\" to regex.");
                 }
             }
 
