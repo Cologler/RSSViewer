@@ -23,72 +23,39 @@ namespace RSSViewer.Services
             this._serviceProvider = serviceProvider;
         }
 
+        private IQueryable<PartialRssItem> CreateQueryable(IQueryable<RssItem> queryable, RssItemState[] includes, string feedId)
+        {
+            if (queryable is null)
+                throw new ArgumentNullException(nameof(queryable));
+            if (includes is null)
+                throw new ArgumentNullException(nameof(includes));
+
+            if (feedId is not null)
+            {
+                queryable = queryable.Where(z => z.FeedId == feedId);
+            }
+
+            if (includes.Length == 1)
+                queryable = queryable.Where(z => z.State == includes[0]);
+            else if (includes.Length == 2)
+                queryable = queryable.Where(z => z.State == includes[0] || z.State == includes[1]);
+
+            return queryable.Select(z => new PartialRssItem
+            {
+                FeedId = z.FeedId,
+                RssId = z.RssId,
+                State = z.State,
+                Title = z.Title,
+                MagnetLink = z.MagnetLink
+            });
+        }
+
         /// <summary>
         /// a sync version use for core service.
         /// </summary>
         /// <param name="includes"></param>
         /// <returns></returns>
-        internal RssItem[] List(RssItemState[] includes)
-        {
-            if (includes is null)
-                throw new ArgumentNullException(nameof(includes));
-
-            if (includes.Length == 0)
-                return Array.Empty<RssItem>();
-
-            includes = includes.Distinct().ToArray();
-
-            IQueryable<RssItem> CreateQueryable(IQueryable<RssItem> queryable)
-            {
-                if (includes.Length == 3) // all
-                    return queryable;
-                else if (includes.Length == 1)
-                    return queryable.Where(z => z.State == includes[0]);
-                else
-                    return queryable.Where(z => z.State == includes[0] || z.State == includes[1]);
-            }
-
-            using var scope = this._serviceProvider.CreateScope();
-            var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-            return CreateQueryable(ctx.RssItems).ToArray();
-        }
-
-        private Task<PartialRssItem[]> ListCoreAsync(RssItemState[] includes, string feedId, CancellationToken token)
-        {
-            includes = includes.Distinct().ToArray();
-
-            IQueryable<RssItem> CreateQueryable(IQueryable<RssItem> queryable)
-            {
-                if (feedId is not null)
-                {
-                    queryable = queryable.Where(z => z.FeedId == feedId);
-                }
-
-                if (includes.Length == 3) // all
-                    return queryable;
-                else if (includes.Length == 1)
-                    return queryable.Where(z => z.State == includes[0]);
-                else
-                    return queryable.Where(z => z.State == includes[0] || z.State == includes[1]);
-            }
-
-            return Task.Run(() =>
-            {
-                using var scope = this._serviceProvider.CreateScope();
-                var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-                return CreateQueryable(ctx.RssItems)
-                    .Select(z => new PartialRssItem { 
-                        FeedId = z.FeedId,
-                        RssId = z.RssId,
-                        State = z.State,
-                        Title = z.Title,
-                        MagnetLink = z.MagnetLink
-                    })
-                    .ToArrayAsync(token);
-            }, token);
-        }
-
-        public async Task<IReadOnlyCollection<IPartialRssItem>> ListAsync(RssItemState[] includes, string feedId, CancellationToken token)
+        internal PartialRssItem[] List(RssItemState[] includes)
         {
             if (includes is null)
                 throw new ArgumentNullException(nameof(includes));
@@ -96,8 +63,33 @@ namespace RSSViewer.Services
             if (includes.Length == 0)
                 return Array.Empty<PartialRssItem>();
 
-            return await this.ListCoreAsync(includes, feedId, token);
+            includes = includes.Distinct().ToArray();
+
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
+            return this.CreateQueryable(ctx.RssItems, includes, null).ToArray();
         }
+
+        private Task<PartialRssItem[]> ListCoreAsync(RssItemState[] includes, string feedId, CancellationToken token)
+        {
+            if (includes is null)
+                throw new ArgumentNullException(nameof(includes));
+
+            if (includes.Length == 0)
+                return Task.FromResult(Array.Empty<PartialRssItem>());
+
+            includes = includes.Distinct().ToArray();
+
+            return Task.Run(() =>
+            {
+                using var scope = this._serviceProvider.CreateScope();
+                var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
+                return this.CreateQueryable(ctx.RssItems, includes, feedId).ToArrayAsync(token);
+            }, token);
+        }
+
+        public async Task<IReadOnlyCollection<IPartialRssItem>> ListAsync(RssItemState[] includes, string feedId, CancellationToken token) 
+            => await this.ListCoreAsync(includes, feedId, token);
 
         public async Task<IReadOnlyCollection<IPartialRssItem>> SearchAsync(string searchText, RssItemState[] includes, string feedId, CancellationToken token)
         {
