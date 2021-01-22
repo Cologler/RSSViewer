@@ -14,7 +14,7 @@ namespace RSSViewer.KeywordsFinders
             this._regex = regex;
         }
 
-        public IEnumerable<string> GetKeywords(IRssItem rssItem)
+        public IEnumerable<string> GetKeywords(IPartialRssItem rssItem)
         {
             foreach (var match in (IEnumerable<Match>)this._regex.Matches(rssItem.Title))
             {

@@ -46,7 +46,7 @@ namespace RSSViewer.Services
             }
         }
 
-        private static string GetGroupName(IImmutableList<Regex> regexes, RssItem rssItem)
+        private static string GetGroupName(IImmutableList<Regex> regexes, IPartialRssItem rssItem)
         {
             foreach (var re in regexes)
             {
@@ -70,7 +70,7 @@ namespace RSSViewer.Services
             return string.Empty;
         }
 
-        public Dictionary<string, List<RssItem>> GetGroupsMap(IEnumerable<RssItem> source)
+        public Dictionary<string, List<IPartialRssItem>> GetGroupsMap(IEnumerable<IPartialRssItem> source)
         {
             ImmutableList<Regex> regexes;
             Dictionary<string, string> cache;
@@ -80,19 +80,19 @@ namespace RSSViewer.Services
                 cache = this._groupsCache;
             }
 
-            var ret = new Dictionary<string, List<RssItem>>(StringComparer.OrdinalIgnoreCase);
+            var ret = new Dictionary<string, List<IPartialRssItem>>(StringComparer.OrdinalIgnoreCase);
 
-            void AddToRet(string key, RssItem value)
+            void AddToRet(string key, IPartialRssItem value)
             {
                 if (!ret.TryGetValue(key, out var ls))
                 {
-                    ls = new List<RssItem>();
+                    ls = new List<IPartialRssItem>();
                     ret.Add(key, ls);
                 }
                 ls.Add(value);
             }
 
-            var unCachedItems = new List<RssItem>();
+            var unCachedItems = new List<IPartialRssItem>();
             lock (this._syncRoot)
             {
                 if (!ReferenceEquals(regexes, this._regexes))

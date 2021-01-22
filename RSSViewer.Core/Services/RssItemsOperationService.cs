@@ -111,11 +111,11 @@ namespace RSSViewer.Services
                 this._serviceProvider.EmitEvent(EventNames.RssItemsStateChanged, this, changed.Select(z => (z, z.State)).ToList());
             }
 
-            public Task AcceptAsync(IReadOnlyCollection<RssItem> items) => this.ChangeStateAsync(items, RssItemState.Accepted);
+            public Task AcceptAsync(IReadOnlyCollection<IPartialRssItem> items) => this.ChangeStateAsync(items, RssItemState.Accepted);
 
-            public Task RejectAsync(IReadOnlyCollection<RssItem> items) => this.ChangeStateAsync(items, RssItemState.Rejected);
+            public Task RejectAsync(IReadOnlyCollection<IPartialRssItem> items) => this.ChangeStateAsync(items, RssItemState.Rejected);
 
-            private Task ChangeStateAsync(IReadOnlyCollection<RssItem> items, RssItemState state)
+            private Task ChangeStateAsync(IReadOnlyCollection<IPartialRssItem> items, RssItemState state)
             {
                 if (items is null)
                     throw new ArgumentNullException(nameof(items));

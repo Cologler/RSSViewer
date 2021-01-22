@@ -1,8 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
+using RSSViewer.Abstractions;
+using RSSViewer.Extensions;
 using RSSViewer.LocalDb;
 using RSSViewer.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -49,14 +53,8 @@ namespace RSSViewer.Services
             return CreateQueryable(ctx.RssItems).ToArray();
         }
 
-        public Task<RssItem[]> ListAsync(RssItemState[] includes, string feedId, CancellationToken token)
+        private Task<PartialRssItem[]> ListCoreAsync(RssItemState[] includes, string feedId, CancellationToken token)
         {
-            if (includes is null)
-                throw new ArgumentNullException(nameof(includes));
-
-            if (includes.Length == 0)
-                return Task.FromResult(Array.Empty<RssItem>());
-
             includes = includes.Distinct().ToArray();
 
             IQueryable<RssItem> CreateQueryable(IQueryable<RssItem> queryable)
@@ -78,11 +76,30 @@ namespace RSSViewer.Services
             {
                 using var scope = this._serviceProvider.CreateScope();
                 var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-                return CreateQueryable(ctx.RssItems).ToArrayAsync(token);
+                return CreateQueryable(ctx.RssItems)
+                    .Select(z => new PartialRssItem { 
+                        FeedId = z.FeedId,
+                        RssId = z.RssId,
+                        State = z.State,
+                        Title = z.Title,
+                        MagnetLink = z.MagnetLink
+                    })
+                    .ToArrayAsync(token);
             }, token);
         }
 
-        public async Task<RssItem[]> SearchAsync(string searchText, RssItemState[] includes, string feedId, CancellationToken token)
+        public async Task<IReadOnlyCollection<IPartialRssItem>> ListAsync(RssItemState[] includes, string feedId, CancellationToken token)
+        {
+            if (includes is null)
+                throw new ArgumentNullException(nameof(includes));
+
+            if (includes.Length == 0)
+                return Array.Empty<PartialRssItem>();
+
+            return await this.ListCoreAsync(includes, feedId, token);
+        }
+
+        public async Task<IReadOnlyCollection<IPartialRssItem>> SearchAsync(string searchText, RssItemState[] includes, string feedId, CancellationToken token)
         {
             if (searchText is null)
                 throw new ArgumentNullException(nameof(searchText));
@@ -102,7 +119,7 @@ namespace RSSViewer.Services
                 {
                     if (regex.IsMatch(z.Title))
                         return true;
-                    if (z.MagnetLink?.Contains(searchText) == true)
+                    if (z.GetPropertyOrDefault(RssItemProperties.MagnetLink)?.Contains(searchText) == true)
                         return true;
                     return false;
                 }).ToArray();

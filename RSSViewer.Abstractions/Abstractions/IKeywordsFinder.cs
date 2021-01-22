@@ -4,6 +4,6 @@ namespace RSSViewer.Abstractions
 {
     public interface IKeywordsFinder
     {
-        IEnumerable<string> GetKeywords(IRssItem item);
+        IEnumerable<string> GetKeywords(IPartialRssItem item);
     }
 }

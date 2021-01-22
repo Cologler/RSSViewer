@@ -54,7 +54,7 @@ namespace RSSViewer.Services
             }
         }
 
-        public string[] GetKeywords(RssItem rssItem)
+        public string[] GetKeywords(IPartialRssItem rssItem)
         {
             var finders = this._finders;
             var excludes = this._excludes;

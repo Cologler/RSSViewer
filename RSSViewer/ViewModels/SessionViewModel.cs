@@ -213,7 +213,7 @@ namespace RSSViewer.ViewModels
             allItemsGroup.Items.AddRange(items.Select(z => new RssItemViewModel(z)).ToArray());
             var itemsIndexes = allItemsGroup.Items.ToDictionary(z => z.RssItem.GetKey());
 
-            RssItemViewModel FromCreated(RssItem rssItem) => itemsIndexes[rssItem.GetKey()];
+            RssItemViewModel FromCreated(IPartialRssItem rssItem) => itemsIndexes[rssItem.GetKey()];
 
             await Task.Run(() =>
             {
@@ -275,12 +275,10 @@ namespace RSSViewer.ViewModels
                 await operationSession.AcceptAsync(changes
                     .Where(z => z.Item2 == RssItemState.Accepted)
                     .Select(z => z.Item1)
-                    .Cast<RssItem>()
                     .ToList());
                 await operationSession.RejectAsync(changes
                     .Where(z => z.Item2 == RssItemState.Rejected)
                     .Select(z => z.Item1)
-                    .Cast<RssItem>()
                     .ToList());
             }
         }

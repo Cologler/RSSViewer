@@ -8,7 +8,7 @@ namespace RSSViewer.KeywordsFinders
 {
     class TitleKeywordsFinder : IKeywordsFinder
     {
-        public IEnumerable<string> GetKeywords(IRssItem item)
+        public IEnumerable<string> GetKeywords(IPartialRssItem item)
         {
             yield return item.Title;
         }

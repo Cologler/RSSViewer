@@ -1,4 +1,5 @@
 ﻿using RSSViewer.Abstractions;
+using RSSViewer.Extensions;
 using RSSViewer.Utils;
 
 using System.Collections.Generic;
@@ -8,10 +9,10 @@ namespace RSSViewer.KeywordsFinders
 {
     class MagnetLinkKeywordsFinder : IKeywordsFinder
     {
-        public IEnumerable<string> GetKeywords(IRssItem item)
+        public IEnumerable<string> GetKeywords(IPartialRssItem item)
         {
-            var magnetLink = item.GetProperty(RssItemProperties.MagnetLink);
-            if (magnetLink is not null)
+            var magnetLink = item.GetPropertyOrDefault(RssItemProperties.MagnetLink);
+            if (!string.IsNullOrWhiteSpace(magnetLink))
             {
                 yield return magnetLink;
 
