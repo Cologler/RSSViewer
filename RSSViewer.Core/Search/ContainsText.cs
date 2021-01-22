@@ -22,5 +22,10 @@ namespace RSSViewer.Search
         {
             return queryable.Where(z => z.Title.Contains(this.Text) || z.MagnetLink.Contains(this.Text));
         }
+
+        public override string ToString()
+        {
+            return $"Contains({this.Text})";
+        }
     }
 }
