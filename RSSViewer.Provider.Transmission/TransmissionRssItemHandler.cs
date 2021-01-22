@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
 using RSSViewer.Annotations;
+using RSSViewer.Extensions;
 
 using System;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ namespace RSSViewer.Provider.Transmission
 
         public bool CanbeRuleTarget => true;
 
-        public async IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
+        public async IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems)
         {
             if (rssItems is null)
                 throw new ArgumentNullException(nameof(rssItems));
@@ -53,15 +54,15 @@ namespace RSSViewer.Provider.Transmission
 
             var rssItemsWithMagnetLink = rssItems
                 .Select(z => z.Item1)
+                .Select(z => (RssItem: z, MagnetLink: z.GetPropertyOrDefault(RssItemProperties.MagnetLink)))
                 .Where(z =>
                 {
-                    if (!string.IsNullOrWhiteSpace(z.GetProperty(RssItemProperties.MagnetLink)))
+                    if (string.IsNullOrWhiteSpace(z.MagnetLink))
                     {
-                        return true;
+                        logger.AddLine($"Ignore {z.RssItem.Title} which did't have magnet link.");
+                        return false;
                     }
-
-                    logger.AddLine($"Ignore {z.Title} which did't have magnet link.");
-                    return false;
+                    return true;
                 })
                 .ToList();
 
@@ -74,7 +75,7 @@ namespace RSSViewer.Provider.Transmission
 
             var task = await Task.Run(() =>
             {
-                var accepted = new List<IRssItem>();
+                var accepted = new List<IPartialRssItem>();
                 var ids = new List<int>();
 
                 var client = new Client(
@@ -83,9 +84,8 @@ namespace RSSViewer.Provider.Transmission
                     this.UserName,
                     this.Password);
 
-                foreach (var rssItem in rssItemsWithMagnetLink)
+                foreach (var (rssItem, ml) in rssItemsWithMagnetLink)
                 {
-                    var ml = rssItem.GetProperty(RssItemProperties.MagnetLink);
                     var torrent = new NewTorrent
                     {
                         Filename = ml,

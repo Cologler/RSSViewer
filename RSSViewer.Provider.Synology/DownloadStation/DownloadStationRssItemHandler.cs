@@ -14,6 +14,7 @@ using Synology.Api.Auth.Parameters;
 using RSSViewer.Annotations;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using RSSViewer.Extensions;
 
 namespace RSSViewer.Provider.Synology.DownloadStation
 {
@@ -51,7 +52,7 @@ namespace RSSViewer.Provider.Synology.DownloadStation
 
         public bool CanbeRuleTarget => true;
 
-        public async IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
+        public async IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems)
         {
             if (rssItems is null)
                 throw new ArgumentNullException(nameof(rssItems));
@@ -60,15 +61,15 @@ namespace RSSViewer.Provider.Synology.DownloadStation
 
             var rssItemsWithMagnetLink = rssItems
                 .Select(z => z.Item1)
+                .Select(z => (RssItem: z, MagnetLink: z.GetPropertyOrDefault(RssItemProperties.MagnetLink)))
                 .Where(z =>
                 {
-                    if (!string.IsNullOrWhiteSpace(z.GetProperty(RssItemProperties.MagnetLink)))
+                    if (string.IsNullOrWhiteSpace(z.MagnetLink))
                     {
-                        return true;
+                        logger.AddLine($"Ignore {z.RssItem.Title} which did't have magnet link.");
+                        return false;
                     }
-
-                    logger.AddLine($"Ignore {z.Title} which did't have magnet link.");
-                    return false;
+                    return true;
                 })
                 .ToList();
 
@@ -76,6 +77,7 @@ namespace RSSViewer.Provider.Synology.DownloadStation
             {
                 yield break;
             }
+
             using var scope = this._synologyServiceProvider.ServiceProvider.CreateScope();
 
             var settings = scope.ServiceProvider.GetService<ISynologyConnectionSettings>();
@@ -95,7 +97,7 @@ namespace RSSViewer.Provider.Synology.DownloadStation
 
             var conn = scope.ServiceProvider.GetService<ISynologyConnection>();
 
-            var accepted = new List<IRssItem>();
+            var accepted = new List<IPartialRssItem>();
             try
             {
                 var resp = await conn.Api().Auth().LoginAsync(new LoginParameters
@@ -108,9 +110,8 @@ namespace RSSViewer.Provider.Synology.DownloadStation
                     .DownloadStation()
                     .Task();
 
-                foreach (var rssItem in rssItemsWithMagnetLink)
+                foreach (var (rssItem, url) in rssItemsWithMagnetLink)
                 {
-                    var url = rssItem.GetProperty(RssItemProperties.MagnetLink);
                     var ret = await task.CreateAsync(
                                new TaskCreateParameters
                                {

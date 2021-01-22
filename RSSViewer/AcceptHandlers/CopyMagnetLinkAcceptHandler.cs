@@ -1,4 +1,5 @@
 ﻿using RSSViewer.Abstractions;
+using RSSViewer.Extensions;
 using RSSViewer.LocalDb;
 using System;
 using System.Collections.Generic;
@@ -16,17 +17,20 @@ namespace RSSViewer.AcceptHandlers
 
         public bool CanbeRuleTarget => false;
 
-        public IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
+        public IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems)
         {
             var urls = new List<string>();
             foreach (var (item, _) in rssItems)
             {
-                var ml = item.GetProperty(RssItemProperties.MagnetLink);
+                var ml = item.GetPropertyOrDefault(RssItemProperties.MagnetLink);
                 if (string.IsNullOrWhiteSpace(ml))
                 {
                     MessageBox.Show($"Some item's magnet link is empty: (FeedId={item.FeedId}, RssId={item.RssId})");
                 }
-                urls.Add(ml);
+                else
+                {
+                    urls.Add(ml);
+                }
             }
 
             if (urls.Count > 0)
@@ -43,7 +47,7 @@ namespace RSSViewer.AcceptHandlers
                 }
             }
 
-            return AsyncEnumerable.Empty<(IRssItem, RssItemState)>();
+            return AsyncEnumerable.Empty<(IPartialRssItem, RssItemState)>();
         }
     }
 }

@@ -25,7 +25,7 @@ namespace RSSViewer.ViewModels
         private string _searchText = string.Empty;
         private RssItemGroupViewModel _selectedGroup;
         private Dictionary<(string, string), RssItemViewModel> _itemsIndexes;
-        private List<(IRssItem, RssItemState)> _stateChangesHook;
+        private List<(IPartialRssItem, RssItemState)> _stateChangesHook;
         private string _title;
         private readonly IViewerLogger _viewerLogger;
         public event EventHandler SessionStateChanged;
@@ -68,7 +68,7 @@ namespace RSSViewer.ViewModels
             }
         }
 
-        private void OnRssItemsStateChanged(object sender, IEnumerable<(IRssItem, RssItemState)> e)
+        private void OnRssItemsStateChanged(object sender, IEnumerable<(IPartialRssItem, RssItemState)> e)
         {
             App.Current.Dispatcher.InvokeAsync(() =>
             {
@@ -88,20 +88,17 @@ namespace RSSViewer.ViewModels
             });
         }
 
-        private void OnRssItemsStateChangedInternal(IEnumerable<(IRssItem, RssItemState)> e)
+        private void OnRssItemsStateChangedInternal(IEnumerable<(IPartialRssItem, RssItemState)> e)
         {
             Debug.Assert(this._itemsIndexes != null);
 
             foreach (var (rssItem, state) in e)
             {
-                if (rssItem is RssItem item)
+                var viewModel = this._itemsIndexes.GetValueOrDefault(rssItem.GetKey());
+                if (viewModel != null)
                 {
-                    var viewModel = this._itemsIndexes.GetValueOrDefault(item.GetKey());
-                    if (viewModel != null)
-                    {
-                        viewModel.RssItem.State = state;
-                        viewModel.RefreshProperties();
-                    }
+                    viewModel.RssItem.State = state;
+                    viewModel.RefreshProperties();
                 }
             }
 
@@ -174,7 +171,7 @@ namespace RSSViewer.ViewModels
         {
             if (this._stateChangesHook is null)
             {
-                this._stateChangesHook = new List<(IRssItem, RssItemState)>();
+                this._stateChangesHook = new();
             }
 
             var searchText = searchInfo.SearchText.Trim();
@@ -269,8 +266,8 @@ namespace RSSViewer.ViewModels
 
         public async Task HandleAsync(RssItemViewModel[] items, IRssItemHandler handler)
         {
-            var rssItems = items.Select(z => ((IRssItem)z.RssItem, z.RssItem.State)).ToArray();
-            var changes = await handler.Accept(rssItems).ToListAsync();
+            var rssItems = items.Select(z => ((IPartialRssItem)z.RssItem, z.RssItem.State)).ToArray();
+            var changes = await handler.HandleAsync(rssItems).ToListAsync();
             if (changes.Count > 0)
             {
                 var service = App.RSSViewerHost.Modify();
@@ -285,9 +282,6 @@ namespace RSSViewer.ViewModels
                     .Select(z => z.Item1)
                     .Cast<RssItem>()
                     .ToList());
-
-                //this.OnRssItemsStateChanged(
-                //    RssItemsStateChangedInfo.Create(changes.Select(z => ((RssItem)z.Item1, z.Item2))));
             }
         }
 

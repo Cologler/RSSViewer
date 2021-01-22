@@ -63,51 +63,52 @@ namespace RSSViewer.Services
                 this._serviceProvider = serviceProvider;
             }
 
-            internal void ChangeState(IReadOnlyCollection<RssItem> items, RssItemState state)
+            internal void ChangeState(IReadOnlyCollection<IPartialRssItem> items, RssItemState state)
             {
                 if (items is null)
                     throw new ArgumentNullException(nameof(items));
 
+                var changed = new List<IPartialRssItem>();
                 using var scope = this._serviceProvider.CreateScope();
                 var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-                ctx.AttachRange(items);
                 foreach (var item in items)
                 {
-                    this.ChangeStateOperations.Add(new ChangeStateOperation
+                    var ri = ctx.RssItems.Find(item.FeedId, item.RssId);
+                    if (ri is not null)
                     {
-                        FeedId = item.FeedId,
-                        RssId = item.RssId,
-                        OldState = item.State,
-                        NewState = state,
-                    });
-                    item.State = state;
+                        ri.State = state;
+                        this.ChangeStateOperations.Add(new ChangeStateOperation
+                        {
+                            FeedId = item.FeedId,
+                            RssId = item.RssId,
+                            OldState = item.State,
+                            NewState = state,
+                        });
+                        changed.Add(item);
+                    }
                 }
                 ctx.SaveChanges();
 
-                this._serviceProvider.EmitEvent(EventNames.RssItemsStateChanged,
-                    this,
-                    items.Select(z => ((IRssItem)z, state)).ToList());
+                this._serviceProvider.EmitEvent(EventNames.RssItemsStateChanged, this, changed.Select(z => (z, state)).ToList());
             }
 
             internal void Undo()
             {
                 using var scope = this._serviceProvider.CreateScope();
                 var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-                var items = new List<RssItem>();
+                var changed = new List<IPartialRssItem>();
                 foreach (var operation in this.ChangeStateOperations)
                 {
                     var item = ctx.RssItems.Find(operation.FeedId, operation.RssId);
                     if (item is not null)
                     {
                         item.State = operation.OldState;
-                        items.Add(item);
+                        changed.Add(item);
                     }
                 }
                 ctx.SaveChanges();
 
-                this._serviceProvider.EmitEvent(EventNames.RssItemsStateChanged,
-                    this,
-                    items.Select(z => ((IRssItem)z, z.State)).ToList());
+                this._serviceProvider.EmitEvent(EventNames.RssItemsStateChanged, this, changed.Select(z => (z, z.State)).ToList());
             }
 
             public Task AcceptAsync(IReadOnlyCollection<RssItem> items) => this.ChangeStateAsync(items, RssItemState.Accepted);

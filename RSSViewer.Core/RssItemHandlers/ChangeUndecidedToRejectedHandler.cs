@@ -13,7 +13,7 @@ namespace RSSViewer.RssItemHandlers
 
         public bool CanbeRuleTarget => false;
 
-        public IAsyncEnumerable<(IRssItem, RssItemState)> Accept(IReadOnlyCollection<(IRssItem, RssItemState)> rssItems)
+        public IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems)
         {
             return rssItems
                 .Where(z => z.Item2 == RssItemState.Undecided)

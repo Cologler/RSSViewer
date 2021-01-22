@@ -157,11 +157,11 @@ namespace RSSViewer.Services
                 this._operationService = serviceProvider.GetRequiredService<RssItemsOperationService>();
             }
 
-            public List<RssItem> SourceItems { get; } = new();
+            public List<IPartialRssItem> SourceItems { get; } = new();
 
-            public List<RssItem> AcceptedItems { get; } = new();
+            public List<IPartialRssItem> AcceptedItems { get; } = new();
 
-            public List<RssItem> RejectedItems { get; } = new();
+            public List<IPartialRssItem> RejectedItems { get; } = new();
 
             public List<RssItemMatcher> Rules { get; } = new();
 
@@ -227,7 +227,7 @@ namespace RSSViewer.Services
 
                     if (handler != null)
                     {
-                        var handledItems = await handler.Accept(group.Select(z => ((IRssItem)z.Item, z.Item.State)).ToList()).ToListAsync();
+                        var handledItems = await handler.HandleAsync(group.Select(z => (z.Item, z.Item.State)).ToList()).ToListAsync();
                         foreach (var (item, newState) in handledItems)
                         {
                             if (newState != RssItemState.Undecided)

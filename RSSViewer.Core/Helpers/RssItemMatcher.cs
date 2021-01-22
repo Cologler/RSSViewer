@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using RSSViewer.Abstractions;
 using RSSViewer.LocalDb;
 using RSSViewer.RulesDb;
 using RSSViewer.StringMatchers;
@@ -26,7 +27,7 @@ namespace RSSViewer.Helpers
 
         public int RuleId => this._matchRule.Id;
 
-        public bool IsMatch(RssItem rssItem)
+        public bool IsMatch(IPartialRssItem rssItem)
         {
             if (this._matchRule.OnFeedId is not null && this._matchRule.OnFeedId != rssItem.FeedId)
                 return false;
