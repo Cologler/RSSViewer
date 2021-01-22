@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Linq;
 
 using RSSViewer.LocalDb;
@@ -7,7 +8,13 @@ namespace RSSViewer.Search
 {
     internal class ContainsText : IDbSearchPart
     {
-        public ContainsText(string text) => this.Text = text;
+        public ContainsText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                throw new ArgumentException($"{nameof(text)} can not be empty", nameof(text));
+
+            this.Text = text;
+        }
 
         public string Text { get; }
 
