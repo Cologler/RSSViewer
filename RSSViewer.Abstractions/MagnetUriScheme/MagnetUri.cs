@@ -7,9 +7,11 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RSSViewer.Utils
+using RSSViewer.Utils;
+
+namespace RSSViewer.MagnetUriScheme
 {
-    public class MagnetLink
+    public class MagnetUri
     {
         public List<KeyValuePair<string, string>> QueryStrings = new();
 
@@ -39,14 +41,12 @@ namespace RSSViewer.Utils
             {
                 var xt = this.GetQueryString("xt").FirstOrDefault();
                 if (xt?.StartsWith("urn:btih:") is true)
-                {
                     return xt["urn:btih:".Length..];
-                }
                 return null;
             }
         }
 
-        public static bool TryParse(string magnetLinkUrl, out MagnetLink magnetLink)
+        public static bool TryParse(string magnetLinkUrl, out MagnetUri magnetLink)
         {
             if (magnetLinkUrl is null)
                 throw new ArgumentNullException(nameof(magnetLinkUrl));
@@ -55,7 +55,7 @@ namespace RSSViewer.Utils
             return magnetLink is not null;
         }
 
-        public static MagnetLink Parse(string magnetLinkUrl)
+        public static MagnetUri Parse(string magnetLinkUrl)
         {
             if (magnetLinkUrl is null)
                 throw new ArgumentNullException(nameof(magnetLinkUrl));
@@ -63,11 +63,11 @@ namespace RSSViewer.Utils
             return ParseInternal(magnetLinkUrl, true);
         }
 
-        private static MagnetLink ParseInternal(string magnetLinkUrl, bool throwIfFail)
+        private static MagnetUri ParseInternal(string magnetLinkUrl, bool throwIfFail)
         {
             Debug.Assert(magnetLinkUrl is not null);
 
-            MagnetLink Throw(string message)
+            MagnetUri Throw(string message)
             {
                 if (!throwIfFail)
                     return null;
@@ -76,14 +76,12 @@ namespace RSSViewer.Utils
             }
 
             if (!magnetLinkUrl.StartsWith("magnet:?"))
-            {
                 return Throw("Magnet link should start with \"magnet:?\"");
-            }
 
             var args = magnetLinkUrl.AsSpan().Slice("magnet:?".Length);
             var left = args;
 
-            MagnetLink magnetLink = new();
+            MagnetUri magnetLink = new();
 
             void AddQueryString(string key, string value)
             {
@@ -99,25 +97,20 @@ namespace RSSViewer.Utils
                 var part = end < 0 ? left : left.Slice(0, end);
                 var sep = part.IndexOf("=");
                 if (sep < 0)
-                {
                     AddQueryString(part.ToString(), string.Empty);
-                }
                 else
-                {
                     AddQueryString(part[..sep].ToString(), part[(sep + 1)..].ToString());
-                }
 
                 if (end < 0)
-                {
                     break;
-                }
                 else
-                {
                     left = left[(end + 1)..];
-                } 
             }
 
-            Debug.Assert(magnetLink.ToString() == magnetLinkUrl, $"{magnetLink} != {magnetLinkUrl}");
+            Debug.WriteLineIf(
+                magnetLink.ToString() != magnetLinkUrl,
+                $"ML {magnetLink}\n!= {magnetLinkUrl}"
+            );
 
             return magnetLink;
         }

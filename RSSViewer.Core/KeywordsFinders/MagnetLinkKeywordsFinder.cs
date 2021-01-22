@@ -1,6 +1,6 @@
 ﻿using RSSViewer.Abstractions;
 using RSSViewer.Extensions;
-using RSSViewer.Utils;
+using RSSViewer.MagnetUriScheme;
 
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -16,7 +16,7 @@ namespace RSSViewer.KeywordsFinders
             {
                 yield return magnetLink;
 
-                if (MagnetLink.TryParse(magnetLink, out var ml))
+                if (MagnetUri.TryParse(magnetLink, out var ml))
                 {
                     yield return ml.InfoHash;
                 }
