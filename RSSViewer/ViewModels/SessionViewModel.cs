@@ -3,6 +3,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
+using RSSViewer.Extensions;
 using RSSViewer.LocalDb;
 using RSSViewer.Services;
 using RSSViewer.Utils;

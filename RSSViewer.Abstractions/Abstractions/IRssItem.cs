@@ -1,16 +1,8 @@
-﻿using System;
-using System.Text;
-
+﻿
 namespace RSSViewer.Abstractions
 {
-    public interface IRssItem
+    public interface IRssItem : IPartialRssItem
     {
-        string FeedId { get; }
-
-        string RssId { get; }
-
-        string Title { get; }
-
         string Description { get; }
 
         string GetProperty(RssItemProperties property);

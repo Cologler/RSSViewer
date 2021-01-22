@@ -51,6 +51,10 @@ namespace RSSViewer.LocalDb
             this.MagnetLink = sourceRssItem.GetProperty(RssItemProperties.MagnetLink);
         }
 
-        public (string, string) GetKey() => (this.FeedId, this.RssId);
+        public bool TryGetProperty(RssItemProperties property, out string value)
+        {
+            value = this.GetProperty(property);
+            return true;
+        }
     }
 }
