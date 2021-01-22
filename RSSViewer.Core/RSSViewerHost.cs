@@ -86,8 +86,10 @@ namespace RSSViewer
                 .AddSingleton<IViewerLogger, NoneViewerLogger>()
                 .AddSingleton<IRssItemHandler, ChangeToAcceptedHandler>()
                 .AddSingleton<IRssItemHandler, ChangeToRejectedHandler>()
+                .AddSingleton<IRssItemHandler, ChangeToArchivedHandler>()
                 .AddSingleton<IRssItemHandler, ChangeUndecidedToAcceptedHandler>()
                 .AddSingleton<IRssItemHandler, ChangeUndecidedToRejectedHandler>()
+                .AddSingleton<IRssItemHandler, ChangeUndecidedToArchivedHandler>()
                 .AddSingleton(typeof(EventEmitter<>))
                 .AddSingleton<RegexCache>()
                 ;

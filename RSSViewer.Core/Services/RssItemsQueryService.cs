@@ -39,6 +39,8 @@ namespace RSSViewer.Services
                 queryable = queryable.Where(z => z.State == includes[0]);
             else if (includes.Length == 2)
                 queryable = queryable.Where(z => z.State == includes[0] || z.State == includes[1]);
+            else if (includes.Length == 3)
+                queryable = queryable.Where(z => z.State == includes[0] || z.State == includes[1] || z.State == includes[2]);
 
             return queryable.Select(z => new PartialRssItem
             {

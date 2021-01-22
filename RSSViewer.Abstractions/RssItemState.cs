@@ -5,6 +5,7 @@ namespace RSSViewer
     {
         Rejected = -1,
         Undecided = 0,
-        Accepted = 1
+        Accepted = 1,
+        Archived = 2
     }
 }

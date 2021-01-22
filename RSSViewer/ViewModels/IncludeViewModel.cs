@@ -12,23 +12,30 @@ namespace RSSViewer.ViewModels
         private bool _undecided = true;
         private bool _accepted;
         private bool _rejected;
+        private bool _archived;
 
-        public bool Undecided 
-        { 
-            get => this._undecided; 
-            set => this.ChangeModelProperty(ref this._undecided, value); 
+        public bool Undecided
+        {
+            get => this._undecided;
+            set => this.ChangeModelProperty(ref this._undecided, value);
         }
 
-        public bool Accepted 
+        public bool Accepted
         {
             get => this._accepted;
-            set => this.ChangeModelProperty(ref this._accepted, value); 
+            set => this.ChangeModelProperty(ref this._accepted, value);
         }
 
-        public bool Rejected 
+        public bool Rejected
+        {
+            get => this._rejected;
+            set => this.ChangeModelProperty(ref this._rejected, value);
+        }
+
+        public bool Archived
         { 
-            get => this._rejected; 
-            set => this.ChangeModelProperty(ref this._rejected, value); 
+            get => _archived; 
+            set => this.ChangeModelProperty(ref this._archived, value); 
         }
 
         public RssItemState[] GetStateValues()
@@ -40,6 +47,8 @@ namespace RSSViewer.ViewModels
                 states.Add(RssItemState.Accepted);
             if (this.Rejected)
                 states.Add(RssItemState.Rejected);
+            if (this.Archived)
+                states.Add(RssItemState.Archived);
             return states.ToArray();
         }
     }

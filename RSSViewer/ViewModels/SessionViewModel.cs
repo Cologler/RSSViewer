@@ -280,6 +280,10 @@ namespace RSSViewer.ViewModels
                     .Where(z => z.Item2 == RssItemState.Rejected)
                     .Select(z => z.Item1)
                     .ToList());
+                await operationSession.ArchivedAsync(changes
+                    .Where(z => z.Item2 == RssItemState.Archived)
+                    .Select(z => z.Item1)
+                    .ToList());
             }
         }
 

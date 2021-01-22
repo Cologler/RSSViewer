@@ -26,6 +26,11 @@ namespace RSSViewer.ViewModels
             : Visibility.Collapsed;
 
         [ModelProperty]
+        public Visibility ArchivedImageVisibility => this.RssItem.State == RssItemState.Archived
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        [ModelProperty]
         public string Title
         {
             get

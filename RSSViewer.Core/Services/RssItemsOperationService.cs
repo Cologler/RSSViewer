@@ -14,6 +14,7 @@ namespace RSSViewer.Services
 {
     public class RssItemsOperationService
     {
+        private const int MaxUnsavedChanged = 5000;
         private readonly IServiceProvider _serviceProvider;
         private readonly List<OperationsSession> _operationsSessions = new();
         private readonly object _syncRoot = new();
@@ -68,6 +69,7 @@ namespace RSSViewer.Services
                 if (items is null)
                     throw new ArgumentNullException(nameof(items));
 
+                var unsavedChanged = 0;
                 var changed = new List<IPartialRssItem>();
                 using var scope = this._serviceProvider.CreateScope();
                 var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
@@ -85,6 +87,12 @@ namespace RSSViewer.Services
                             NewState = state,
                         });
                         changed.Add(item);
+                        unsavedChanged++;
+                    }
+                    if (unsavedChanged > MaxUnsavedChanged)
+                    {
+                        ctx.SaveChanges();
+                        unsavedChanged = 0;
                     }
                 }
                 ctx.SaveChanges();
@@ -94,6 +102,7 @@ namespace RSSViewer.Services
 
             internal void Undo()
             {
+                var unsavedChanged = 0;
                 using var scope = this._serviceProvider.CreateScope();
                 var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
                 var changed = new List<IPartialRssItem>();
@@ -104,6 +113,12 @@ namespace RSSViewer.Services
                     {
                         item.State = operation.OldState;
                         changed.Add(item);
+                        unsavedChanged++;
+                    }
+                    if (unsavedChanged > MaxUnsavedChanged)
+                    {
+                        ctx.SaveChanges();
+                        unsavedChanged = 0;
                     }
                 }
                 ctx.SaveChanges();
@@ -115,10 +130,15 @@ namespace RSSViewer.Services
 
             public Task RejectAsync(IReadOnlyCollection<IPartialRssItem> items) => this.ChangeStateAsync(items, RssItemState.Rejected);
 
+            public Task ArchivedAsync(IReadOnlyCollection<IPartialRssItem> items) => this.ChangeStateAsync(items, RssItemState.Archived);
+
             private Task ChangeStateAsync(IReadOnlyCollection<IPartialRssItem> items, RssItemState state)
             {
                 if (items is null)
                     throw new ArgumentNullException(nameof(items));
+
+                if (items.Count == 0)
+                    return Task.CompletedTask;
 
                 return Task.Run(() => this.ChangeState(items, state));
             }
