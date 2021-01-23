@@ -7,18 +7,18 @@ namespace RSSViewer.Services
 {
     public class AppDirService
     {
-        private const string DataRootDir = "Data";
+        private const string DataRootDirectoryName = "Data";
 
-        private readonly DirectoryInfo _dataRootDir = new DirectoryInfo(DataRootDir);
+        public DirectoryInfo DataRootDirectory { get; } = new(DataRootDirectoryName);
 
         public void EnsureCreated()
         {
-            if (!this._dataRootDir.Exists)
+            if (!this.DataRootDirectory.Exists)
             {
-                this._dataRootDir.Create();
+                this.DataRootDirectory.Create();
             }
         }
 
-        public string GetDataFileFullPath(string name) => Path.Combine(this._dataRootDir.FullName, name);
+        public string GetDataFileFullPath(string name) => Path.Combine(this.DataRootDirectory.FullName, name);
     }
 }

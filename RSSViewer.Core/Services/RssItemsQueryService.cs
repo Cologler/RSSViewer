@@ -44,9 +44,12 @@ namespace RSSViewer.Services
             else if (includes.Length == 3)
                 queryable = queryable.Where(z => z.State == includes[0] || z.State == includes[1] || z.State == includes[2]);
 
-            foreach (var part in searchExpr.Parts.OfType<IDbSearchPart>())
+            if (searchExpr is not null)
             {
-                queryable = part.Where(queryable);
+                foreach (var part in searchExpr.Parts.OfType<IDbSearchPart>())
+                {
+                    queryable = part.Where(queryable);
+                }
             }
 
             return queryable

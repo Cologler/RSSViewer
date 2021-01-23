@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
+using RSSViewer.HttpCacheDb;
 using RSSViewer.Json;
 using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
@@ -39,6 +40,9 @@ namespace RSSViewer
             scope.ServiceProvider.GetRequiredService<RulesDbContext>()
                 .Database.Migrate();
 
+            scope.ServiceProvider.GetRequiredService<HttpCacheDbContext>()
+                .Database.Migrate();
+
             var runRulesService = scope.ServiceProvider.GetRequiredService<RunRulesService>();
             this.ServiceProvider.AddListener(EventNames.AddedRssItems, runRulesService.RunForAddedRssItem);
         }
@@ -57,11 +61,14 @@ namespace RSSViewer
 
         public static IServiceCollection CreateServices()
         {
+            var appDirService = new AppDirService();
+
             var sc = new ServiceCollection()
-                .AddSingleton<AppDirService>()
+                .AddSingleton(appDirService)
                 .AddSingleton<SyncSourceManager>()
                 .AddSingleton<RssItemsQueryService>()
                 .AddSingleton<RssItemsOperationService>()
+                .AddSingleton<HttpService>()
                 .AddSingleton<SyncService>()
                 .AddSingleton<RssItemHandlersService>()
                 .AddSingleton<ITrackersService, TrackersService>()
@@ -75,6 +82,10 @@ namespace RSSViewer
                 })
                 .AddDbContext<RulesDbContext>((prov, options) => {
                     var path = prov.GetRequiredService<AppDirService>().GetDataFileFullPath("rulesdb.sqlite3");
+                    options.UseSqlite($"Data Source={path}");
+                })
+                .AddDbContext<HttpCacheDbContext>((prov, options) => {
+                    var path = prov.GetRequiredService<AppDirService>().GetDataFileFullPath("httpcache.sqlite3");
                     options.UseSqlite($"Data Source={path}");
                 })
                 .AddTransient<IKeywordsFinder, TitleKeywordsFinder>()
