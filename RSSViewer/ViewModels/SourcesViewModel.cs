@@ -47,7 +47,7 @@ namespace RSSViewer.ViewModels
             return sources;
         }
 
-        private void OnAddedRssItems(object sender, IReadOnlyCollection<IRssItem> e)
+        private void OnAddedRssItems(object sender, IReadOnlyCollection<IPartialRssItem> e)
         {
             var feedIds = e.Select(z => z.FeedId).Distinct().ToArray();
             System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>

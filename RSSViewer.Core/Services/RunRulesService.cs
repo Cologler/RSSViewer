@@ -114,7 +114,7 @@ namespace RSSViewer.Services
             });
         }
 
-        internal void RunForAddedRssItem(object sender, IReadOnlyCollection<IRssItem> e)
+        internal void RunForAddedRssItem(object sender, IReadOnlyCollection<IPartialRssItem> e)
         {
             Task.Run(async () =>
             {
@@ -180,12 +180,12 @@ namespace RSSViewer.Services
                 this.Commit();
             }
 
-            public async ValueTask RunForAsync(IReadOnlyCollection<IRssItem> rssItems)
+            public async ValueTask RunForAsync(IReadOnlyCollection<IPartialRssItem> rssItems)
             {
                 if (this.Rules.Count == 0)
                     return;
 
-                this.SourceItems.AddRange(rssItems.OfType<RssItem>().Where(z => z.State == RssItemState.Undecided));
+                this.SourceItems.AddRange(rssItems);
 
                 await this.Scan();
                 this.Commit();
@@ -234,11 +234,11 @@ namespace RSSViewer.Services
                             {
                                 if (newState == RssItemState.Accepted)
                                 {
-                                    this.AcceptedItems.Add((RssItem)item);
+                                    this.AcceptedItems.Add(item);
                                 }
                                 else if (newState == RssItemState.Rejected)
                                 {
-                                    this.RejectedItems.Add((RssItem)item);
+                                    this.RejectedItems.Add(item);
                                 }
                             }
                         }
