@@ -38,6 +38,7 @@ namespace RSSViewer.RssItemHandlers
         public IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems)
         {
             return rssItems
+                .Where(z => z.Item2 != this._newState)
                 .Select(z => (z.Item1, this._newState))
                 .ToAsyncEnumerable();
         }
