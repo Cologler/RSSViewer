@@ -25,7 +25,6 @@ namespace RSSViewer.Services
 
         private readonly object _syncRoot = new object();
         private readonly string _appConfPath;
-        private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly IServiceProvider _serviceProvider;
         private readonly JsonService _jsonService;
 
