@@ -95,15 +95,27 @@ namespace RSSViewer
                 .AddSynologyProvider()
                 .AddTransmissionProvider()
                 .AddSingleton<IViewerLogger, NoneViewerLogger>()
-                .AddSingleton<IRssItemHandler, ChangeToAcceptedHandler>()
-                .AddSingleton<IRssItemHandler, ChangeToRejectedHandler>()
-                .AddSingleton<IRssItemHandler, ChangeToArchivedHandler>()
-                .AddSingleton<IRssItemHandler, ChangeUndecidedToAcceptedHandler>()
-                .AddSingleton<IRssItemHandler, ChangeUndecidedToRejectedHandler>()
-                .AddSingleton<IRssItemHandler, ChangeUndecidedToArchivedHandler>()
                 .AddSingleton(typeof(EventEmitter<>))
                 .AddSingleton<RegexCache>()
                 ;
+
+            var rssItemStates = new[]
+            {
+                // ensure sorted:
+                RssItemState.Accepted, 
+                RssItemState.Rejected, 
+                RssItemState.Archived, 
+                RssItemState.Undecided
+            };
+
+            foreach (var state in rssItemStates)
+            {
+                sc.AddSingleton<IRssItemHandler>(new ChangeStateHandler(state));
+            }
+            foreach (var state in rssItemStates)
+            {
+                sc.AddSingleton<IRssItemHandler>(new ChangeUndecidedStateHandler(state));
+            }
 
             sc.AddSingleton<JsonConverter, TimeSpanConverter>();
 

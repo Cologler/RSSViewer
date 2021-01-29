@@ -84,7 +84,10 @@ namespace RSSViewer.Services
 
         public IReadOnlyCollection<IRssItemHandler> GetRuleTargetHandlers() => this._handlers.Where(z => z.CanbeRuleTarget).ToList();
 
-        public IRssItemHandler GetDefaultRuleTargetHandler() => this._handlers.Where(z => z is ChangeToRejectedHandler).Single();
+        public IRssItemHandler GetDefaultRuleTargetHandler()
+        {
+            return this._handlers.Where(z => z.Id == ChangeStateHandler.GetId(RssItemState.Rejected)).Single();
+        }
 
         public event EventHandler AcceptHandlersChanged;
     }
