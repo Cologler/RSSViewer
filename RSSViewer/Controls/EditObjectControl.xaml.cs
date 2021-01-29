@@ -92,7 +92,7 @@ namespace RSSViewer.Controls
             }
         }
 
-        public void WriteToConf(SyncSourceConf conf)
+        public void WriteToConf(SyncSourceSection conf)
         {
             conf.Name = "";
             conf.ProviderName = this.SelectedObjectFactory.ProviderName;
@@ -125,7 +125,7 @@ namespace RSSViewer.Controls
             return win;
         }
 
-        public static bool CreateSyncSourceConf(Window owner, out SyncSourceConf conf)
+        public static bool CreateSyncSourceConf(Window owner, out SyncSourceSection conf)
         {
             var ctl = new EditObjectControl();
             var win = CreateWindow(owner);
@@ -139,7 +139,7 @@ namespace RSSViewer.Controls
             ctl.SelectedObjectFactory = ssProvider[0];
             if (win.ShowDialog() == true)
             {
-                conf = new SyncSourceConf();
+                conf = new SyncSourceSection();
                 ctl.WriteToConf(conf);
                 return true;
             }

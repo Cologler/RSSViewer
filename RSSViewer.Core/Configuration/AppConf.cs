@@ -10,9 +10,9 @@ namespace RSSViewer.Configuration
 
         public KeywordsConf Keywords { get; set; }
 
-        public Dictionary<string, SyncSourceConf> SyncSources { get; set; }
+        public Dictionary<string, SyncSourceSection> SyncSources { get; set; }
 
-        public Dictionary<string, AcceptHandlerConf> AcceptHandlers { get; set; }
+        public Dictionary<string, AcceptHandlerSection> AcceptHandlers { get; set; }
 
         public DefaultsConf Defaults { get; set; }
 
@@ -21,9 +21,9 @@ namespace RSSViewer.Configuration
             (this.Group ?? (this.Group = new GroupConf())).Upgrade();
             (this.Keywords ?? (this.Keywords = new KeywordsConf())).Upgrade();
             if (this.SyncSources is null)
-                this.SyncSources = new Dictionary<string, SyncSourceConf>();
+                this.SyncSources = new Dictionary<string, SyncSourceSection>();
             if (AcceptHandlers is null)
-                this.AcceptHandlers = new Dictionary<string, AcceptHandlerConf>();
+                this.AcceptHandlers = new Dictionary<string, AcceptHandlerSection>();
             if (this.Defaults is null)
                 this.Defaults = new DefaultsConf();
         }

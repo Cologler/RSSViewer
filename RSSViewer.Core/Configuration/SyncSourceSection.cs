@@ -2,7 +2,7 @@
 
 namespace RSSViewer.Configuration
 {
-    public class SyncSourceConf
+    public class SyncSourceSection
     {
         public string ProviderName { get; set; }
 

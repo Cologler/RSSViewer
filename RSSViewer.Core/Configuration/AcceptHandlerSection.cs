@@ -2,7 +2,7 @@
 
 namespace RSSViewer.Configuration
 {
-    public class AcceptHandlerConf
+    public class AcceptHandlerSection
     {
         public string ProviderName { get; set; }
 
