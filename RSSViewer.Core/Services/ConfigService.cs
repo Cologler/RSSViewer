@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using RSSViewer.Configuration;
 using RSSViewer.RulesDb;
 using RSSViewer.Utils;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -26,32 +27,21 @@ namespace RSSViewer.Services
         private readonly string _appConfPath;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
         private readonly IServiceProvider _serviceProvider;
+        private readonly JsonService _jsonService;
 
         public event Action<AppConf> OnAppConfChanged;
         public event CollectionChangeEventHandler MatchRulesChanged;
 
-        public ConfigService(IServiceProvider serviceProvider, AppDirService appDir)
+        public ConfigService(IServiceProvider serviceProvider, AppDirService appDir, JsonService jsonService)
         {
             this._serviceProvider = serviceProvider;
-
-            this._jsonSerializerOptions = new JsonSerializerOptions
-            {
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                IgnoreNullValues = true,
-                WriteIndented = true
-            };
-            foreach (var converter in serviceProvider.GetServices<JsonConverter>())
-            {
-                this._jsonSerializerOptions.Converters.Add(converter);
-            }            
+            this._jsonService = jsonService;  
 
             this._appConfPath = appDir.GetDataFileFullPath(AppConfName);
 
             if (File.Exists(this._appConfPath))
             {
-                this.AppConf = JsonSerializer.Deserialize<AppConf>(
-                    File.ReadAllText(this._appConfPath, Encoding.UTF8), 
-                    this._jsonSerializerOptions);
+                this.AppConf = this._jsonService.Deserialize<AppConf>(File.ReadAllText(this._appConfPath, Encoding.UTF8));
             }
             else
             {
@@ -68,7 +58,7 @@ namespace RSSViewer.Services
         {
             lock (this._syncRoot)
             {
-                FileSystemAtomicOperations.Write(this._appConfPath, JsonSerializer.Serialize(this.AppConf, this._jsonSerializerOptions));
+                FileSystemAtomicOperations.Write(this._appConfPath, this._jsonService.Serialize(this.AppConf));
             }
             
             this.OnAppConfChanged?.Invoke(this.AppConf);

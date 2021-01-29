@@ -65,6 +65,7 @@ namespace RSSViewer
 
             var sc = new ServiceCollection()
                 .AddSingleton(appDirService)
+                .AddSingleton<JsonService>()
                 .AddSingleton<SyncSourceManager>()
                 .AddSingleton<RssItemsQueryService>()
                 .AddSingleton<RssItemsOperationService>()
