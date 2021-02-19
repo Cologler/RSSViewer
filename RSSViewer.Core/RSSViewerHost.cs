@@ -16,6 +16,7 @@ using RSSViewer.StringMatchers;
 using RSSViewer.Utils;
 
 using System;
+using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -113,7 +114,7 @@ namespace RSSViewer
             {
                 sc.AddSingleton<IRssItemHandler>(new ChangeStateHandler(state));
             }
-            foreach (var state in rssItemStates)
+            foreach (var state in rssItemStates.Where(z => z != RssItemState.Undecided))
             {
                 sc.AddSingleton<IRssItemHandler>(new ChangeUndecidedStateHandler(state));
             }
