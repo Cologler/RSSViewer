@@ -71,11 +71,6 @@ namespace RSSViewer.Services
                         dictById[m.Rule.ParentId.Value].AddSubBranch(m);
                     }
 
-                    var matchers = rules
-                        .Where(z => !z.IsDisabled)
-                        .Select(this.ToMatcher)
-                        .ToImmutableArray();
-
                     this._matchRules = reachableMatchers.Where(z => z.Rule.ParentId is null).ToImmutableArray();
                 }
             }
