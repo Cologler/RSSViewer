@@ -75,34 +75,6 @@ namespace RSSViewer.Windows
             }
         }
 
-        private void AutoRules_MoveUp(object sender, RoutedEventArgs e)
-        {
-            var selected = this.SelectedAutoRules;
-            this.ViewModel.AutoRulesView.MoveUp(selected);
-            this.SelectedAutoRules = selected;
-        }
-
-        private void AutoRules_MoveDown(object sender, RoutedEventArgs e)
-        {
-            var selected = this.SelectedAutoRules;
-            this.ViewModel.AutoRulesView.MoveDown(selected);
-            this.SelectedAutoRules = selected;
-        }
-
-        private void AutoRules_MoveTop(object sender, RoutedEventArgs e)
-        {
-            var selected = this.SelectedAutoRules;
-            this.ViewModel.AutoRulesView.MoveTop(selected);
-            this.SelectedAutoRules = selected;
-        }
-
-        private void AutoRules_MoveBottom(object sender, RoutedEventArgs e)
-        {
-            var selected = this.SelectedAutoRules;
-            this.ViewModel.AutoRulesView.MoveBottom(selected);
-            this.SelectedAutoRules = selected;
-        }
-
         private void AddAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
         {
             if (EditRuleWindow.TryCreateConf(this, out var conf))
