@@ -103,11 +103,12 @@ namespace RSSViewer.Services
 
             if (rule.ParentId is null)
             {
-                rootMatcher.AddSubBranch(matcher);
+                lock (this._syncRoot)
+                    this._matchRules = this._matchRules.Add(matcher);
             }
             else
             {
-                lock (this._syncRoot) this._matchRules = this._matchRules.Add(matcher);
+                rootMatcher.AddSubBranch(matcher);
             }
 
             var context = new MatchContext(this._serviceProvider);
