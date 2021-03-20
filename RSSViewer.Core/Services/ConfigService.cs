@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 
 using RSSViewer.Configuration;
+using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
 using RSSViewer.Utils;
 
@@ -67,9 +68,7 @@ namespace RSSViewer.Services
         {
             var rule = new MatchRule
             {
-                HandlerId = this._serviceProvider.GetRequiredService<RssItemHandlersService>()
-                    .GetDefaultRuleTargetHandler()
-                    .Id
+                HandlerId = KnownHandlerIds.DefaultHandlerId
             };
 
             rule.Mode = MatchMode.Contains;

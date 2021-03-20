@@ -41,10 +41,9 @@ namespace RSSViewer.Windows
             this.DataContext = new DataContextViewModel();
 
             this._handlersService = App.RSSViewerHost.ServiceProvider.GetRequiredService<RssItemHandlersService>();
-            var handlers = this._handlersService.GetRuleTargetHandlers();
 
-            this.ActionsList.ItemsSource = handlers;
-            this.ActionsList.SelectedItem = this._handlersService.GetDefaultRuleTargetHandler();
+            this.ActionsList.ItemsSource = this._handlersService.GetRuleTargetHandlers();
+            this.ActionsList.SelectedItem = this._handlersService.GetRuleTargetHandler(null);
         }
 
         DataContextViewModel ViewModel => (DataContextViewModel)this.DataContext;
@@ -55,15 +54,7 @@ namespace RSSViewer.Windows
                 throw new ArgumentNullException(nameof(rule));
 
             // general
-            if (string.IsNullOrEmpty(rule.HandlerId))
-            {
-                this.ActionsList.SelectedItem = this._handlersService.GetDefaultRuleTargetHandler();
-            }
-            else
-            {
-                this.ActionsList.SelectedItem = this._handlersService.GetRuleTargetHandlers()
-                    .FirstOrDefault(z => z.Id == rule.HandlerId);
-            }
+            this.ActionsList.SelectedItem = this._handlersService.GetRuleTargetHandler(rule.HandlerId);
 
             // match
             this.SelectedMatchStringMode = rule.Mode;

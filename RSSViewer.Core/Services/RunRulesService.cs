@@ -3,6 +3,7 @@ using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
 using RSSViewer.Helpers;
 using RSSViewer.LocalDb;
+using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
 using RSSViewer.StringMatchers;
 using RSSViewer.Utils;
@@ -256,13 +257,9 @@ namespace RSSViewer.Services
 
                 var handlersService = this._serviceProvider.GetRequiredService<RssItemHandlersService>();
                 foreach (var group in results.GroupBy(z => z.RulesChain.Last().HandlerId))
-                {
-                    var handlerId = group.Key;
-                    var handler = string.IsNullOrEmpty(handlerId)
-                        ? handlersService.GetDefaultRuleTargetHandler()
-                        : handlersService.GetRuleTargetHandlers().FirstOrDefault(z => z.Id == handlerId);
-
-                    if (handler != null)
+                {;
+                    var handler = handlersService.GetRuleTargetHandler(group.Key);
+                    if (handler is not null)
                     {
                         var handledItems = await handler.HandleAsync(group.Select(z => (z.Item, z.Item.State)).ToList()).ToListAsync();
                         foreach (var (item, newState) in handledItems)

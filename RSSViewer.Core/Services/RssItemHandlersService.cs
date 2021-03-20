@@ -84,9 +84,20 @@ namespace RSSViewer.Services
 
         public IReadOnlyCollection<IRssItemHandler> GetRuleTargetHandlers() => this._handlers.Where(z => z.CanbeRuleTarget).ToList();
 
+        /// <summary>
+        /// Return <see langword="null"/> if the handler is deleted by user.
+        /// </summary>
+        /// <param name="handlerId"></param>
+        /// <returns></returns>
+        public IRssItemHandler GetRuleTargetHandler(string handlerId)
+        {
+            handlerId = string.IsNullOrEmpty(handlerId) ? KnownHandlerIds.DefaultHandlerId : handlerId;
+            return this.GetRuleTargetHandlers().FirstOrDefault(z => z.Id == handlerId);
+        }
+
         public IRssItemHandler GetDefaultRuleTargetHandler()
         {
-            return this._handlers.Where(z => z.Id == ChangeStateHandler.GetId(RssItemState.Rejected)).Single();
+            return this._handlers.Where(z => z.Id == KnownHandlerIds.DefaultHandlerId).Single();
         }
 
         public event EventHandler AcceptHandlersChanged;
