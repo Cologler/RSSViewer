@@ -50,28 +50,21 @@ namespace RSSViewer.Services
 
                 using (this._viewerLogger.EnterEvent("Rebuild matchers"))
                 {
-                    var setById = rules.Select(z => z.Id).ToHashSet();
-                    var reachableItems = new List<MatchRule>();
-                    var unreachableItems = new List<MatchRule>();
-                    foreach (var r in rules)
+                    var nodes = rules.Select(this.ToMatcher).ToList();
+                    var nodesById = nodes.ToDictionary(z => z.Rule.Id);
+                    var rootNodes = new List<RuleMatchTreeNode>();
+                    foreach (var n in nodes)
                     {
-                        if (r.ParentId is null || setById.Contains(r.ParentId.Value))
+                        if (n.Rule.ParentId is null)
                         {
-                            reachableItems.Add(r);
+                            rootNodes.Add(n);
                         }
                         else
                         {
-                            unreachableItems.Add(r);
+                            nodesById.GetValueOrDefault(n.Rule.ParentId.Value)?.AddSubBranch(n);
                         }
                     }
-                    var reachableMatchers = reachableItems.Select(this.ToMatcher).ToList();
-                    var dictById = reachableMatchers.ToDictionary(z => z.Rule.Id);
-                    foreach (var m in reachableMatchers.Where(z => z.Rule.ParentId is not null))
-                    {
-                        dictById[m.Rule.ParentId.Value].AddSubBranch(m);
-                    }
-
-                    this._matchRules = reachableMatchers.Where(z => z.Rule.ParentId is null).ToImmutableArray();
+                    this._matchRules = rootNodes.ToImmutableArray();
                 }
             }
         }
