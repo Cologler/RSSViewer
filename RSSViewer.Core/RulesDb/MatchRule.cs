@@ -8,8 +8,16 @@ namespace RSSViewer.RulesDb
 {
     public class MatchRule
     {
+        /// <summary>
+        /// The Id of this <see cref="MatchRule"/>
+        /// </summary>
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+
+        /// <summary>
+        /// The Id of the parent <see cref="MatchRule"/>
+        /// </summary>
+        public int? ParentId { get; set; }
 
         public MatchMode Mode { get; set; }
 
