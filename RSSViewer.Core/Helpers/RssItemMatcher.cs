@@ -17,7 +17,8 @@ namespace RSSViewer.Helpers
     {
         private readonly MatchRule _matchRule;
         private readonly IStringMatcher _stringMatcher;
-        private List<RssItemMatcher> _branchs;
+        private ImmutableArray<RssItemMatcher> _branchs;
+        private readonly object _syncRoot = new();
 
         public RssItemMatcher(MatchRule matchRule, IStringMatcher stringMatcher)
         {
@@ -71,12 +72,18 @@ namespace RSSViewer.Helpers
 
         public void AddSubBranch(RssItemMatcher rssItemMatcher)
         {
-            if (this._branchs is null)
-            {
-                this._branchs = new();
-            }
+            lock (this._syncRoot) this._branchs = this._branchs.Add(rssItemMatcher);
+        }
 
-            this._branchs.Add(rssItemMatcher);
+        public RssItemMatcher FindSubBranch(int ruleId)
+        {
+            if (this.Rule.Id == ruleId)
+                return this;
+
+            if (this._branchs.IsDefault)
+                return null;
+
+            return this._branchs.Select(z => z.FindSubBranch(ruleId)).FirstOrDefault(z => z is not null);
         }
     }
 }

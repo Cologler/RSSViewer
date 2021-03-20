@@ -24,6 +24,7 @@ namespace RSSViewer.Services
         private readonly IViewerLogger _viewerLogger;
         private readonly SafeHandle<ImmutableArray<RssItemMatcher>> _matchRules;
         private readonly StringMatcherFactory _stringMatcherFactory;
+        private readonly object _syncRoot = new();
 
         public RunRulesService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
@@ -109,12 +110,24 @@ namespace RSSViewer.Services
             var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
 
             var matcher = this.ToMatcher(rule);
-            this._matchRules.Change(v => v.Add(matcher));
+            var rootMatcher = rule.ParentId is null
+                ? matcher
+                : this._matchRules.Value.Select(z => z.FindSubBranch(rule.Id)).Single(z => z is not null);
+
+            if (rule.ParentId is null)
+            {
+                rootMatcher.AddSubBranch(matcher);
+            }
+            else
+            {
+                this._matchRules.Change(v => v.Add(matcher));
+            }
 
             var context = new MatchContext(this._serviceProvider);
-            context.Rules.Add(matcher);
+            context.Rules.Add(rootMatcher);
             _ = Task.Run(async () =>
             {
+                // TODO: this context run on entire root rule, not the new rule.
                 await context.RunForAllAsync();
                 this._viewerLogger.AddLine($"{context.GetResultMessage()} by new rule ({rule.Argument}).");
             });
