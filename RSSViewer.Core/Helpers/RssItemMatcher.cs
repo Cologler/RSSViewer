@@ -53,7 +53,7 @@ namespace RSSViewer.Helpers
                 return default;
 
             // childs
-            if (this._branchs is not null)
+            if (!this._branchs.IsDefault)
             {
                 foreach (var child in this._branchs)
                 {

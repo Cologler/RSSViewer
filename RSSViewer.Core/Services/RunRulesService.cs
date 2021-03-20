@@ -22,9 +22,9 @@ namespace RSSViewer.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
-        private readonly SafeHandle<ImmutableArray<RssItemMatcher>> _matchRules;
         private readonly StringMatcherFactory _stringMatcherFactory;
         private readonly object _syncRoot = new();
+        private ImmutableArray<RssItemMatcher> _matchRules;
 
         public RunRulesService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
@@ -32,8 +32,6 @@ namespace RSSViewer.Services
             this._viewerLogger = viewerLogger;
 
             this._stringMatcherFactory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
-
-            this._matchRules = new SafeHandle<ImmutableArray<RssItemMatcher>>();
 
             var configService = this._serviceProvider.GetRequiredService<ConfigService>();
             configService.MatchRulesChanged += this.ConfigService_MatchRulesChanged;
@@ -45,7 +43,7 @@ namespace RSSViewer.Services
 
         private void RebuildRules()
         {
-            lock (this._matchRules.SyncRoot)
+            lock (this._syncRoot)
             {
                 var rules = this._serviceProvider.GetRequiredService<ConfigService>().ListMatchRules(true);
 
@@ -77,7 +75,7 @@ namespace RSSViewer.Services
                         .Select(this.ToMatcher)
                         .ToImmutableArray();
 
-                    this._matchRules.Value = reachableMatchers.Where(z => z.Rule.ParentId is null).ToImmutableArray();
+                    this._matchRules = reachableMatchers.Where(z => z.Rule.ParentId is null).ToImmutableArray();
                 }
             }
         }
@@ -112,7 +110,7 @@ namespace RSSViewer.Services
             var matcher = this.ToMatcher(rule);
             var rootMatcher = rule.ParentId is null
                 ? matcher
-                : this._matchRules.Value.Select(z => z.FindSubBranch(rule.Id)).Single(z => z is not null);
+                : this._matchRules.Select(z => z.FindSubBranch(rule.Id)).Single(z => z is not null);
 
             if (rule.ParentId is null)
             {
@@ -120,7 +118,7 @@ namespace RSSViewer.Services
             }
             else
             {
-                this._matchRules.Change(v => v.Add(matcher));
+                lock (this._syncRoot) this._matchRules = this._matchRules.Add(matcher);
             }
 
             var context = new MatchContext(this._serviceProvider);
@@ -154,7 +152,7 @@ namespace RSSViewer.Services
             Task.Run(async () =>
             {
                 var context = new MatchContext(this._serviceProvider);
-                context.Rules.AddRange(this._matchRules.Value);
+                context.Rules.AddRange(this._matchRules);
 
                 using (this._viewerLogger.EnterEvent("Run rules"))
                 {
@@ -169,7 +167,7 @@ namespace RSSViewer.Services
             return Task.Run(async () =>
             {
                 var context = new MatchContext(this._serviceProvider);
-                context.Rules.AddRange(this._matchRules.Value);
+                context.Rules.AddRange(this._matchRules);
 
                 using (this._viewerLogger.EnterEvent("Run rules"))
                 {
