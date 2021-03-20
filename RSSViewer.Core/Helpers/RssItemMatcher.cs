@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,5 +37,24 @@ namespace RSSViewer.Helpers
         }
 
         public string HandlerId => this._matchRule.HandlerId;
+
+        /// <summary>
+        /// return <see langword="null"/> if not match.
+        /// </summary>
+        /// <param name="rssItem"></param>
+        /// <param name="now"></param>
+        /// <returns></returns>
+        public ImmutableArray<MatchRule> TryFindMatchedRule(IPartialRssItem rssItem, DateTime now)
+        {
+            if (this._matchRule.OnFeedId is not null && this._matchRule.OnFeedId != rssItem.FeedId)
+                return default;
+
+            if (!this._stringMatcher.IsMatch(rssItem.Title))
+                return default;
+
+            this.LastMatched = now;
+            this._matchRule.LastMatched = now;
+            return ImmutableArray.Create(this._matchRule);
+        }
     }
 }

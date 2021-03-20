@@ -176,8 +176,7 @@ namespace RSSViewer.Services
 
                 this.SourceItems.AddRange(this._queryService.List(new[] { RssItemState.Undecided }));
 
-                await this.Scan();
-                this.Commit();
+                await this.StartAsync();
             }
 
             public async ValueTask RunForAsync(IReadOnlyCollection<IPartialRssItem> rssItems)
@@ -187,12 +186,12 @@ namespace RSSViewer.Services
 
                 this.SourceItems.AddRange(rssItems);
 
-                await this.Scan();
-                this.Commit();
+                await this.StartAsync();
             }
 
-            private async ValueTask Scan()
+            private async ValueTask StartAsync()
             {
+                var now = this.Now;
                 var rules = this.Rules.OrderByDescending(z => z.LastMatched).ToList();
 
                 var results = this.SourceItems.AsParallel()
@@ -200,25 +199,29 @@ namespace RSSViewer.Services
                     {
                         foreach (var rule in rules)
                         {
-                            if (rule.IsMatch(item))
+                            var rulesChain = rule.TryFindMatchedRule(item, now);
+                            if (!rulesChain.IsDefault)
                             {
-                                return (Rule: rule, Item: item);
+                                return (RulesChain: rulesChain, Item: item);
                             }
                         }
-                        return (null, null);
+                        return (default, null);
                     })
-                    .Where(z => z.Rule != null)
+                    .Where(z => !z.RulesChain.IsDefaultOrEmpty)
                     .ToList();
 
                 var matchedCounter = this.MatchedCounter;
                 foreach (var result in results)
                 {
-                    result.Rule.LastMatched = this.Now;
-                    matchedCounter[result.Rule.RuleId] = matchedCounter.GetValueOrDefault(result.Rule.RuleId) + 1;
+                    result.RulesChain.Last().LastMatched = this.Now;
+                    foreach (var rule in result.RulesChain)
+                    {
+                        matchedCounter[rule.Id] = matchedCounter.GetValueOrDefault(rule.Id) + 1;
+                    }
                 }
 
                 var handlersService = this._serviceProvider.GetRequiredService<RssItemHandlersService>();
-                foreach (var group in results.GroupBy(z => z.Rule.HandlerId))
+                foreach (var group in results.GroupBy(z => z.RulesChain.Last().HandlerId))
                 {
                     var handlerId = group.Key;
                     var handler = string.IsNullOrEmpty(handlerId)
@@ -243,12 +246,7 @@ namespace RSSViewer.Services
                             }
                         }
                     }
-                } 
-            }
-
-            private void Commit()
-            {
-                var matchedCounter = this.MatchedCounter;
+                }
 
                 if (this.RejectedItems.Count + this.AcceptedItems.Count > 0)
                 {
@@ -262,9 +260,9 @@ namespace RSSViewer.Services
                         foreach (var (ruleId, count) in matchedCounter)
                         {
                             var item = ctx.MatchRules.Find(ruleId);
-                            if (item != null)
+                            if (item is not null)
                             {
-                                item.LastMatched = this.Now;
+                                item.LastMatched = now;
                                 item.TotalMatchedCount += count;
                             }
                         }
@@ -281,11 +279,11 @@ namespace RSSViewer.Services
                 }
                 else if (this.AcceptedItems.Count > 0)
                 {
-                    return  $"Accepted {this.AcceptedItems.Count} items";
+                    return $"Accepted {this.AcceptedItems.Count} items";
                 }
                 else if (this.RejectedItems.Count > 0)
                 {
-                    return  $"Rejected {this.RejectedItems.Count} items";
+                    return $"Rejected {this.RejectedItems.Count} items";
                 }
                 else
                 {
