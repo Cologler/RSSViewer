@@ -99,6 +99,7 @@ namespace RSSViewer
                 .AddSingleton<IViewerLogger, NoneViewerLogger>()
                 .AddSingleton(typeof(EventEmitter<>))
                 .AddSingleton<RegexCache>()
+                .AddSingleton<IRssItemHandler, EmptyHandler>()
                 ;
 
             var rssItemStates = new[]
