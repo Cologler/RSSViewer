@@ -143,7 +143,7 @@ namespace RSSViewer.Windows
             this.DialogResult = false;
         }
 
-        private RssItemMatcher TryCreateRssItemMatcher()
+        private RuleMatchTreeNode TryCreateRssItemMatcher()
         {
             var rule = new MatchRule();
             this.WriteToConf(rule);
@@ -151,7 +151,7 @@ namespace RSSViewer.Windows
 
             try
             {
-                return new RssItemMatcher(rule, factory.Create(rule));
+                return new RuleMatchTreeNode(rule, factory.Create(rule));
             }
             catch (ArgumentException e)
             {
@@ -162,7 +162,7 @@ namespace RSSViewer.Windows
 
         private async void RunTestButton_Click(object sender, RoutedEventArgs e)
         {
-            if (this.TryCreateRssItemMatcher() is RssItemMatcher matcher)
+            if (this.TryCreateRssItemMatcher() is RuleMatchTreeNode matcher)
             {
                 var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<StringMatcherFactory>();
                 var query = App.RSSViewerHost.Query();

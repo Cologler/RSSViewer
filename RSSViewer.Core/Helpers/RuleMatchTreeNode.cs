@@ -13,14 +13,14 @@ using RSSViewer.StringMatchers;
 
 namespace RSSViewer.Helpers
 {
-    public class RssItemMatcher
+    public class RuleMatchTreeNode
     {
         private readonly MatchRule _matchRule;
         private readonly IStringMatcher _stringMatcher;
-        private ImmutableArray<RssItemMatcher> _branchs;
+        private ImmutableArray<RuleMatchTreeNode> _branchs;
         private readonly object _syncRoot = new();
 
-        public RssItemMatcher(MatchRule matchRule, IStringMatcher stringMatcher)
+        public RuleMatchTreeNode(MatchRule matchRule, IStringMatcher stringMatcher)
         {
             this._matchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
             this._stringMatcher = stringMatcher ?? throw new ArgumentNullException(nameof(stringMatcher));
@@ -70,12 +70,12 @@ namespace RSSViewer.Helpers
             return ImmutableArray.Create(this.Rule);
         }
 
-        public void AddSubBranch(RssItemMatcher rssItemMatcher)
+        public void AddSubBranch(RuleMatchTreeNode rssItemMatcher)
         {
             lock (this._syncRoot) this._branchs = this._branchs.Add(rssItemMatcher);
         }
 
-        public RssItemMatcher FindSubBranch(int ruleId)
+        public RuleMatchTreeNode FindSubBranch(int ruleId)
         {
             if (this.Rule.Id == ruleId)
                 return this;

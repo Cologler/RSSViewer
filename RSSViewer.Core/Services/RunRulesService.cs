@@ -24,7 +24,7 @@ namespace RSSViewer.Services
         private readonly IViewerLogger _viewerLogger;
         private readonly StringMatcherFactory _stringMatcherFactory;
         private readonly object _syncRoot = new();
-        private ImmutableArray<RssItemMatcher> _matchRules;
+        private ImmutableArray<RuleMatchTreeNode> _matchRules;
 
         public RunRulesService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
@@ -38,8 +38,8 @@ namespace RSSViewer.Services
             this.RebuildRules();
         }
 
-        private RssItemMatcher ToMatcher(MatchRule rule)
-            => new RssItemMatcher(rule, this._stringMatcherFactory.Create(rule));
+        private RuleMatchTreeNode ToMatcher(MatchRule rule)
+            => new RuleMatchTreeNode(rule, this._stringMatcherFactory.Create(rule));
 
         private void RebuildRules()
         {
@@ -196,7 +196,7 @@ namespace RSSViewer.Services
 
             public List<IPartialRssItem> RejectedItems { get; } = new();
 
-            public List<RssItemMatcher> Rules { get; } = new();
+            public List<RuleMatchTreeNode> Rules { get; } = new();
 
             public Dictionary<int, int> MatchedCounter { get; } = new();
 
