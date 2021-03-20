@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,27 +17,25 @@ namespace RSSViewer.Helpers
     {
         private readonly MatchRule _matchRule;
         private readonly IStringMatcher _stringMatcher;
+        private List<RssItemMatcher> _branchs;
 
         public RssItemMatcher(MatchRule matchRule, IStringMatcher stringMatcher)
         {
             this._matchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
             this._stringMatcher = stringMatcher ?? throw new ArgumentNullException(nameof(stringMatcher));
-            this.LastMatched = matchRule.LastMatched;
         }
 
-        public DateTime LastMatched { get; set; }
+        public DateTime LastMatched => this.Rule.LastMatched;
 
-        public int RuleId => this._matchRule.Id;
+        public MatchRule Rule => this._matchRule;
 
         public bool IsMatch(IPartialRssItem rssItem)
         {
-            if (this._matchRule.OnFeedId is not null && this._matchRule.OnFeedId != rssItem.FeedId)
+            if (this.Rule.OnFeedId is not null && this.Rule.OnFeedId != rssItem.FeedId)
                 return false;
 
             return this._stringMatcher.IsMatch(rssItem.Title);
         }
-
-        public string HandlerId => this._matchRule.HandlerId;
 
         /// <summary>
         /// return <see langword="null"/> if not match.
@@ -46,15 +45,38 @@ namespace RSSViewer.Helpers
         /// <returns></returns>
         public ImmutableArray<MatchRule> TryFindMatchedRule(IPartialRssItem rssItem, DateTime now)
         {
-            if (this._matchRule.OnFeedId is not null && this._matchRule.OnFeedId != rssItem.FeedId)
+            if (this.Rule.OnFeedId is not null && this.Rule.OnFeedId != rssItem.FeedId)
                 return default;
 
             if (!this._stringMatcher.IsMatch(rssItem.Title))
                 return default;
 
-            this.LastMatched = now;
-            this._matchRule.LastMatched = now;
-            return ImmutableArray.Create(this._matchRule);
+            // childs
+            if (this._branchs is not null)
+            {
+                foreach (var child in this._branchs)
+                {
+                    var rulesChain = child.TryFindMatchedRule(rssItem, now);
+                    if (!rulesChain.IsDefault)
+                    {
+                        Debug.Assert(!rulesChain.IsEmpty);
+                        return ImmutableArray.Create(this.Rule).AddRange(rulesChain);
+                    }
+                }
+            }
+
+            this.Rule.LastMatched = now;
+            return ImmutableArray.Create(this.Rule);
+        }
+
+        public void AddSubBranch(RssItemMatcher rssItemMatcher)
+        {
+            if (this._branchs is null)
+            {
+                this._branchs = new();
+            }
+
+            this._branchs.Add(rssItemMatcher);
         }
     }
 }

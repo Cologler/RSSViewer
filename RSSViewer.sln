@@ -13,7 +13,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSSViewer.Core", "RSSViewer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSSViewer.Provider.Synology", "RSSViewer.Provider.Synology\RSSViewer.Provider.Synology.csproj", "{998E4D62-481F-40A8-9345-F49293FB6A45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RSSViewer.Provider.Transmission", "RSSViewer.Provider.Transmission\RSSViewer.Provider.Transmission.csproj", "{80CFB240-2C33-4E8D-B380-10ADF941316E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSSViewer.Provider.Transmission", "RSSViewer.Provider.Transmission\RSSViewer.Provider.Transmission.csproj", "{80CFB240-2C33-4E8D-B380-10ADF941316E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{736EF8BA-2ED0-4C96-82F2-5AF4911FBF1A}"
+	ProjectSection(SolutionItems) = preProject
+		upgrade-dbcontext.ps1 = upgrade-dbcontext.ps1
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -49,12 +50,33 @@ namespace RSSViewer.Services
 
                 using (this._viewerLogger.EnterEvent("Rebuild matchers"))
                 {
+                    var setById = rules.Select(z => z.Id).ToHashSet();
+                    var reachableItems = new List<MatchRule>();
+                    var unreachableItems = new List<MatchRule>();
+                    foreach (var r in rules)
+                    {
+                        if (r.ParentId is null || setById.Contains(r.ParentId.Value))
+                        {
+                            reachableItems.Add(r);
+                        }
+                        else
+                        {
+                            unreachableItems.Add(r);
+                        }
+                    }
+                    var reachableMatchers = reachableItems.Select(this.ToMatcher).ToList();
+                    var dictById = reachableMatchers.ToDictionary(z => z.Rule.Id);
+                    foreach (var m in reachableMatchers.Where(z => z.Rule.ParentId is not null))
+                    {
+                        dictById[m.Rule.ParentId.Value].AddSubBranch(m);
+                    }
+
                     var matchers = rules
                         .Where(z => !z.IsDisabled)
                         .Select(this.ToMatcher)
                         .ToImmutableArray();
 
-                    this._matchRules.Value = matchers;
+                    this._matchRules.Value = reachableMatchers.Where(z => z.Rule.ParentId is null).ToImmutableArray();
                 }
             }
         }
@@ -202,6 +224,7 @@ namespace RSSViewer.Services
                             var rulesChain = rule.TryFindMatchedRule(item, now);
                             if (!rulesChain.IsDefault)
                             {
+                                Debug.Assert(!rulesChain.IsEmpty);
                                 return (RulesChain: rulesChain, Item: item);
                             }
                         }
