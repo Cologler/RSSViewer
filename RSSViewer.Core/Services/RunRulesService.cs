@@ -39,8 +39,29 @@ namespace RSSViewer.Services
             this.RebuildRules();
         }
 
-        private RuleMatchTreeNode ToMatcher(MatchRule rule)
+        private RuleMatchTreeNode CreateNode(MatchRule rule)
             => new RuleMatchTreeNode(rule, this._stringMatcherFactory.Create(rule));
+
+        private (RuleMatchTreeNode Parent, RuleMatchTreeNode Root) FindParents(RuleMatchTreeNode node)
+        {
+            if (node.Rule.IsRootRule())
+            {
+                return (null, node);
+            }
+            else
+            {
+                var parentId = node.Rule.ParentId.Value;
+                foreach (var root in this._matchRules)
+                {
+                    var parent = root.FindNode(parentId);
+                    if (parent is not null)
+                    {
+                        return (parent, root);
+                    }
+                }
+            }
+            return (null, null);
+        }
 
         private void RebuildRules()
         {
@@ -50,7 +71,7 @@ namespace RSSViewer.Services
 
                 using (this._viewerLogger.EnterEvent("Rebuild matchers"))
                 {
-                    var nodes = rules.Select(this.ToMatcher).ToList();
+                    var nodes = rules.Select(this.CreateNode).ToList();
                     var nodesById = nodes.ToDictionary(z => z.Rule.Id);
                     var rootNodes = new List<RuleMatchTreeNode>();
                     foreach (var n in nodes)
@@ -61,7 +82,7 @@ namespace RSSViewer.Services
                         }
                         else
                         {
-                            nodesById.GetValueOrDefault(n.Rule.ParentId.Value)?.AddSubBranch(n);
+                            nodesById.GetValueOrDefault(n.Rule.ParentId.Value)?.AddSubNode(n);
                         }
                     }
                     this._matchRules = rootNodes.ToImmutableArray();
@@ -96,23 +117,27 @@ namespace RSSViewer.Services
 
             var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
 
-            var matcher = this.ToMatcher(rule);
-            var rootMatcher = rule.ParentId is null
-                ? matcher
-                : this._matchRules.Select(z => z.FindSubBranch(rule.Id)).Single(z => z is not null);
-
-            if (rule.ParentId is null)
+            var node = this.CreateNode(rule);
+            var (parentNode, rootNode) = this.FindParents(node);
+            if (rule.IsRootRule())
             {
                 lock (this._syncRoot)
-                    this._matchRules = this._matchRules.Add(matcher);
+                    this._matchRules = this._matchRules.Add(node);
             }
             else
             {
-                rootMatcher.AddSubBranch(matcher);
+                if (parentNode is not null)
+                    parentNode.AddSubNode(node);
+            }
+
+            if (rootNode is null)
+            {
+                return;
             }
 
             var context = new MatchContext(this._serviceProvider);
-            context.Rules.Add(rootMatcher);
+            context.Rules.Add(rootNode);
+            context.CaredRuleId.Add(rule.Id);
             _ = Task.Run(async () =>
             {
                 // TODO: this context run on entire root rule, not the new rule.
@@ -129,7 +154,13 @@ namespace RSSViewer.Services
             this.RebuildRules();
 
             var context = new MatchContext(this._serviceProvider);
-            context.Rules.AddRange(rules.Select(this.ToMatcher));
+            context.Rules.AddRange(
+                rules.Select(this.CreateNode)
+                    .Select(this.FindParents)
+                    .Where(z => z.Root is not null)
+                    .Select(z => z.Root)
+            );
+            rules.Select(z => z.Id).ToList().ForEach(z => context.CaredRuleId.Add(z));
             _ = Task.Run(async () =>
             {
                 await context.RunForAllAsync();
@@ -192,6 +223,8 @@ namespace RSSViewer.Services
 
             public DateTime Now { get; } = DateTime.UtcNow;
 
+            public HashSet<int> CaredRuleId { get; set; } = new();
+
             public async ValueTask RunForAllAsync()
             {
                 if (this.Rules.Count == 0)
@@ -237,7 +270,10 @@ namespace RSSViewer.Services
                 var matchedCounter = this.MatchedCounter;
                 foreach (var result in results)
                 {
-                    result.RulesChain.Last().LastMatched = this.Now;
+                    var last = result.RulesChain.Last();
+                    if (this.CaredRuleId.Count > 0 && !this.CaredRuleId.Contains(last.Id))
+                        continue;
+                    last.LastMatched = this.Now;
                     foreach (var rule in result.RulesChain)
                     {
                         matchedCounter[rule.Id] = matchedCounter.GetValueOrDefault(rule.Id) + 1;
@@ -246,11 +282,20 @@ namespace RSSViewer.Services
 
                 var handlersService = this._serviceProvider.GetRequiredService<RssItemHandlersService>();
                 foreach (var group in results.GroupBy(z => z.RulesChain.Last().HandlerId))
-                {;
+                {
                     var handler = handlersService.GetRuleTargetHandler(group.Key);
                     if (handler is not null)
                     {
-                        var handledItems = await handler.HandleAsync(group.Select(z => (z.Item, z.Item.State)).ToList()).ToListAsync();
+                        var source = group.AsEnumerable();
+                        if (this.CaredRuleId.Count > 0)
+                        {
+                            source = source.Where(z => this.CaredRuleId.Contains(z.RulesChain.Last().Id));
+                        }
+                        var applyItems = source
+                            .Select(z => (z.Item, z.Item.State))
+                            .ToList();
+
+                        var handledItems = await handler.HandleAsync(applyItems).ToListAsync();
                         foreach (var (item, newState) in handledItems)
                         {
                             if (newState != RssItemState.Undecided)

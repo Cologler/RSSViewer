@@ -24,9 +24,10 @@ namespace RSSViewer.Helpers
         {
             this._matchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
             this._stringMatcher = stringMatcher ?? throw new ArgumentNullException(nameof(stringMatcher));
+            this.LastMatched = matchRule.LastMatched;
         }
 
-        public DateTime LastMatched => this.Rule.LastMatched;
+        public DateTime LastMatched { get; private set; }
 
         public MatchRule Rule => this._matchRule;
 
@@ -66,16 +67,27 @@ namespace RSSViewer.Helpers
                 }
             }
 
-            this.Rule.LastMatched = now;
+            this.LastMatched = now;
             return ImmutableArray.Create(this.Rule);
         }
 
-        public void AddSubBranch(RuleMatchTreeNode rssItemMatcher)
+        /// <summary>
+        /// add sub node as child to this node.
+        /// </summary>
+        /// <param name="node"></param>
+        public void AddSubNode(RuleMatchTreeNode node)
         {
-            lock (this._syncRoot) this._branchs = this._branchs.Add(rssItemMatcher);
+            if (node.Rule.ParentId != this.Rule.Id)
+                throw new InvalidOperationException();
+            lock (this._syncRoot) this._branchs = this._branchs.Add(node);
         }
 
-        public RuleMatchTreeNode FindSubBranch(int ruleId)
+        /// <summary>
+        /// find node in entire tree, include this node.
+        /// </summary>
+        /// <param name="ruleId"></param>
+        /// <returns></returns>
+        public RuleMatchTreeNode FindNode(int ruleId)
         {
             if (this.Rule.Id == ruleId)
                 return this;
@@ -83,7 +95,7 @@ namespace RSSViewer.Helpers
             if (this._branchs.IsDefault)
                 return null;
 
-            return this._branchs.Select(z => z.FindSubBranch(ruleId)).FirstOrDefault(z => z is not null);
+            return this._branchs.Select(z => z.FindNode(ruleId)).FirstOrDefault(z => z is not null);
         }
     }
 }

@@ -52,5 +52,7 @@ namespace RSSViewer.RulesDb
         public int OrderCode { get; set; }
 
         public string OnFeedId { get; set; }
+
+        public bool IsRootRule() => this.ParentId is null;
     }
 }
