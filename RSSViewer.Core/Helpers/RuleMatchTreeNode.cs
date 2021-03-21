@@ -29,6 +29,11 @@ namespace RSSViewer.Helpers
 
         public DateTime LastMatched { get; private set; }
 
+        /// <summary>
+        /// Get or set if this node is matchable, which use to only match for childs without this.
+        /// </summary>
+        public bool IsMatchable { get; set; } = true;
+
         public MatchRule Rule => this._matchRule;
 
         public bool IsMatch(IPartialRssItem rssItem)
@@ -40,7 +45,7 @@ namespace RSSViewer.Helpers
         }
 
         /// <summary>
-        /// return <see langword="null"/> if not match.
+        /// return the chained rules, or <see langword="default"/> if not match.
         /// </summary>
         /// <param name="rssItem"></param>
         /// <param name="now"></param>
@@ -53,22 +58,38 @@ namespace RSSViewer.Helpers
             if (!this._stringMatcher.IsMatch(rssItem.Title))
                 return default;
 
+            ImmutableArray<MatchRule> rulesChain = default;
             // childs
             if (!this._branchs.IsDefault)
             {
                 foreach (var child in this._branchs)
                 {
-                    var rulesChain = child.TryFindMatchedRule(rssItem, now);
+                    rulesChain = child.TryFindMatchedRule(rssItem, now);
                     if (!rulesChain.IsDefault)
                     {
-                        Debug.Assert(!rulesChain.IsEmpty);
-                        return ImmutableArray.Create(this.Rule).AddRange(rulesChain);
+                        rulesChain = ImmutableArray.Create(this.Rule).AddRange(rulesChain);
+                        break;
                     }
                 }
             }
 
-            this.LastMatched = now;
-            return ImmutableArray.Create(this.Rule);
+            if (rulesChain.IsDefault && this.IsMatchable)
+            {
+                rulesChain = ImmutableArray.Create(this.Rule);
+            }
+
+            if (!rulesChain.IsDefault)
+            {
+                Debug.Assert(!rulesChain.IsEmpty);
+                lock (this._syncRoot)
+                {
+                    if (now > this.LastMatched)
+                        this.LastMatched = now;
+                }
+                return rulesChain;
+            }
+
+            return default;
         }
 
         /// <summary>
