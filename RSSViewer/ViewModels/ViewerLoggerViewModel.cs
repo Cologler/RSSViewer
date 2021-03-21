@@ -40,8 +40,9 @@ namespace RSSViewer.ViewModels
 
         private void OnMessagesAdded()
         {
-            var dispatcher = Application.Current.Dispatcher;
-            Debug.Assert(dispatcher is not null);
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher is not null)
+                return;
 
             if (dispatcher.CheckAccess())
             {
