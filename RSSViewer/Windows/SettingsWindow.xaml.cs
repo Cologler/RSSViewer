@@ -61,6 +61,7 @@ namespace RSSViewer.Windows
 
             if (EditRuleWindow.EditConf(this, vm.MatchRule))
             {
+                this.ViewModel.AutoRulesView.OnUpdateItem(vm);
                 vm.MarkChanged();
                 vm.RefreshProperties();
             }

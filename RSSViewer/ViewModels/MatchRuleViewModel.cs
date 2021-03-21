@@ -38,12 +38,5 @@ namespace RSSViewer.ViewModels
         public string DisplayPrefix { get; set; } = string.Empty;
 
         public int TreeLevel { get; set; } = 0;
-
-        public static void Sorted(IList<MatchRuleViewModel> viewModels)
-        {
-            if (viewModels is null)
-                throw new ArgumentNullException(nameof(viewModels));
-            throw new NotImplementedException();
-        }
     }
 }
