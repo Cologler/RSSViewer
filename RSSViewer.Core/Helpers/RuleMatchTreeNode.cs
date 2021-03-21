@@ -15,10 +15,10 @@ namespace RSSViewer.Helpers
 {
     public class RuleMatchTreeNode
     {
+        private readonly object _syncRoot = new();
         private readonly MatchRule _matchRule;
         private readonly IStringMatcher _stringMatcher;
         private ImmutableArray<RuleMatchTreeNode> _branchs;
-        private readonly object _syncRoot = new();
 
         public RuleMatchTreeNode(MatchRule matchRule, IStringMatcher stringMatcher)
         {
@@ -117,6 +117,20 @@ namespace RSSViewer.Helpers
                 return null;
 
             return this._branchs.Select(z => z.FindNode(ruleId)).FirstOrDefault(z => z is not null);
+        }
+
+        public RuleMatchTreeNode DeepClone(bool includeChilds)
+        {
+            var newNode = new RuleMatchTreeNode(this._matchRule, this._stringMatcher);
+            lock (this._syncRoot)
+            {
+                newNode.LastMatched = this.LastMatched;
+                if (includeChilds)
+                {
+                    newNode._branchs = this._branchs.Select(z => z.DeepClone(true)).ToImmutableArray();
+                }
+            }
+            return newNode;
         }
     }
 }

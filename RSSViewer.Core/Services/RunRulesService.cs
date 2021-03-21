@@ -25,7 +25,7 @@ namespace RSSViewer.Services
         private readonly IViewerLogger _viewerLogger;
         private readonly StringMatcherFactory _stringMatcherFactory;
         private readonly object _syncRoot = new();
-        private ImmutableArray<RuleMatchTreeNode> _matchRules;
+        private RuleMatchTree _ruleMatchTree { get; set; }
 
         public RunRulesService(IServiceProvider serviceProvider, IViewerLogger viewerLogger)
         {
@@ -42,27 +42,6 @@ namespace RSSViewer.Services
         private RuleMatchTreeNode CreateNode(MatchRule rule)
             => new RuleMatchTreeNode(rule, this._stringMatcherFactory.Create(rule));
 
-        private (RuleMatchTreeNode Parent, RuleMatchTreeNode Root) FindParents(RuleMatchTreeNode node)
-        {
-            if (node.Rule.IsRootRule())
-            {
-                return (null, node);
-            }
-            else
-            {
-                var parentId = node.Rule.ParentId.Value;
-                foreach (var root in this._matchRules)
-                {
-                    var parent = root.FindNode(parentId);
-                    if (parent is not null)
-                    {
-                        return (parent, root);
-                    }
-                }
-            }
-            return (null, null);
-        }
-
         private void RebuildRules()
         {
             lock (this._syncRoot)
@@ -71,21 +50,9 @@ namespace RSSViewer.Services
 
                 using (this._viewerLogger.EnterEvent("Rebuild matchers"))
                 {
-                    var nodes = rules.Select(this.CreateNode).ToList();
-                    var nodesById = nodes.ToDictionary(z => z.Rule.Id);
-                    var rootNodes = new List<RuleMatchTreeNode>();
-                    foreach (var n in nodes)
-                    {
-                        if (n.Rule.ParentId is null)
-                        {
-                            rootNodes.Add(n);
-                        }
-                        else
-                        {
-                            nodesById.GetValueOrDefault(n.Rule.ParentId.Value)?.AddSubNode(n);
-                        }
-                    }
-                    this._matchRules = rootNodes.ToImmutableArray();
+                    var newTree = new RuleMatchTree(this._stringMatcherFactory);
+                    newTree.AddOrUpdate(rules);
+                    this._ruleMatchTree = newTree;
                 }
             }
         }
@@ -115,29 +82,15 @@ namespace RSSViewer.Services
             if (rule is null)
                 throw new ArgumentNullException(nameof(rule));
 
-            var factory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
+            var factory = this._stringMatcherFactory;
+            this._ruleMatchTree.AddOrUpdate(new[] { rule });
 
-            var node = this.CreateNode(rule);
-            var (parentNode, rootNode) = this.FindParents(node);
-            if (rule.IsRootRule())
-            {
-                lock (this._syncRoot)
-                    this._matchRules = this._matchRules.Add(node);
-            }
-            else
-            {
-                if (parentNode is not null)
-                    parentNode.AddSubNode(node);
-            }
-
-            if (rootNode is null)
-            {
-                return;
-            }
+            var clonedTree = this._ruleMatchTree.DeepClone();
+            clonedTree.DisableAll();
+            clonedTree.EnableFor(new[] { rule });
 
             var context = new MatchContext(this._serviceProvider);
-            context.Rules.Add(rootNode);
-            context.CaredRuleId.Add(rule.Id);
+            context.RuleMatchTree = clonedTree;
             _ = Task.Run(async () =>
             {
                 // TODO: this context run on entire root rule, not the new rule.
@@ -153,14 +106,12 @@ namespace RSSViewer.Services
 
             this.RebuildRules();
 
+            var clonedTree = this._ruleMatchTree.DeepClone();
+            clonedTree.DisableAll();
+            clonedTree.EnableFor(rules);
+
             var context = new MatchContext(this._serviceProvider);
-            context.Rules.AddRange(
-                rules.Select(this.CreateNode)
-                    .Select(this.FindParents)
-                    .Where(z => z.Root is not null)
-                    .Select(z => z.Root)
-            );
-            rules.Select(z => z.Id).ToList().ForEach(z => context.CaredRuleId.Add(z));
+            context.RuleMatchTree = clonedTree;
             _ = Task.Run(async () =>
             {
                 await context.RunForAllAsync();
@@ -173,7 +124,7 @@ namespace RSSViewer.Services
             Task.Run(async () =>
             {
                 var context = new MatchContext(this._serviceProvider);
-                context.Rules.AddRange(this._matchRules);
+                context.RuleMatchTree = this._ruleMatchTree;
 
                 using (this._viewerLogger.EnterEvent("Run rules"))
                 {
@@ -188,7 +139,7 @@ namespace RSSViewer.Services
             return Task.Run(async () =>
             {
                 var context = new MatchContext(this._serviceProvider);
-                context.Rules.AddRange(this._matchRules);
+                context.RuleMatchTree = this._ruleMatchTree;
 
                 using (this._viewerLogger.EnterEvent("Run rules"))
                 {
@@ -211,23 +162,21 @@ namespace RSSViewer.Services
                 this._operationService = serviceProvider.GetRequiredService<RssItemsOperationService>();
             }
 
+            public RuleMatchTree RuleMatchTree { get; set; }
+
             public List<IPartialRssItem> SourceItems { get; } = new();
 
             public List<IPartialRssItem> AcceptedItems { get; } = new();
 
             public List<IPartialRssItem> RejectedItems { get; } = new();
 
-            public List<RuleMatchTreeNode> Rules { get; } = new();
-
             public Dictionary<int, int> MatchedCounter { get; } = new();
 
             public DateTime Now { get; } = DateTime.UtcNow;
 
-            public HashSet<int> CaredRuleId { get; set; } = new();
-
             public async ValueTask RunForAllAsync()
             {
-                if (this.Rules.Count == 0)
+                if (this.RuleMatchTree is null)
                     return;
 
                 this.SourceItems.AddRange(this._queryService.List(new[] { RssItemState.Undecided }));
@@ -237,7 +186,7 @@ namespace RSSViewer.Services
 
             public async ValueTask RunForAsync(IReadOnlyCollection<IPartialRssItem> rssItems)
             {
-                if (this.Rules.Count == 0)
+                if (this.RuleMatchTree is null)
                     return;
 
                 this.SourceItems.AddRange(rssItems);
@@ -248,21 +197,18 @@ namespace RSSViewer.Services
             private async ValueTask StartAsync()
             {
                 var now = this.Now;
-                var rules = this.Rules.OrderByDescending(z => z.LastMatched).ToList();
+                var matchTree = this.RuleMatchTree;
+                if (matchTree is null)
+                    return;
 
                 var results = this.SourceItems.AsParallel()
                     .Select(item =>
                     {
-                        foreach (var rule in rules)
-                        {
-                            var rulesChain = rule.TryFindMatchedRule(item, now);
-                            if (!rulesChain.IsDefault)
-                            {
-                                Debug.Assert(!rulesChain.IsEmpty);
-                                return (RulesChain: rulesChain, Item: item);
-                            }
-                        }
-                        return (default, null);
+                        var rulesChain = matchTree.TryFindMatchedRule(item, now);
+                        if (rulesChain.IsDefault)
+                            return (default, null);
+                        Debug.Assert(!rulesChain.IsEmpty);
+                        return (RulesChain: rulesChain, Item: item);
                     })
                     .Where(z => !z.RulesChain.IsDefaultOrEmpty)
                     .ToList();
@@ -271,8 +217,6 @@ namespace RSSViewer.Services
                 foreach (var result in results)
                 {
                     var last = result.RulesChain.Last();
-                    if (this.CaredRuleId.Count > 0 && !this.CaredRuleId.Contains(last.Id))
-                        continue;
                     last.LastMatched = this.Now;
                     foreach (var rule in result.RulesChain)
                     {
@@ -286,12 +230,7 @@ namespace RSSViewer.Services
                     var handler = handlersService.GetRuleTargetHandler(group.Key);
                     if (handler is not null)
                     {
-                        var source = group.AsEnumerable();
-                        if (this.CaredRuleId.Count > 0)
-                        {
-                            source = source.Where(z => this.CaredRuleId.Contains(z.RulesChain.Last().Id));
-                        }
-                        var applyItems = source
+                        var applyItems = group
                             .Select(z => (z.Item, z.Item.State))
                             .ToList();
 
