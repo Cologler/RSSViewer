@@ -98,7 +98,7 @@ namespace RSSViewer.Services
 
             Task.Run(() =>
             {
-                this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Refresh, SortMatchRules(changedRules.ToArray())));
+                this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Refresh, changedRules.ToArray()));
             });
         }
 
@@ -127,35 +127,22 @@ namespace RSSViewer.Services
             this.RaiseMatchRulesChanged(updateRules.Concat(addRules));
         }
 
-        public Task<MatchRule[]> ListMatchRulesAsync() => Task.Run(() => this.ListMatchRules(true));
+        public Task<MatchRule[]> ListMatchRulesAsync() => Task.Run(() => this.ListMatchRules());
 
         /// <summary>
         /// list match rules on sync way.
         /// </summary>
         /// <returns></returns>
-        internal MatchRule[] ListMatchRules(bool sort)
+        internal MatchRule[] ListMatchRules()
         {
             using var scope = this._serviceProvider.CreateScope();
             var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
             var rules = ctx.MatchRules.ToArray();
-            if (sort)
-            {
-                rules = SortMatchRules(rules);
-            }
             if (ctx.UpdateMatchRulesLifetime() > 0)
             {
                 ctx.SaveChanges();
             }
             return rules;
-        }
-
-        private static MatchRule[] SortMatchRules(MatchRule[] rules)
-        {
-            if (rules is null)
-                throw new ArgumentNullException(nameof(rules));
-
-            var offset = rules.Length + 10;
-            return rules.OrderBy(z => z.OrderCode == 0 ? offset : z.OrderCode).ToArray();
         }
     }
 }

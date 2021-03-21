@@ -62,18 +62,6 @@ namespace RSSViewer.ViewModels
 
         internal async void Save(ConfigService configService)
         {
-            var ruleViewModels = this.Items.ToArray();
-            for (var i = 0; i < ruleViewModels.Length; i++)
-            {
-                var orderCode = i + 1;
-                var viewModel = ruleViewModels[i];
-                if (viewModel.MatchRule.OrderCode != orderCode)
-                {
-                    viewModel.MatchRule.OrderCode = orderCode;
-                    viewModel.MarkChanged();
-                }
-            }
-
             await configService.UpdateMatchRulesAsync(
                 this.Items.Where(z => !z.IsAdded && z.IsChanged).Select(z => z.MatchRule).ToArray(),
                 this.Items.Where(z => z.IsAdded).Select(z => z.MatchRule).ToArray(),
