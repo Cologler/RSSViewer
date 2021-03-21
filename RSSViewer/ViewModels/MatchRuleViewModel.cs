@@ -10,7 +10,10 @@ namespace RSSViewer.ViewModels
 {
     public class MatchRuleViewModel : BaseViewModel
     {
-        public static MatchRuleViewModel None = new(null, false);
+        public static MatchRuleViewModel None = new("< None >");
+        public static MatchRuleViewModel NoParent = new("< None Parent >");
+
+        private readonly string _displayValue;
 
         public MatchRule MatchRule { get; }
 
@@ -20,8 +23,13 @@ namespace RSSViewer.ViewModels
             this.IsAdded = isAdded;
         }
 
+        private MatchRuleViewModel(string displayValue)
+        {
+            this._displayValue = displayValue;
+        }
+
         [ModelProperty]
-        public string DisplayValue => this.DisplayPrefix + (this.MatchRule?.ToDebugString() ?? "< None >");
+        public string DisplayValue => this._displayValue ?? (this.DisplayPrefix + this.MatchRule?.ToDebugString());
 
         public bool IsChanged { get; private set; }
 

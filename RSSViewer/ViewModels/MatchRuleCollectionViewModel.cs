@@ -30,7 +30,6 @@ namespace RSSViewer.ViewModels
             void Walk(MatchRuleViewModel vm, int level)
             {
                 vm.TreeLevel = level;
-                vm.DisplayPrefix = new string(' ', level * 2);
                 sorted.Add(vm);
                 foreach (var c in lookup[vm.MatchRule.Id])
                 {
@@ -45,8 +44,33 @@ namespace RSSViewer.ViewModels
                 }
             }
 
-            this.UpdateDisplayPrefix(sorted);
+            var noParentItems = viewModels.Except(sorted).ToList();
+            if (noParentItems.Count > 0)
+            {
+                foreach (var item in noParentItems)
+                {
+                    item.TreeLevel = 1;
+                }
+                sorted.InsertRange(0, noParentItems.Prepend(MatchRuleViewModel.NoParent));
+            }
+
+            this.UpdateDisplayPrefix(viewModels);
             this.ResetItems(sorted);
+        }
+
+        /// <summary>
+        /// Get range for the item and childs of it.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        protected Range? GetRange(MatchRuleViewModel item)
+        {
+            var index = this.Items.IndexOf(item);
+            if (index < 0)
+                return default;
+            var level = item.TreeLevel;
+            var childs = this.Items.Skip(index + 1).TakeWhile(z => z.TreeLevel > level).ToList();
+            return index..(index + childs.Count + 1);
         }
 
         /// <summary>
