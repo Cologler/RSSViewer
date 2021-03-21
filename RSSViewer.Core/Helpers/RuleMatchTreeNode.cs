@@ -16,13 +16,12 @@ namespace RSSViewer.Helpers
     public class RuleMatchTreeNode
     {
         private readonly object _syncRoot = new();
-        private readonly MatchRule _matchRule;
         private readonly IStringMatcher _stringMatcher;
         private ImmutableArray<RuleMatchTreeNode> _branchs;
 
         public RuleMatchTreeNode(MatchRule matchRule, IStringMatcher stringMatcher)
         {
-            this._matchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
+            this.Rule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
             this._stringMatcher = stringMatcher ?? throw new ArgumentNullException(nameof(stringMatcher));
             this.LastMatched = matchRule.LastMatched;
         }
@@ -34,7 +33,19 @@ namespace RSSViewer.Helpers
         /// </summary>
         public bool IsMatchable { get; set; } = true;
 
-        public MatchRule Rule => this._matchRule;
+        /// <summary>
+        /// Get whether any of childs or this is matchable.
+        /// </summary>
+        public bool IsActivated
+        {
+            get
+            {
+                var childs = this._branchs;
+                return this.IsMatchable || !childs.IsDefaultOrEmpty && childs.Any(z => z.IsActivated);
+            }
+        }
+
+        public MatchRule Rule { get; }
 
         public bool IsMatch(IPartialRssItem rssItem)
         {
@@ -121,7 +132,7 @@ namespace RSSViewer.Helpers
 
         public RuleMatchTreeNode DeepClone(bool includeChilds)
         {
-            var newNode = new RuleMatchTreeNode(this._matchRule, this._stringMatcher);
+            var newNode = new RuleMatchTreeNode(this.Rule, this._stringMatcher);
             lock (this._syncRoot)
             {
                 newNode.LastMatched = this.LastMatched;

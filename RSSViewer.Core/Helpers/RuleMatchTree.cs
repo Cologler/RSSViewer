@@ -117,23 +117,13 @@ namespace RSSViewer.Helpers
             lock (this._syncRoot)
             {
                 var mapById = _nodes.ToDictionary(z => z.Rule.Id);
-                var enabled = new HashSet<int>();
-                void EnableForId(int id)
+                foreach (var rule in rules)
                 {
-                    if (enabled.Contains(id))
-                        return;
-                    enabled.Add(id);
-                    var node = mapById.GetValueOrDefault(id);
+                    var node = mapById.GetValueOrDefault(rule.Id);
                     if (node is not null)
                     {
                         node.IsMatchable = true;
-                        if (node.Rule.ParentId is not null)
-                            EnableForId(node.Rule.ParentId.Value);
                     }
-                }
-                foreach (var rule in rules)
-                {
-                    EnableForId(rule.Id);
                 }
             }
         }

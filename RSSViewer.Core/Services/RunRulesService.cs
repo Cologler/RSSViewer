@@ -170,7 +170,7 @@ namespace RSSViewer.Services
 
             public List<IPartialRssItem> RejectedItems { get; } = new();
 
-            public Dictionary<int, int> MatchedCounter { get; } = new();
+            public List<IPartialRssItem> ArchivedItems { get; } = new();
 
             public DateTime Now { get; } = DateTime.UtcNow;
 
@@ -213,7 +213,7 @@ namespace RSSViewer.Services
                     .Where(z => !z.RulesChain.IsDefaultOrEmpty)
                     .ToList();
 
-                var matchedCounter = this.MatchedCounter;
+                var matchedCounter = new Dictionary<int, int>();
                 foreach (var result in results)
                 {
                     var last = result.RulesChain.Last();
@@ -247,6 +247,10 @@ namespace RSSViewer.Services
                                 {
                                     this.RejectedItems.Add(item);
                                 }
+                                else if (newState == RssItemState.Archived)
+                                {
+                                    this.ArchivedItems.Add(item);
+                                }
                             }
                         }
                     }
@@ -257,6 +261,7 @@ namespace RSSViewer.Services
                     var operationSession = this._operationService.CreateOperationSession(false);
                     operationSession.ChangeState(this.AcceptedItems, RssItemState.Accepted);
                     operationSession.ChangeState(this.RejectedItems, RssItemState.Rejected);
+                    operationSession.ChangeState(this.ArchivedItems, RssItemState.Archived);
 
                     using (var scope = this._serviceProvider.CreateScope())
                     {
