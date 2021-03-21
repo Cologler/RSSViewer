@@ -13,6 +13,7 @@ using SQLitePCL;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -97,8 +98,7 @@ namespace RSSViewer.ViewModels
                 return;
             }
 
-
-            var newValue = string.Join("|", 
+            var newValue = string.Join("|",
                 items.Select(z => RegexHelper.ConvertToRegexPattern(z.MatchRule.Mode, z.MatchRule.Argument)));
             if (!RegexUtils.IsValidPattern(newValue))
             {
@@ -115,19 +115,48 @@ namespace RSSViewer.ViewModels
                 totalMatched += item.MatchRule.TotalMatchedCount;
             }
 
-            var target = items[0];
+            var target = items.FirstOrDefault(z => !z.IsAdded) ?? items[0];
             target.MatchRule.Mode = MatchMode.Regex;
             target.MatchRule.Argument = newValue;
             target.MatchRule.LastMatched = theMaxTime;
             target.MatchRule.TotalMatchedCount = totalMatched;
             target.MarkChanged();
-            this.OnUpdateItem(target);
-            target.RefreshProperties();
+            var targetRange = this.GetRange(target).Value;
 
-            foreach (var item in items.Where(z => z != target))
+            var itemsToRemove = items.Where(z => z != target).ToList();
+            var childs = new List<MatchRuleViewModel>();
+            var childsOldIndexes = new List<int>();
+            foreach (var range in itemsToRemove.Select(this.GetRange).Select(z => z.Value).OrderBy(z => z.Start.Value))
+            {
+                var (offset, length) = range.GetOffsetAndLength(this.Items.Count);
+                var indexes = Enumerable.Range(offset + 1, length - 1).ToList();
+                childs.AddRange(indexes.Select(i => this.Items[i]));
+                childsOldIndexes.AddRange(indexes);
+            }
+            if (childs.Count > 0)
+            {
+                Debug.Assert(!target.IsAdded && target.MatchRule.Id > 0);
+                childsOldIndexes.Reverse();
+                foreach (var index in childsOldIndexes)
+                {
+                    this.Items.RemoveAt(index);
+                }
+                var childBeginIndex = targetRange.End.Value;
+                for (var i = 0; i < childs.Count; i++)
+                {
+                    childs[i].MatchRule.ParentId = target.MatchRule.Id;
+                    childs[i].MarkChanged();
+                    this.Items.Insert(childBeginIndex + i, childs[i]);
+                }
+            }
+
+            foreach (var item in itemsToRemove)
             {
                 this.RemoveRule(item);
             }
+
+            this.OnUpdateItem(target);
+            target.RefreshProperties();
         }
     }
 }
