@@ -67,6 +67,11 @@ namespace RSSViewer.Windows
             }
         }
 
+        private void AutoRules_Combine(object sender, RoutedEventArgs e)
+        {
+            this.ViewModel.AutoRulesView.Combine(this.SelectedAutoRules);
+        }
+
         private void AutoRules_Remove(object sender, RoutedEventArgs e)
         {
             var svm = this.ViewModel;

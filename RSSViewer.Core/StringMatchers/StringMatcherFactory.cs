@@ -33,7 +33,7 @@ namespace RSSViewer.StringMatchers
                 case MatchMode.Wildcard:
                     return new RegexStringMatcher(
                         this._regexCache.TryGet(
-                            WildcardUtils.WildcardEscape(rule.Argument), 
+                            WildcardUtils.ToRegexPattern(rule.Argument), 
                             rule.IgnoreCase ? RegexOptions.IgnoreCase : RegexOptions.None));
                 case MatchMode.Regex:
                     return new RegexStringMatcher(

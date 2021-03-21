@@ -8,9 +8,9 @@ namespace RSSViewer.Utils
     {
         public static readonly RegexOptions WildcardRegexOptions = RegexOptions.IgnoreCase;
 
-        public static Regex WildcardToRegex(string wildcardText) => new Regex(WildcardEscape(wildcardText), WildcardRegexOptions);
+        public static Regex WildcardToRegex(string wildcardText) => new Regex(ToRegexPattern(wildcardText), WildcardRegexOptions);
 
-        public static string WildcardEscape(string wildcardText)
+        public static string ToRegexPattern(string wildcardText)
         {
             if (wildcardText is null)
                 throw new ArgumentNullException(nameof(wildcardText));

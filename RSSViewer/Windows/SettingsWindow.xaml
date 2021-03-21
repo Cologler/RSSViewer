@@ -65,6 +65,8 @@
                                     <ContextMenu>
                                         <MenuItem Header="Edit"
                                                   Click="AutoRules_Edit" />
+                                        <MenuItem Header="Combine"
+                                                  Click="AutoRules_Combine" />
                                         <MenuItem Header="Remove"
                                                   Click="AutoRules_Remove" />
                                     </ContextMenu>
