@@ -2,31 +2,26 @@
 using RSSViewer.Configuration;
 using RSSViewer.RulesDb;
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace RSSViewer.ViewModels
 {
     public class MatchRuleViewModel : BaseViewModel
     {
+        public static MatchRuleViewModel None = new(null, false);
+
         public MatchRule MatchRule { get; }
 
-        public MatchRuleViewModel(MatchRule matchRule, int index, bool isAdded = false)
+        public MatchRuleViewModel(MatchRule matchRule, bool isAdded = false)
         {
             this.MatchRule = matchRule;
-            this.Index = index;
             this.IsAdded = isAdded;
         }
 
         [ModelProperty]
-        public string DisplayValue
-        {
-            get
-            {
-                return $"[{this.Index}] ({this.MatchRule.Mode}) {this.MatchRule.Argument}";
-            }
-        }
-
-        public int Index { get; set; }
+        public string DisplayValue => this.DisplayPrefix + (this.MatchRule?.ToDebugString() ?? "< None >");
 
         public bool IsChanged { get; private set; }
 
@@ -39,5 +34,16 @@ namespace RSSViewer.ViewModels
         }
 
         public bool IsAdded { get; private set; }
+
+        public string DisplayPrefix { get; set; } = string.Empty;
+
+        public int TreeLevel { get; set; } = 0;
+
+        public static void Sorted(IList<MatchRuleViewModel> viewModels)
+        {
+            if (viewModels is null)
+                throw new ArgumentNullException(nameof(viewModels));
+            throw new NotImplementedException();
+        }
     }
 }

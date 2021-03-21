@@ -39,9 +39,6 @@ namespace RSSViewer.Services
             this.RebuildRules();
         }
 
-        private RuleMatchTreeNode CreateNode(MatchRule rule)
-            => new RuleMatchTreeNode(rule, this._stringMatcherFactory.Create(rule));
-
         private void RebuildRules()
         {
             lock (this._syncRoot)
@@ -154,6 +151,7 @@ namespace RSSViewer.Services
             private readonly IServiceProvider _serviceProvider;
             private readonly RssItemsQueryService _queryService;
             private readonly RssItemsOperationService _operationService;
+            private readonly bool _isDebuggerAttached = Debugger.IsAttached;
 
             public MatchContext(IServiceProvider serviceProvider)
             {
@@ -194,6 +192,15 @@ namespace RSSViewer.Services
                 await this.StartAsync();
             }
 
+            private void LogMatched(ImmutableArray<MatchRule> matchedRulesChain, IPartialRssItem item)
+            {
+                if (!this._isDebuggerAttached)
+                    return;
+
+                var matchedRulesChainText = string.Join(" -> ", matchedRulesChain.Select(z => z.ToDebugString()));
+                Debug.WriteLine(@"match {0} by {1}", item.Title, matchedRulesChainText);
+            }
+
             private async ValueTask StartAsync()
             {
                 var now = this.Now;
@@ -208,17 +215,16 @@ namespace RSSViewer.Services
                         if (rulesChain.IsDefault)
                             return (default, null);
                         Debug.Assert(!rulesChain.IsEmpty);
+                        this.LogMatched(rulesChain, item);
                         return (RulesChain: rulesChain, Item: item);
                     })
                     .Where(z => !z.RulesChain.IsDefaultOrEmpty)
                     .ToList();
 
                 var matchedCounter = new Dictionary<int, int>();
-                foreach (var result in results)
+                foreach (var (RulesChain, Item) in results)
                 {
-                    var last = result.RulesChain.Last();
-                    last.LastMatched = this.Now;
-                    foreach (var rule in result.RulesChain)
+                    foreach (var rule in RulesChain)
                     {
                         matchedCounter[rule.Id] = matchedCounter.GetValueOrDefault(rule.Id) + 1;
                     }

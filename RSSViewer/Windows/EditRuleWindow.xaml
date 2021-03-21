@@ -44,6 +44,17 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Margin="8,0"
                                     Grid.ColumnSpan="2">
+
+                            <StackPanel Style="{StaticResource HeaderContentPair}">
+                                <TextBlock Text="Parent"
+                                           Style="{StaticResource HeaderStyle}" />
+
+                                <ComboBox DisplayMemberPath="DisplayValue"
+                                          ItemsSource="{Binding ParentSelectorView.Items}"
+                                          SelectedItem="{Binding ParentSelectorView.SelectedItem}" />
+
+                            </StackPanel>
+
                             <StackPanel Style="{StaticResource HeaderContentPair}">
                                 <TextBlock Text="Action"
                                            Style="{StaticResource HeaderStyle}" />

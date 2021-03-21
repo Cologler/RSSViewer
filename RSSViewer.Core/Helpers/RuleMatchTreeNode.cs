@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using RSSViewer.Abstractions;
 using RSSViewer.LocalDb;
+using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
 using RSSViewer.StringMatchers;
 
@@ -17,7 +18,7 @@ namespace RSSViewer.Helpers
     {
         private readonly object _syncRoot = new();
         private readonly IStringMatcher _stringMatcher;
-        private ImmutableArray<RuleMatchTreeNode> _branchs;
+        private ImmutableArray<RuleMatchTreeNode> _branchs = ImmutableArray<RuleMatchTreeNode>.Empty;
 
         public RuleMatchTreeNode(MatchRule matchRule, IStringMatcher stringMatcher)
         {
@@ -71,20 +72,17 @@ namespace RSSViewer.Helpers
 
             ImmutableArray<MatchRule> rulesChain = default;
             // childs
-            if (!this._branchs.IsDefault)
+            foreach (var child in this._branchs)
             {
-                foreach (var child in this._branchs)
+                rulesChain = child.TryFindMatchedRule(rssItem, now);
+                if (!rulesChain.IsDefault)
                 {
-                    rulesChain = child.TryFindMatchedRule(rssItem, now);
-                    if (!rulesChain.IsDefault)
-                    {
-                        rulesChain = ImmutableArray.Create(this.Rule).AddRange(rulesChain);
-                        break;
-                    }
+                    rulesChain = ImmutableArray.Create(this.Rule).AddRange(rulesChain);
+                    break;
                 }
             }
 
-            if (rulesChain.IsDefault && this.IsMatchable)
+            if (rulesChain.IsDefault && this.IsMatchable && this.Rule.HandlerId != KnownHandlerIds.EmptyHandlerId)
             {
                 rulesChain = ImmutableArray.Create(this.Rule);
             }
@@ -111,7 +109,10 @@ namespace RSSViewer.Helpers
         {
             if (node.Rule.ParentId != this.Rule.Id)
                 throw new InvalidOperationException();
-            lock (this._syncRoot) this._branchs = this._branchs.Add(node);
+            lock (this._syncRoot)
+            {
+                this._branchs = this._branchs.Add(node);
+            }
         }
 
         /// <summary>

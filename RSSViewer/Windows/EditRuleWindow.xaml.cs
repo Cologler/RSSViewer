@@ -63,7 +63,7 @@ namespace RSSViewer.Windows
             this.LastMatchedText.Text = rule.LastMatched.ToLocalTime().ToLongDateString();
             this.TotalMatchedCountText.Text = rule.TotalMatchedCount.ToString();
 
-            this.ViewModel.From(rule);
+            this.ViewModel.LoadAsync(rule);
         }
 
         public void WriteToConf(MatchRule rule)
@@ -268,7 +268,7 @@ namespace RSSViewer.Windows
                 }
             }
 
-            public void From(MatchRule rule)
+            public async void LoadAsync(MatchRule rule)
             {
                 this.SourcesView.SelectedItem = this.SourcesView.Items.FirstOrDefault(z => z.FeedId == rule.OnFeedId);
 
@@ -297,6 +297,13 @@ namespace RSSViewer.Windows
                     this.AutoExpiredAfterDaysText = string.Empty;
                 }
 
+                // parent
+                await this.ParentSelectorView.InitializedTask;
+                this.ParentSelectorView.SelectedItem = 
+                    this.ParentSelectorView.Items
+                        .Where(z => z.MatchRule?.Id == rule.ParentId)
+                        .FirstOrDefault();
+
                 this.RefreshProperties();
             }
 
@@ -317,11 +324,19 @@ namespace RSSViewer.Windows
                 {
                     rule.AutoExpiredAfterLastMatched = TimeSpan.FromDays(int.Parse(this.AutoExpiredAfterDaysText));
                 }
+
+                // parent
+                if (this.ParentSelectorView.SelectedItem is not null)
+                {
+                    rule.ParentId = this.ParentSelectorView.SelectedItem.MatchRule?.Id;
+                }
             }
 
             public SourcesViewModel SourcesView { get; } = new(false);
 
             public bool IgnoreCase { get => _ignoreCase; set => this.ChangeModelProperty(ref _ignoreCase, value); }
+
+            public MatchRuleParentSelectorViewModel ParentSelectorView { get; } = new();
         }
     }
 }

@@ -18,7 +18,6 @@ namespace RSSViewer.ViewModels
         {
             var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
             this.DefaultsView.Load(configService.AppConf);
-            await this.AutoRulesView.Load(configService);
         }
 
         internal void Save()
