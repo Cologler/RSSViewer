@@ -51,7 +51,14 @@
 
                                 <ComboBox DisplayMemberPath="DisplayValue"
                                           ItemsSource="{Binding ParentSelectorView.Items}"
-                                          SelectedItem="{Binding ParentSelectorView.SelectedItem}" />
+                                          SelectedItem="{Binding ParentSelectorView.SelectedItem}">
+                                    <ComboBox.ItemsPanel>
+                                        <!-- see stackoverflow 8198645-->
+                                        <ItemsPanelTemplate>
+                                            <VirtualizingStackPanel />
+                                        </ItemsPanelTemplate>
+                                    </ComboBox.ItemsPanel>
+                                </ComboBox>
 
                             </StackPanel>
 
