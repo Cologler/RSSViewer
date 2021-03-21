@@ -15,12 +15,12 @@ using System.Windows.Data;
 
 namespace RSSViewer.ViewModels
 {
-    public class AutoRulesViewModel : MatchRuleCollectionViewModel
+    public class MatchRuleCollectionManagerViewModel : MatchRuleCollectionViewModel
     {
         private readonly List<MatchRuleViewModel> _removedRules = new List<MatchRuleViewModel>();
         private string _searchText;
 
-        public AutoRulesViewModel()
+        public MatchRuleCollectionManagerViewModel()
         {
             this.RulesView = new ListCollectionView(this.Items);
         }
