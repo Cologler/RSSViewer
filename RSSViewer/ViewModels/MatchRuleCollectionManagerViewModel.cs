@@ -110,9 +110,14 @@ namespace RSSViewer.ViewModels
                 MessageBox.Show("Unable combine: some item did not has the same target feed.");
                 return;
             }
+            if (items.Select(z => z.MatchRule.IgnoreCase).ToHashSet().Count > 1)
+            {
+                MessageBox.Show("Unable combine: some item did not has the same ignore case flag.");
+                return;
+            }
 
             var newValue = string.Join("|",
-                items.Select(z => RegexHelper.ConvertToRegexPattern(z.MatchRule.Mode, z.MatchRule.Argument)));
+                items.Select(z => RegexHelper.ConvertToRegexPattern(z.MatchRule.Mode, z.MatchRule.Argument)).Distinct());
             if (!RegexUtils.IsValidPattern(newValue))
             {
                 MessageBox.Show("Unable combine.");
