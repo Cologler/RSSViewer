@@ -3,6 +3,7 @@ using Jasily.ViewModel;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using RSSViewer.RssItemHandlers;
 using RSSViewer.Services;
 using RSSViewer.ViewModels.Bases;
 
@@ -20,7 +21,9 @@ namespace RSSViewer.ViewModels
     {
         protected override async ValueTask LoadItemsAsync()
         {
-            var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
+            var serviceProvider = App.RSSViewerHost.ServiceProvider;
+
+            var configService = serviceProvider.GetRequiredService<ConfigService>();
             var rules = await configService.ListMatchRulesAsync();
             var viewModels = rules.Select(z => new MatchRuleViewModel(z)).ToList();
 
@@ -54,10 +57,20 @@ namespace RSSViewer.ViewModels
                 sorted.InsertRange(0, noParentItems.Prepend(MatchRuleViewModel.NoParent));
             }
 
-            foreach (var item in viewModels)
+            foreach (var item in sorted)
             {
                 item.RefreshDisplayPrefix();
             }
+
+            // setup handlers
+            var handlers = serviceProvider.GetRequiredService<RssItemHandlersService>()
+                .GetRuleTargetHandlers()
+                .ToDictionary(z => z.Id);
+            foreach (var item in viewModels)
+            {
+                item.Handler = handlers.GetValueOrDefault(item.MatchRule.HandlerId ?? KnownHandlerIds.DefaultHandlerId);
+            }
+
             this.ResetItems(sorted);
         }
 

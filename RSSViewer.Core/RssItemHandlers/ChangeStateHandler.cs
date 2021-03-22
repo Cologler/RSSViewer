@@ -27,6 +27,7 @@ namespace RSSViewer.RssItemHandlers
             this._newState = newState;
             this.Id = GetId(newState);
             this.HandlerName = $"Change To {newState}";
+            this.ShortDescription = newState.ToString();
         }
 
         public string Id { get; }
@@ -42,5 +43,7 @@ namespace RSSViewer.RssItemHandlers
                 .Select(z => (z.Item1, this._newState))
                 .ToAsyncEnumerable();
         }
+
+        public string ShortDescription { get; }
     }
 }

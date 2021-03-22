@@ -19,5 +19,7 @@ namespace RSSViewer.Abstractions
         /// <param name="rssItems"></param>
         /// <returns>the new state to change</returns>
         IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems);
+
+        string ShortDescription => this.HandlerName;
     }
 }

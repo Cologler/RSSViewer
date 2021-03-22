@@ -1,10 +1,15 @@
 ﻿using Jasily.ViewModel;
+
+using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
+using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Text;
 
 namespace RSSViewer.ViewModels
 {
@@ -19,17 +24,46 @@ namespace RSSViewer.ViewModels
 
         public MatchRuleViewModel(MatchRule matchRule, bool isAdded = false)
         {
-            this.MatchRule = matchRule;
+            this.MatchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
             this.IsAdded = isAdded;
         }
 
         private MatchRuleViewModel(string displayValue)
         {
-            this._displayValue = displayValue;
+            this._displayValue = displayValue ?? throw new ArgumentNullException(nameof(displayValue));
         }
 
         [ModelProperty]
-        public string DisplayValue => this._displayValue ?? (this.DisplayPrefix + this.MatchRule?.ToDebugString());
+        public string DisplayValue
+        {
+            get
+            {
+                if (this._displayValue is not null)
+                    return this._displayValue;
+
+                Debug.Assert(this.MatchRule is not null);
+
+                var sb = new StringBuilder();
+                sb.Append(this.DisplayPrefix);
+                sb.Append(this.MatchRule.ToDebugString());
+                if (this.MatchRule.OnFeedId is not null)
+                    sb.Append(" @").Append(this.MatchRule.OnFeedId);
+                if (this.Handler is IRssItemHandler handler)
+                {
+                    if (handler.Id == KnownHandlerIds.EmptyHandlerId)
+                    {
+                        sb.Append(" (group) ");
+                    }
+                    else
+                    {
+                        sb.Append("  ->  ").Append(this.Handler.ShortDescription);
+                    }
+                }
+                return sb.ToString();
+            }
+        }
+
+        public IRssItemHandler Handler { get; set; }
 
         public bool IsChanged { get; private set; }
 
