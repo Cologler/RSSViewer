@@ -4,6 +4,8 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
 
+using RSSViewer.StringMatchers;
+
 namespace RSSViewer.RulesDb
 {
     public class MatchRule
@@ -60,5 +62,21 @@ namespace RSSViewer.RulesDb
         /// </summary>
         /// <returns></returns>
         public string ToDebugString() => $"({this.Mode}) {this.Argument}";
+
+        public StringMatchArguments CreateStringMatchArguments()
+        {
+            var mode = this.Mode switch
+            {
+                MatchMode.None => throw new NotImplementedException(),
+                MatchMode.Contains => StringMatchMode.Contains,
+                MatchMode.StartsWith => StringMatchMode.StartsWith,
+                MatchMode.EndsWith => StringMatchMode.EndsWith,
+                MatchMode.Wildcard => StringMatchMode.Wildcard,
+                MatchMode.Regex => StringMatchMode.Regex,
+                _ => throw new InvalidOperationException(),
+            };
+
+            return new(mode, this.Argument, this.IgnoreCase);
+        }
     }
 }
