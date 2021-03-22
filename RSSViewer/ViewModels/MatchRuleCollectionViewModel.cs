@@ -145,8 +145,12 @@ namespace RSSViewer.ViewModels
         {
             foreach (var item in viewModels)
             {
-                item.DisplayPrefix = new string(' ', item.TreeLevel * 3);
-                item.RefreshProperties();
+                if (item.TreeLevel > 0)
+                {
+                    // char copy from https://en.wikipedia.org/wiki/Box-drawing_character
+                    item.DisplayPrefix = new string(' ', item.TreeLevel) + "├ ";
+                    item.RefreshProperties();
+                }
             }
         }
     }
