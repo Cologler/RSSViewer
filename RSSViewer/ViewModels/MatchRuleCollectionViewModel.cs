@@ -76,7 +76,7 @@ namespace RSSViewer.ViewModels
         /// <summary>
         /// call after a item was updated
         /// </summary>
-        public void OnUpdateItem(MatchRuleViewModel item)
+        public virtual void OnUpdateItem(MatchRuleViewModel item)
         {
             if (item is null)
                 throw new ArgumentNullException(nameof(item));

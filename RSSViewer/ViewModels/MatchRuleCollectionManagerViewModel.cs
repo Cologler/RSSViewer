@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Printing;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
@@ -38,17 +39,29 @@ namespace RSSViewer.ViewModels
             {
                 if (this.ChangeModelProperty(ref this._searchText, value))
                 {
-                    if (string.IsNullOrWhiteSpace(value))
-                    {
-                        this.RulesView.Filter = null;
-                    }
-                    else
-                    {
-                        var r = this.Search(value.Trim());
-                        this.RulesView.Filter = (v) => r.Contains((MatchRuleViewModel)v);
-                    }
+                    this.UpdateSearchView();
                 }
             }
+        }
+
+        private void UpdateSearchView()
+        {
+            var value = this._searchText;
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                this.RulesView.Filter = null;
+            }
+            else
+            {
+                var r = this.Search(value.Trim());
+                this.RulesView.Filter = (v) => r.Contains((MatchRuleViewModel)v);
+            }
+        }
+
+        public override void OnUpdateItem(MatchRuleViewModel item)
+        {
+            base.OnUpdateItem(item);
+            this.UpdateSearchView();
         }
 
         public ListCollectionView RulesView { get; }
