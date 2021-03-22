@@ -54,7 +54,10 @@ namespace RSSViewer.ViewModels
                 sorted.InsertRange(0, noParentItems.Prepend(MatchRuleViewModel.NoParent));
             }
 
-            this.UpdateDisplayPrefix(viewModels);
+            foreach (var item in viewModels)
+            {
+                item.RefreshDisplayPrefix();
+            }
             this.ResetItems(sorted);
         }
 
@@ -135,21 +138,7 @@ namespace RSSViewer.ViewModels
                 {
                     c.TreeLevel += levelChanged;
                     Debug.Assert(c.TreeLevel >= 0);
-                }
-
-                this.UpdateDisplayPrefix(itemsToMove);
-            }
-        }
-
-        private void UpdateDisplayPrefix(IList<MatchRuleViewModel> viewModels)
-        {
-            foreach (var item in viewModels)
-            {
-                if (item.TreeLevel > 0)
-                {
-                    // char copy from https://en.wikipedia.org/wiki/Box-drawing_character
-                    item.DisplayPrefix = new string(' ', item.TreeLevel) + "├ ";
-                    item.RefreshProperties();
+                    c.RefreshDisplayPrefix();
                 }
             }
         }

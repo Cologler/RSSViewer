@@ -46,5 +46,20 @@ namespace RSSViewer.ViewModels
         public string DisplayPrefix { get; set; } = string.Empty;
 
         public int TreeLevel { get; set; } = 0;
+
+        public void RefreshDisplayPrefix()
+        {
+            if (this.TreeLevel > 0)
+            {
+                // char copy from https://en.wikipedia.org/wiki/Box-drawing_character
+                this.DisplayPrefix = new string(' ', this.TreeLevel) + "├ ";
+
+            }
+            else
+            {
+                this.DisplayPrefix = string.Empty;
+            }
+            this.RefreshProperties();
+        }
     }
 }
