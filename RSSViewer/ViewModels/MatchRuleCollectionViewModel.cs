@@ -153,5 +153,31 @@ namespace RSSViewer.ViewModels
                 }
             }
         }
+
+        public HashSet<MatchRuleViewModel> Search(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return new HashSet<MatchRuleViewModel>(this.Items);
+            }
+            else
+            {
+                var results = new HashSet<MatchRuleViewModel>();
+                var dictById = this.Items.Where(z => !z.IsAdded).ToDictionary(z => z.MatchRule.Id);
+                var direct = this.Items
+                    .Where(z => z.MatchRule.Argument.Contains(text, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                foreach (var item in direct)
+                {
+                    var x = item;
+                    while (x is not null && !results.Contains(x))
+                    {
+                        results.Add(x);
+                        x = x.MatchRule.ParentId.HasValue ? dictById.GetValueOrDefault(x.MatchRule.ParentId.Value) : null;
+                    }
+                }
+                return results;
+            }
+        }
     }
 }

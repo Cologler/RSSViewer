@@ -44,8 +44,8 @@ namespace RSSViewer.ViewModels
                     }
                     else
                     {
-                        var t = value.Trim();
-                        this.RulesView.Filter = (v) => ((MatchRuleViewModel)v).MatchRule.Argument.Contains(t, StringComparison.OrdinalIgnoreCase);
+                        var r = this.Search(value.Trim());
+                        this.RulesView.Filter = (v) => r.Contains((MatchRuleViewModel)v);
                     }
                 }
             }
