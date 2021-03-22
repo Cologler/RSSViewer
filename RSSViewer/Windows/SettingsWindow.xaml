@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:RSSViewer.Windows"
         mc:Ignorable="d"
         Title="Settings"
-        Height="450"
-        Width="400"
+        Height="550"
+        Width="600"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
     <Grid Margin="4">
