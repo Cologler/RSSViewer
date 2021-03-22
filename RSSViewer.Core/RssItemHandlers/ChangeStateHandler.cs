@@ -33,7 +33,7 @@ namespace RSSViewer.RssItemHandlers
 
         public string HandlerName { get; }
 
-        public bool CanbeRuleTarget => true;
+        public bool CanbeRuleTarget => this._newState != RssItemState.Undecided;
 
         public IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems)
         {
