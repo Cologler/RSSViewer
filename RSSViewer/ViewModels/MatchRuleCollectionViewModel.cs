@@ -4,6 +4,7 @@ using Jasily.ViewModel;
 using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.RssItemHandlers;
+using RSSViewer.RulesDb;
 using RSSViewer.Services;
 using RSSViewer.ViewModels.Bases;
 
@@ -22,47 +23,33 @@ namespace RSSViewer.ViewModels
         protected override async ValueTask LoadItemsAsync()
         {
             var serviceProvider = App.RSSViewerHost.ServiceProvider;
+            this.ResetItemsFromTree(await serviceProvider.GetRequiredService<ConfigService>().ListMatchRulesAsync());
+        }
 
-            var configService = serviceProvider.GetRequiredService<ConfigService>();
-            var rules = await configService.ListMatchRulesAsync();
-            var viewModels = rules.Select(z => new MatchRuleViewModel(z)).ToList();
+        protected void ResetItemsFromTree(IList<MatchRule> rules)
+        {
+            if (rules is null)
+                throw new ArgumentNullException(nameof(rules));
 
-            var lookup = viewModels.ToLookup(z => z.MatchRule.ParentId);
+            var (tree, noParentItems) = rules.ToTree();
 
-            var sorted = new List<MatchRuleViewModel>();
-            void Walk(MatchRuleViewModel vm, int level)
-            {
-                vm.TreeLevel = level;
-                sorted.Add(vm);
-                foreach (var c in lookup[vm.MatchRule.Id])
-                {
-                    Walk(c, level+1);
-                }
-            }
-            foreach (var item in viewModels)
-            {
-                if (item.MatchRule.IsRootRule())
-                {
-                    Walk(item, 0);
-                }
-            }
+            var viewModels = tree
+                .Where(z => !z.IsRoot)
+                .Select(z => new MatchRuleViewModel(z.Item) { TreeLevel = z.Level-1 })
+                .ToList();
 
-            var noParentItems = viewModels.Except(sorted).ToList();
             if (noParentItems.Count > 0)
             {
-                foreach (var item in noParentItems)
-                {
-                    item.TreeLevel = 1;
-                }
-                sorted.InsertRange(0, noParentItems.Prepend(MatchRuleViewModel.NoParent));
+                viewModels.InsertRange(0, noParentItems.Select(z => new MatchRuleViewModel(z) { TreeLevel = 1 }).Prepend(MatchRuleViewModel.NoParent));
             }
 
-            foreach (var item in sorted)
+            foreach (var item in viewModels)
             {
                 item.RefreshDisplayPrefix();
             }
 
             // setup handlers
+            var serviceProvider = App.RSSViewerHost.ServiceProvider;
             var handlers = serviceProvider.GetRequiredService<RssItemHandlersService>()
                 .GetRuleTargetHandlers()
                 .ToDictionary(z => z.Id);
@@ -71,7 +58,7 @@ namespace RSSViewer.ViewModels
                 item.Handler = handlers.GetValueOrDefault(item.MatchRule.HandlerId ?? KnownHandlerIds.DefaultHandlerId);
             }
 
-            this.ResetItems(sorted);
+            this.ResetItems(viewModels);
         }
 
         /// <summary>
