@@ -22,12 +22,12 @@ using System.Windows.Data;
 
 namespace RSSViewer.ViewModels
 {
-    public class MatchRuleCollectionManagerViewModel : MatchRuleCollectionViewModel
+    public class MatchRuleListManagerViewModel : MatchRuleListViewModel
     {
         private readonly List<MatchRuleViewModel> _removedRules = new List<MatchRuleViewModel>();
         private string _searchText;
 
-        public MatchRuleCollectionManagerViewModel()
+        public MatchRuleListManagerViewModel()
         {
             this.RulesView = new ListCollectionView(this.Items);
         }

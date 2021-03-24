@@ -75,7 +75,7 @@ namespace RSSViewer.Helpers
             var rootNodes = this._rootNodes; // make a clone
             foreach (var node in rootNodes)
             {
-                var rulesChain = node.TryFindMatchedRule(rssItem, now);
+                var rulesChain = node.TryFindMatchedRule(rssItem, now, false);
                 if (!rulesChain.IsDefault)
                 {
                     Debug.Assert(!rulesChain.IsEmpty);

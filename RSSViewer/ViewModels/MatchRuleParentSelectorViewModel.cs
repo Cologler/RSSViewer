@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace RSSViewer.ViewModels
 {
-    public class MatchRuleParentSelectorViewModel : MatchRuleCollectionViewModel
+    public class MatchRuleParentSelectorViewModel : MatchRuleListViewModel
     {
         public override void ResetItems(IEnumerable<MatchRuleViewModel> viewModels)
         {

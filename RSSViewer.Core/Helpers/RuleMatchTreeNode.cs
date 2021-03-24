@@ -34,18 +34,6 @@ namespace RSSViewer.Helpers
         /// </summary>
         public bool IsMatchable { get; set; } = true;
 
-        /// <summary>
-        /// Get whether any of childs or this is matchable.
-        /// </summary>
-        public bool IsActivated
-        {
-            get
-            {
-                var childs = this._branchs;
-                return this.IsMatchable || !childs.IsDefaultOrEmpty && childs.Any(z => z.IsActivated);
-            }
-        }
-
         public MatchRule Rule { get; }
 
         public bool IsMatch(IPartialRssItem rssItem)
@@ -62,7 +50,7 @@ namespace RSSViewer.Helpers
         /// <param name="rssItem"></param>
         /// <param name="now"></param>
         /// <returns></returns>
-        public ImmutableArray<MatchRule> TryFindMatchedRule(IPartialRssItem rssItem, DateTime now)
+        public ImmutableArray<MatchRule> TryFindMatchedRule(IPartialRssItem rssItem, DateTime now, bool isParentMatchable)
         {
             if (this.Rule.OnFeedId is not null && this.Rule.OnFeedId != rssItem.FeedId)
                 return default;
@@ -70,11 +58,12 @@ namespace RSSViewer.Helpers
             if (!this._stringMatcher.IsMatch(rssItem.Title))
                 return default;
 
+            var isMatchable = isParentMatchable || this.IsMatchable;
             ImmutableArray<MatchRule> rulesChain = default;
             // childs
             foreach (var child in this._branchs)
             {
-                rulesChain = child.TryFindMatchedRule(rssItem, now);
+                rulesChain = child.TryFindMatchedRule(rssItem, now, isMatchable);
                 if (!rulesChain.IsDefault)
                 {
                     rulesChain = ImmutableArray.Create(this.Rule).AddRange(rulesChain);
@@ -82,7 +71,7 @@ namespace RSSViewer.Helpers
                 }
             }
 
-            if (rulesChain.IsDefault && this.IsMatchable && this.Rule.HandlerId != KnownHandlerIds.EmptyHandlerId)
+            if (rulesChain.IsDefault && isMatchable && this.Rule.HandlerId != KnownHandlerIds.EmptyHandlerId)
             {
                 rulesChain = ImmutableArray.Create(this.Rule);
             }
