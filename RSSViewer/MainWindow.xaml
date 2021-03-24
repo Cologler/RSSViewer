@@ -40,9 +40,11 @@
                                   Click="RunSyncSourceOnceMenuItem_Click" />
                     </MenuItem>
                 </MenuItem>
-                <MenuItem Header="Settings"
-                          x:Name="SettingsMenuItem"
-                          Click="SettingsMenuItem_Click"/>
+                
+                <MenuItem Header="Settings">
+                    <MenuItem Header="Open Rules Manager"
+                              Click="OpenRulesManagerMenuItem_Click" />
+                </MenuItem>
             </Menu>
         </Grid>
 

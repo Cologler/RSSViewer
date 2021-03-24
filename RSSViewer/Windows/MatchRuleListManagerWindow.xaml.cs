@@ -18,22 +18,15 @@ namespace RSSViewer.Windows
     /// <summary>
     /// SettingsWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class SettingsWindow : Window
+    public partial class MatchRuleListManagerWindow : Window
     {
-        public SettingsWindow()
+        public MatchRuleListManagerWindow()
         {
             InitializeComponent();
-            var vm = new SettingsViewModel();
-            _ = vm.Load();
-            this.Load(vm);
+            this.DataContext = new MatchRuleListManagerViewModel();
         }
 
-        private void Load(SettingsViewModel settingsViewModel)
-        {
-            this.DataContext = settingsViewModel;
-        }
-
-        internal SettingsViewModel ViewModel => (SettingsViewModel)this.DataContext;
+        internal MatchRuleListManagerViewModel ViewModel => (MatchRuleListManagerViewModel)this.DataContext;
 
         private MatchRuleViewModel[] SelectedAutoRules
         {
@@ -61,7 +54,7 @@ namespace RSSViewer.Windows
 
             if (EditRuleWindow.EditConf(this, vm.MatchRule))
             {
-                this.ViewModel.AutoRulesView.OnUpdateItem(vm);
+                this.ViewModel.OnUpdateItem(vm);
                 vm.MarkChanged();
                 vm.RefreshProperties();
             }
@@ -69,7 +62,7 @@ namespace RSSViewer.Windows
 
         private void AutoRules_Combine(object sender, RoutedEventArgs e)
         {
-            this.ViewModel.AutoRulesView.Combine(this.SelectedAutoRules);
+            this.ViewModel.Combine(this.SelectedAutoRules);
         }
 
         private void AutoRules_Remove(object sender, RoutedEventArgs e)
@@ -77,7 +70,7 @@ namespace RSSViewer.Windows
             var svm = this.ViewModel;
             foreach (var vm in this.SelectedAutoRules)
             {
-                svm.AutoRulesView.RemoveRule(vm);
+                svm.RemoveRule(vm);
             }
         }
 
@@ -85,7 +78,7 @@ namespace RSSViewer.Windows
         {
             if (EditRuleWindow.TryCreateConf(this, out var conf))
             {
-                this.ViewModel.AutoRulesView.AddRule(conf);
+                this.ViewModel.AddRule(conf);
             }
         }
 

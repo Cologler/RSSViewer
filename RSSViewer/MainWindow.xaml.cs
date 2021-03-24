@@ -185,9 +185,9 @@ namespace RSSViewer
             }
         }
 
-        private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        private void OpenRulesManagerMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var win = new SettingsWindow
+            var win = new MatchRuleListManagerWindow
             {
                 Owner = this
             };

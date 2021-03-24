@@ -10,8 +10,6 @@ namespace RSSViewer.ViewModels
 {
     public class SettingsViewModel
     {
-        public MatchRuleListManagerViewModel AutoRulesView { get; } = new();
-
         public DefaultsViewModel DefaultsView { get; } = new();
 
         public async Task Load()
@@ -23,7 +21,6 @@ namespace RSSViewer.ViewModels
         internal void Save()
         {
             var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
-            this.AutoRulesView.Save(configService);
             this.DefaultsView.Save(configService.AppConf);
             configService.Save();
         }

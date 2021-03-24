@@ -1,6 +1,7 @@
 ﻿using Accessibility;
 
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Configuration;
 using RSSViewer.Helpers;
@@ -81,8 +82,9 @@ namespace RSSViewer.ViewModels
             this.Items.Remove(ruleViewModel);
         }
 
-        internal async void Save(ConfigService configService)
+        internal async void Save()
         {
+            var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
             await configService.UpdateMatchRulesAsync(
                 this.Items.Where(z => !z.IsAdded && z.IsChanged).Select(z => z.MatchRule).ToArray(),
                 this.Items.Where(z => z.IsAdded).Select(z => z.MatchRule).ToArray(),
