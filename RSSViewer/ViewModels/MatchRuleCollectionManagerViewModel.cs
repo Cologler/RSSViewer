@@ -68,7 +68,9 @@ namespace RSSViewer.ViewModels
 
         internal void AddRule(MatchRule conf)
         {
-            this.Items.Add(new MatchRuleViewModel(conf, true));
+            var viewModel = new MatchRuleViewModel(conf, true);
+            this.Items.Add(viewModel);
+            base.OnUpdateItem(viewModel);
         }
 
         internal void RemoveRule(MatchRuleViewModel ruleViewModel)

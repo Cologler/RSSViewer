@@ -40,7 +40,9 @@ namespace RSSViewer.ViewModels
 
             if (noParentItems.Count > 0)
             {
-                viewModels.InsertRange(0, noParentItems.Select(z => new MatchRuleViewModel(z) { TreeLevel = 1 }).Prepend(MatchRuleViewModel.NoParent));
+                viewModels.InsertRange(0, noParentItems
+                    .Select(z => new MatchRuleViewModel(z) { TreeLevel = 1 })
+                    .Prepend(MatchRuleViewModel.NoParent));
             }
 
             foreach (var item in viewModels)
