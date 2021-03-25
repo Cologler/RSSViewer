@@ -89,7 +89,14 @@ namespace RSSViewer.Windows
 
             // match
             rule.Mode = this.SelectedMatchStringMode;
-            rule.Argument = this.MatchValueTextBox.Text;
+            if (rule.Mode.IsStringMode())
+            {
+                rule.Argument = this.MatchValueTextBox.Text;
+            }
+            else
+            {
+                rule.Argument = string.Empty;
+            } 
 
             this.ViewModel.Write(rule);
         }
