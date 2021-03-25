@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
+using RSSViewer.Filter;
 using RSSViewer.Helpers;
 using RSSViewer.LocalDb;
 using RSSViewer.RulesDb;
@@ -44,6 +45,18 @@ namespace RSSViewer.Windows
 
             this.ActionsList.ItemsSource = this._handlersService.GetRuleTargetHandlers();
             this.ActionsList.SelectedItem = this._handlersService.GetRuleTargetHandler(null);
+
+            // build match mode
+            foreach (var item in Enum.GetValues<MatchMode>())
+            {
+                if (item != MatchMode.None)
+                {
+                    this.SelectModeComboBox.Items.Add(new ComboBoxItem
+                    {
+                        Content = item.ToString()
+                    });
+                }
+            }
         }
 
         DataContextViewModel ViewModel => (DataContextViewModel)this.DataContext;
@@ -89,8 +102,7 @@ namespace RSSViewer.Windows
         {
             get
             {
-                var selected = (string)((ComboBoxItem)this.SelectModeComboBox.SelectedItem).Content;
-                return (MatchMode)Enum.Parse(typeof(MatchMode), selected);
+                return Enum.Parse<MatchMode>((string)((ComboBoxItem)this.SelectModeComboBox.SelectedItem).Content);
             }
             set
             {
@@ -138,7 +150,7 @@ namespace RSSViewer.Windows
         {
             var rule = new MatchRule();
             this.WriteToConf(rule);
-            var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<StringMatcherFactory>();
+            var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<RssItemFilterFactory>();
 
             try
             {
@@ -155,7 +167,7 @@ namespace RSSViewer.Windows
         {
             if (this.TryCreateRssItemMatcher() is RuleMatchTreeNode matcher)
             {
-                var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<StringMatcherFactory>();
+                var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<RssItemFilterFactory>();
                 var query = App.RSSViewerHost.Query();
                 var items = await query.ListAsync(new[] { RssItemState.Undecided }, null, CancellationToken.None);
                 items = items.Where(z => matcher.IsMatch(z)).ToArray();

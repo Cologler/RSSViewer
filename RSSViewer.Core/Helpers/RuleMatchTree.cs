@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 
 using RSSViewer.Abstractions;
+using RSSViewer.Filter;
 using RSSViewer.RulesDb;
 using RSSViewer.StringMatchers;
 
@@ -13,11 +14,11 @@ namespace RSSViewer.Helpers
     public class RuleMatchTree
     {
         private readonly object _syncRoot = new();
-        private readonly StringMatcherFactory _stringMatcherFactory;
+        private readonly RssItemFilterFactory _stringMatcherFactory;
         private readonly List<RuleMatchTreeNode> _nodes = new();
         private ImmutableArray<RuleMatchTreeNode> _rootNodes;
 
-        public RuleMatchTree(StringMatcherFactory stringMatcherFactory)
+        public RuleMatchTree(RssItemFilterFactory stringMatcherFactory)
         {
             this._stringMatcherFactory = stringMatcherFactory ?? throw new ArgumentNullException(nameof(stringMatcherFactory));
         }

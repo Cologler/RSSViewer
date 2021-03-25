@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Printing;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
@@ -120,9 +121,21 @@ namespace RSSViewer.ViewModels
                 return;
             }
 
-            var newValue = string.Join("|",
-                items.Select(z => RegexHelper.ConvertToRegexPattern(z.MatchRule.Mode, z.MatchRule.Argument)).Distinct());
-            if (!RegexUtils.IsValidPattern(newValue))
+            var newValueParts = new List<string>();
+            foreach (var item in items)
+            {
+                if (item.MatchRule.Mode.IsStringMode())
+                {
+                    newValueParts.Add(RegexHelper.ConvertToRegexPattern(item.MatchRule.Mode, item.MatchRule.Argument));
+                }
+                else if (item.MatchRule.Mode != MatchMode.All)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            newValueParts = newValueParts.Distinct().ToList();
+            var newValue = string.Join("|", newValueParts);
+            if (newValue.Length > 0 && !RegexUtils.IsValidPattern(newValue))
             {
                 MessageBox.Show("Unable combine.");
                 return;
@@ -138,7 +151,7 @@ namespace RSSViewer.ViewModels
             }
 
             var target = items.FirstOrDefault(z => !z.IsAdded) ?? items[0];
-            target.MatchRule.Mode = MatchMode.Regex;
+            target.MatchRule.Mode = newValue.Length > 0 ? MatchMode.Regex : MatchMode.All;
             target.MatchRule.Argument = newValue;
             target.MatchRule.LastMatched = theMaxTime;
             target.MatchRule.TotalMatchedCount = totalMatched;

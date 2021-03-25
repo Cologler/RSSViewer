@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using RSSViewer.Abstractions;
+using RSSViewer.Filter;
 using RSSViewer.LocalDb;
 using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
@@ -17,13 +18,13 @@ namespace RSSViewer.Helpers
     public class RuleMatchTreeNode
     {
         private readonly object _syncRoot = new();
-        private readonly IStringMatcher _stringMatcher;
+        private readonly IRssItemFilter _filter;
         private ImmutableArray<RuleMatchTreeNode> _branchs = ImmutableArray<RuleMatchTreeNode>.Empty;
 
-        public RuleMatchTreeNode(MatchRule matchRule, IStringMatcher stringMatcher)
+        public RuleMatchTreeNode(MatchRule matchRule, IRssItemFilter filter)
         {
             this.Rule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
-            this._stringMatcher = stringMatcher ?? throw new ArgumentNullException(nameof(stringMatcher));
+            this._filter = filter ?? throw new ArgumentNullException(nameof(filter));
             this.LastMatched = matchRule.LastMatched;
         }
 
@@ -41,7 +42,7 @@ namespace RSSViewer.Helpers
             if (this.Rule.OnFeedId is not null && this.Rule.OnFeedId != rssItem.FeedId)
                 return false;
 
-            return this._stringMatcher.IsMatch(rssItem.Title);
+            return this._filter.IsMatch(rssItem);
         }
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace RSSViewer.Helpers
             if (this.Rule.OnFeedId is not null && this.Rule.OnFeedId != rssItem.FeedId)
                 return default;
 
-            if (!this._stringMatcher.IsMatch(rssItem.Title))
+            if (!this._filter.IsMatch(rssItem))
                 return default;
 
             var isMatchable = isParentMatchable || this.IsMatchable;
@@ -122,7 +123,7 @@ namespace RSSViewer.Helpers
 
         public RuleMatchTreeNode DeepClone(bool includeChilds)
         {
-            var newNode = new RuleMatchTreeNode(this.Rule, this._stringMatcher);
+            var newNode = new RuleMatchTreeNode(this.Rule, this._filter);
             lock (this._syncRoot)
             {
                 newNode.LastMatched = this.LastMatched;

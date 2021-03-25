@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
+using RSSViewer.Filter;
 using RSSViewer.Helpers;
 using RSSViewer.LocalDb;
 using RSSViewer.RssItemHandlers;
@@ -15,7 +16,10 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
+
+using TreeCollections;
 
 namespace RSSViewer.Services
 {
@@ -23,7 +27,7 @@ namespace RSSViewer.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IViewerLogger _viewerLogger;
-        private readonly StringMatcherFactory _stringMatcherFactory;
+        private readonly RssItemFilterFactory _stringMatcherFactory;
         private readonly object _syncRoot = new();
         private RuleMatchTree _ruleMatchTree { get; set; }
 
@@ -32,7 +36,7 @@ namespace RSSViewer.Services
             this._serviceProvider = serviceProvider;
             this._viewerLogger = viewerLogger;
 
-            this._stringMatcherFactory = this._serviceProvider.GetRequiredService<StringMatcherFactory>();
+            this._stringMatcherFactory = this._serviceProvider.GetRequiredService<RssItemFilterFactory>();
 
             var configService = this._serviceProvider.GetRequiredService<ConfigService>();
             configService.MatchRulesChanged += this.ConfigService_MatchRulesChanged;
@@ -262,7 +266,7 @@ namespace RSSViewer.Services
                     }
                 }
 
-                if (this.RejectedItems.Count + this.AcceptedItems.Count > 0)
+                if (this.RejectedItems.Count + this.AcceptedItems.Count + this.ArchivedItems.Count > 0)
                 {
                     var operationSession = this._operationService.CreateOperationSession(false);
                     operationSession.ChangeState(this.AcceptedItems, RssItemState.Accepted);
@@ -288,22 +292,37 @@ namespace RSSViewer.Services
 
             public string GetResultMessage()
             {
-                if (this.AcceptedItems.Count > 0 && this.RejectedItems.Count > 0)
+                var messageBuilder = new StringBuilder();
+
+                if (this.AcceptedItems.Count > 0)
                 {
-                    return $"Accepted {this.AcceptedItems.Count} items and rejected {this.RejectedItems.Count } items";
+                    messageBuilder.Append($"Accepted {this.AcceptedItems.Count} items");
                 }
-                else if (this.AcceptedItems.Count > 0)
+
+                if (this.RejectedItems.Count > 0)
                 {
-                    return $"Accepted {this.AcceptedItems.Count} items";
+                    if (messageBuilder.Length > 0)
+                        messageBuilder.Append(" and ");
+                    messageBuilder.Append($"rejected {this.RejectedItems.Count} items");
                 }
-                else if (this.RejectedItems.Count > 0)
+
+                if (this.ArchivedItems.Count > 0)
                 {
-                    return $"Rejected {this.RejectedItems.Count} items";
+                    if (messageBuilder.Length > 0)
+                        messageBuilder.Append(" and ");
+                    messageBuilder.Append($"archived {this.ArchivedItems.Count} items");
+                }
+
+                if (messageBuilder.Length == 0)
+                {
+                    messageBuilder.Append("No items handled");
                 }
                 else
                 {
-                    return $"No items handled";
+                    messageBuilder[0] = char.ToUpper(messageBuilder[0]);
                 }
+
+                return messageBuilder.ToString();
             }
         }
     }

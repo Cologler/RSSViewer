@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
+using RSSViewer.Filter;
 using RSSViewer.HttpCacheDb;
 using RSSViewer.Json;
 using RSSViewer.KeywordsFinders;
@@ -92,7 +93,7 @@ namespace RSSViewer
                 })
                 .AddTransient<IKeywordsFinder, TitleKeywordsFinder>()
                 .AddTransient<IKeywordsFinder, MagnetLinkKeywordsFinder>()
-                .AddTransient<StringMatcherFactory>()
+                .AddTransient<RssItemFilterFactory>()
                 .AddRssFetcher()
                 .AddSynologyProvider()
                 .AddTransmissionProvider()

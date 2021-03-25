@@ -17,6 +17,7 @@ namespace RSSViewer.Helpers
             switch (matchMode)
             {
                 case MatchMode.None:
+                case MatchMode.All:
                     throw new InvalidOperationException();
 
                 case MatchMode.Contains:

@@ -1,5 +1,7 @@
 ﻿using RSSViewer.Configuration;
+using RSSViewer.Filter;
 using RSSViewer.RulesDb;
+using RSSViewer.StringMatchers;
 using RSSViewer.Utils;
 
 using System;
@@ -7,26 +9,37 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace RSSViewer.StringMatchers
+namespace RSSViewer.Filter
 {
-    public class StringMatcherFactory
+    public class RssItemFilterFactory
     {
         private readonly RegexCache _regexCache;
+        private readonly AllRssItemFilter _allRssItemFilter = new();
 
-        public StringMatcherFactory(RegexCache regexCache)
+        public RssItemFilterFactory(RegexCache regexCache)
         {
             this._regexCache = regexCache;
         }
 
-        public IStringMatcher Create(MatchRule rule)
+        public IRssItemFilter Create(MatchRule rule)
         {
             if (rule is null)
                 throw new ArgumentNullException(nameof(rule));
 
-            return this.Create(rule.CreateStringMatchArguments());
+            if (rule.Mode.IsStringMode())
+            {
+                return new StringMatcherRssItemFilter(this.CreateStringMatcher(rule.CreateStringMatchArguments()));
+            }
+
+            return rule.Mode switch
+            {
+                MatchMode.None => throw new NotImplementedException(),
+                MatchMode.All => this._allRssItemFilter,
+                _ => throw new InvalidOperationException()
+            };
         }
 
-        public IStringMatcher Create(StringMatchArguments rule)
+        IStringMatcher CreateStringMatcher(StringMatchArguments rule)
         {
             switch (rule.Mode)
             {

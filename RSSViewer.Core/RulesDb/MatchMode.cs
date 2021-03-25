@@ -2,6 +2,7 @@
 {
     public enum MatchMode
     {
+        // never match
         None = 0,
 
         // match string:
@@ -10,5 +11,8 @@
         EndsWith = 3,
         Wildcard = 4,
         Regex = 5,
+
+        // match all/any items
+        All = 99,
     }
 }

@@ -106,14 +106,7 @@
 
                             <ComboBox Width="140"
                                       HorizontalAlignment="Left"
-                                      x:Name="SelectModeComboBox" >
-                                <ComboBox.Items>
-                                    <ComboBoxItem Content="Contains" />
-                                    <ComboBoxItem Content="StartsWith" />
-                                    <ComboBoxItem Content="EndsWith" />
-                                    <ComboBoxItem Content="Wildcard" />
-                                    <ComboBoxItem Content="Regex" />
-                                </ComboBox.Items>
+                                      x:Name="SelectModeComboBox">
                             </ComboBox>
 
                             <TextBlock Text="Value"
