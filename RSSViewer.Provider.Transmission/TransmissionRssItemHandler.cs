@@ -108,7 +108,7 @@ namespace RSSViewer.Provider.Transmission
                         client.TorrentSet(new()
                         {
                             IDs = ids.Cast<object>().ToArray(),
-                            TrackerAdd = trackers,
+                            TrackerAdd = trackers, // add here for prevent magnet link too long.
                             QueuePosition = queuePosition
                         });
                     }
