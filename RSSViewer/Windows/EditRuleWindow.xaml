@@ -35,7 +35,7 @@
         </Grid.Resources>
 
         <Grid>
-            <TabControl>
+            <TabControl SelectionChanged="TabControl_SelectionChanged">
                 <TabItem Header="General">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -44,23 +44,6 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Margin="8,0"
                                     Grid.ColumnSpan="2">
-
-                            <StackPanel Style="{StaticResource HeaderContentPair}">
-                                <TextBlock Text="Parent"
-                                           Style="{StaticResource HeaderStyle}" />
-
-                                <ComboBox DisplayMemberPath="DisplayValue"
-                                          ItemsSource="{Binding ParentSelectorView.Items}"
-                                          SelectedItem="{Binding ParentSelectorView.SelectedItem}">
-                                    <ComboBox.ItemsPanel>
-                                        <!-- see stackoverflow 8198645-->
-                                        <ItemsPanelTemplate>
-                                            <VirtualizingStackPanel />
-                                        </ItemsPanelTemplate>
-                                    </ComboBox.ItemsPanel>
-                                </ComboBox>
-
-                            </StackPanel>
 
                             <StackPanel Style="{StaticResource HeaderContentPair}">
                                 <TextBlock Text="Action"
@@ -83,6 +66,17 @@
                             </StackPanel>
 
                         </StackPanel>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Parent"
+                         x:Name="ParentPanel">
+                    <Grid Margin="8,0">
+                        <ListBox ItemsSource="{Binding ParentSelectorView.Items}"
+                                 SelectedItem="{Binding ParentSelectorView.SelectedItem}"
+                                 DisplayMemberPath="DisplayValue"
+                                 x:Name="ParentList">
+                        </ListBox>
                     </Grid>
                 </TabItem>
 

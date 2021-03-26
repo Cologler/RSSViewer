@@ -357,5 +357,16 @@ namespace RSSViewer.Windows
 
             public MatchRuleParentSelectorViewModel ParentSelectorView { get; } = new();
         }
+
+        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (((TabControl)sender).SelectedItem == this.ParentPanel)
+            {
+                if (this.ParentList.SelectedItem is not null)
+                {
+                    this.ParentList.ScrollIntoView(this.ParentList.SelectedItem);
+                }
+            }
+        }
     }
 }
