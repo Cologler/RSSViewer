@@ -42,6 +42,8 @@
                 </MenuItem>
                 
                 <MenuItem Header="Settings">
+                    <MenuItem Header="Open Options"
+                              Click="OpenSettingsWindowMenuItem_Click" />
                     <MenuItem Header="Open Rules Manager"
                               Click="OpenRulesManagerMenuItem_Click" />
                 </MenuItem>

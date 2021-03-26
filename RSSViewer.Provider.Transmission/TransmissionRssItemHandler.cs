@@ -20,12 +20,10 @@ namespace RSSViewer.Provider.Transmission
     internal class TransmissionRssItemHandler : IRssItemHandler
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly ITrackersService _trackersService;
 
-        public TransmissionRssItemHandler(IServiceProvider serviceProvider, ITrackersService trackersService)
+        public TransmissionRssItemHandler(IServiceProvider serviceProvider)
         {
             this._serviceProvider = serviceProvider;
-            this._trackersService = trackersService;
         }
 
         public string Id { get; set; }
@@ -71,7 +69,9 @@ namespace RSSViewer.Provider.Transmission
                 yield break;
             }
 
-            var trackers = await this._trackersService.GetExtraTrackersAsync();
+            var options = this._serviceProvider.GetRequiredService<IAddMagnetOptions>();
+            int? queuePosition = (await options.IsAddMagnetToQueueTopAsync().ConfigureAwait(false)) ? 0 : null;
+            var trackers = await options.GetExtraTrackersAsync().ConfigureAwait(false);
 
             var task = await Task.Run(() =>
             {
@@ -108,7 +108,8 @@ namespace RSSViewer.Provider.Transmission
                         client.TorrentSet(new()
                         {
                             IDs = ids.Cast<object>().ToArray(),
-                            TrackerAdd = trackers
+                            TrackerAdd = trackers,
+                            QueuePosition = queuePosition
                         });
                     }
                     catch (Exception e)

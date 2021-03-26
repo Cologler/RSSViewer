@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.Abstractions
 {
-    public interface ITrackersService
+    public interface IAddMagnetOptions
     {
+        ValueTask<bool> IsAddMagnetToQueueTopAsync();
+
         ValueTask<string[]> GetExtraTrackersAsync();
     }
 }

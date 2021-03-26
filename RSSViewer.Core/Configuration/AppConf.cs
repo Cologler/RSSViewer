@@ -16,6 +16,8 @@ namespace RSSViewer.Configuration
 
         public DefaultsConf Defaults { get; set; }
 
+        public bool AddToQueueTop { get; set; }
+
         public void Upgrade()
         {
             (this.Group ?? (this.Group = new GroupConf())).Upgrade();

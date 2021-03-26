@@ -244,5 +244,10 @@ namespace RSSViewer
                 session.Dispose();
             }
         }
+
+        private void OpenSettingsWindowMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            new SettingsWindow() { Owner = this }.ShowDialog();
+        }
     }
 }

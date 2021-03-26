@@ -9,7 +9,7 @@ using RSSViewer.HttpCacheDb;
 
 namespace RSSViewer.Services
 {
-    internal class TrackersService : ITrackersService
+    internal class TrackersService
     {
         private readonly HttpService _httpService;
         private readonly IViewerLogger _viewerLogger;
@@ -21,7 +21,6 @@ namespace RSSViewer.Services
             this._viewerLogger = viewerLogger;
         }
 
-        [SupportedOSPlatform("windows")]
         public async ValueTask<string[]> GetExtraTrackersAsync()
         {
             if (this._trackers is null)

@@ -11,14 +11,22 @@ using RSSViewer.HttpCacheDb;
 
 namespace RSSViewer.Services
 {
-    [SupportedOSPlatform("windows")]
     public class HttpService
     {
-        private readonly HttpClient _httpClient = new(new WinHttpHandler());
+        private readonly HttpClient _httpClient;
         private readonly IServiceProvider _serviceProvider;
 
         public HttpService(IServiceProvider serviceProvider)
         {
+            if (OperatingSystem.IsWindows())
+            {
+                this._httpClient = new(new WinHttpHandler()); // support dns on 127.0.0.1
+            }
+            else
+            {
+                this._httpClient = new();
+            } 
+
             this._serviceProvider = serviceProvider;
         }
 

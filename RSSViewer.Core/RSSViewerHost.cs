@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
 using RSSViewer.Filter;
+using RSSViewer.Helpers;
 using RSSViewer.HttpCacheDb;
 using RSSViewer.Json;
 using RSSViewer.KeywordsFinders;
@@ -32,7 +33,11 @@ namespace RSSViewer
             this.ServiceProvider = services.BuildServiceProvider();
 
             this.ServiceProvider.GetRequiredService<AppDirService>().EnsureCreated();
-            _ = this.ServiceProvider.GetRequiredService<ITrackersService>().GetExtraTrackersAsync();
+#pragma warning disable CA1416
+#pragma warning disable CA2012 // 正确使用 ValueTask
+            _ = this.ServiceProvider.GetRequiredService<TrackersService>().GetExtraTrackersAsync();
+#pragma warning restore CA2012 // 正确使用 ValueTask
+#pragma warning restore CA1416
 
             using var scope = this.ServiceProvider.CreateScope();
 
@@ -74,7 +79,7 @@ namespace RSSViewer
                 .AddSingleton<HttpService>()
                 .AddSingleton<SyncService>()
                 .AddSingleton<RssItemHandlersService>()
-                .AddSingleton<ITrackersService, TrackersService>()
+                .AddSingleton<TrackersService>()
                 .AddSingleton<RunRulesService>()
                 .AddSingleton<ConfigService>()
                 .AddSingleton<GroupService>()
@@ -101,6 +106,7 @@ namespace RSSViewer
                 .AddSingleton(typeof(EventEmitter<>))
                 .AddSingleton<RegexCache>()
                 .AddSingleton<IRssItemHandler, EmptyHandler>()
+                .AddTransient<IAddMagnetOptions, AddMagnetOptions>()
                 ;
 
             var rssItemStates = new[]

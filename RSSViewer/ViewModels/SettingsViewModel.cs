@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AutoMapper;
+
+using Jasily.ViewModel;
+
+using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Configuration;
 using RSSViewer.Services;
 using System;
@@ -8,21 +12,37 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
-    public class SettingsViewModel
+    public class SettingsViewModel : BaseViewModel
     {
+        private bool _addToQueueTop;
+
         public DefaultsViewModel DefaultsView { get; } = new();
 
-        public async Task Load()
+        public void Load()
         {
-            var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
-            this.DefaultsView.Load(configService.AppConf);
+            var serviceProvider = App.RSSViewerHost.ServiceProvider;
+
+            var mapper = serviceProvider.GetRequiredService<IMapper>();
+            var configService = serviceProvider.GetRequiredService<ConfigService>();
+
+            mapper.Map(configService.AppConf, this);
         }
 
         internal void Save()
         {
-            var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
-            this.DefaultsView.Save(configService.AppConf);
+            var serviceProvider = App.RSSViewerHost.ServiceProvider;
+
+            var mapper = serviceProvider.GetRequiredService<IMapper>();
+            var configService = serviceProvider.GetRequiredService<ConfigService>();
+
+            mapper.Map(this, configService.AppConf);
             configService.Save();
+        }
+
+        public bool AddToQueueTop 
+        { 
+            get => _addToQueueTop;
+            set => this.ChangeModelProperty(ref _addToQueueTop, value);
         }
 
         public class DefaultsViewModel
