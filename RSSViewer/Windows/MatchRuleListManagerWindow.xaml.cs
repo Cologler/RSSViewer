@@ -1,4 +1,9 @@
-﻿using RSSViewer.Configuration;
+﻿using AutoMapper;
+
+using Microsoft.Extensions.DependencyInjection;
+
+using RSSViewer.Configuration;
+using RSSViewer.RulesDb;
 using RSSViewer.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -57,6 +62,21 @@ namespace RSSViewer.Windows
                 this.ViewModel.OnUpdateItem(vm);
                 vm.MarkChanged();
                 vm.RefreshProperties();
+            }
+        }
+
+        private void AutoRules_Clone(object sender, RoutedEventArgs e)
+        {
+            if (this.AutoRejectMatchesListView.SelectedItem is MatchRuleViewModel viewModel)
+            {
+                var serviceProvider = App.RSSViewerHost.ServiceProvider;
+                var mapper = serviceProvider.GetRequiredService<IMapper>();
+
+                var newMatchRule = mapper.Map<MatchRule>(viewModel.MatchRule);
+                if (EditRuleWindow.EditConf(this, newMatchRule))
+                {
+                    this.ViewModel.AddRule(newMatchRule);
+                }
             }
         }
 

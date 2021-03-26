@@ -8,8 +8,7 @@
         Title="Rules Manager"
         Height="550"
         Width="600"
-        WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize">
+        WindowStartupLocation="CenterOwner" >
     
     <Grid Margin="4">
         <Grid.RowDefinitions>
@@ -47,6 +46,8 @@
                             <ContextMenu>
                                 <MenuItem Header="Edit"
                                           Click="AutoRules_Edit" />
+                                <MenuItem Header="Clone"
+                                          Click="AutoRules_Clone" />
                                 <MenuItem Header="Combine"
                                           Click="AutoRules_Combine" />
                                 <MenuItem Header="Remove"
