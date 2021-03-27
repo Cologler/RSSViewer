@@ -86,6 +86,13 @@ namespace RSSViewer.ViewModels
             if (item is null)
                 throw new ArgumentNullException(nameof(item));
 
+            var handlerId = item.MatchRule.HandlerId ?? KnownHandlerIds.DefaultHandlerId;
+            var serviceProvider = App.RSSViewerHost.ServiceProvider;
+            item.Handler = serviceProvider.GetRequiredService<RssItemHandlersService>()
+                .GetRuleTargetHandlers()
+                .Where(z => z.Id == handlerId)
+                .FirstOrDefault();
+
             var currentLevel = item.TreeLevel;
 
             var currentIndex = this.Items.IndexOf(item);
