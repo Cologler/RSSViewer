@@ -8,7 +8,7 @@ using Jasily.ViewModel;
 
 namespace RSSViewer.ViewModels.Bases
 {
-    public abstract class ListViewModel<T> : BaseViewModel
+    public abstract class ListViewModel<T> : SelectorViewModel<T>
     {
         public ListViewModel()
         {
@@ -39,6 +39,11 @@ namespace RSSViewer.ViewModels.Bases
             {
                 this.Items.Add(item);
             }
+        } 
+
+        public override void SelectFirst()
+        {
+            this.SelectedItem = this.Items.FirstOrDefault();
         }
     }
 }

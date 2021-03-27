@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
-    public class MatchRuleListViewModel : SelectableListViewModel<MatchRuleViewModel>
+    public class MatchRuleListViewModel : ListViewModel<MatchRuleViewModel>
     {
         protected override async ValueTask LoadItemsAsync()
         {

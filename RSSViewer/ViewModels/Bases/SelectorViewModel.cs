@@ -1,12 +1,14 @@
 ﻿using System.Linq;
 
+using Jasily.ViewModel;
+
 namespace RSSViewer.ViewModels.Bases
 {
-    public abstract class SelectableListViewModel<T> : ListViewModel<T>
+    public abstract class SelectorViewModel<T> : BaseViewModel
     {
         private T _selectedItem;
 
-        public SelectableListViewModel()
+        public SelectorViewModel()
         {
         }
 
@@ -23,9 +25,6 @@ namespace RSSViewer.ViewModels.Bases
 
         protected virtual void OnSelectedItemChanged(T oldValue, T newValue) { }
 
-        public void SelectFirst()
-        {
-            this.SelectedItem = this.Items.FirstOrDefault();
-        }
+        public virtual void SelectFirst() { }
     }
 }

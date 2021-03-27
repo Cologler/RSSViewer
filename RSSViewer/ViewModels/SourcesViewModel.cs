@@ -13,7 +13,7 @@ using RSSViewer.ViewModels.Bases;
 
 namespace RSSViewer.ViewModels
 {
-    public class SourcesViewModel : SelectableListViewModel<SourcesViewModel.SourceViewModel>, IDisposable
+    public class SourcesViewModel : ListViewModel<SourcesViewModel.SourceViewModel>, IDisposable
     {
         private readonly bool _watchChanges;
 

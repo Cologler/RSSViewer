@@ -12,7 +12,7 @@ using System.Windows.Data;
 
 namespace RSSViewer.ViewModels
 {
-    public class RssViewViewModel : SelectableListViewModel<SessionViewModel>
+    public class RssViewViewModel : ListViewModel<SessionViewModel>
     {
         public RssViewViewModel()
         {
