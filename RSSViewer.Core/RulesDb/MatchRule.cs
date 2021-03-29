@@ -21,6 +21,8 @@ namespace RSSViewer.RulesDb
         /// </summary>
         public int? ParentId { get; set; }
 
+        public MatchRule Parent { get; set; }
+
         public MatchMode Mode { get; set; }
 
         /// <summary>

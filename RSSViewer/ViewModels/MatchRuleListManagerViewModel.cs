@@ -103,7 +103,7 @@ namespace RSSViewer.ViewModels
                 return;
 
             // check
-            if (items.Select(z => z.MatchRule.ParentId).ToHashSet().Count > 1)
+            if (items.Select(z => z.MatchRule.Parent).ToHashSet().Count > 1)
             {
                 MessageBox.Show("Unable combine: some item did not has the same parent.");
                 return;
@@ -182,7 +182,7 @@ namespace RSSViewer.ViewModels
                 var childBeginIndex = targetRange.End.Value;
                 for (var i = 0; i < childs.Count; i++)
                 {
-                    childs[i].MatchRule.ParentId = target.MatchRule.Id;
+                    childs[i].MatchRule.Parent = target.MatchRule;
                     childs[i].MarkChanged();
                     this.Items.Insert(childBeginIndex + i, childs[i]);
                 }

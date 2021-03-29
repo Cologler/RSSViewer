@@ -152,15 +152,15 @@ namespace RSSViewer.Windows
             }
 
             // check parent
-            var parent = this.ViewModel.ParentSelectorView.SelectedItem;
-            if (parent is not null)
-            {
-                if (parent.MatchRule is not null && parent.MatchRule.Id <= 0)
-                {
-                    MessageBox.Show("Not implemented yet!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-            }
+            //var parent = this.ViewModel.ParentSelectorView.SelectedItem;
+            //if (parent is not null)
+            //{
+            //    if (parent.MatchRule is not null && parent.MatchRule.Id <= 0)
+            //    {
+            //        MessageBox.Show("Not implemented yet!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            //        return;
+            //    }
+            //}
 
             // check match
             if (this.TryCreateRssItemMatcher() == null)
@@ -338,7 +338,7 @@ namespace RSSViewer.Windows
                 await this.ParentSelectorView.Ready;
                 this.ParentSelectorView.SelectedItem = 
                     this.ParentSelectorView.Items
-                        .Where(z => z.MatchRule?.Id == rule.ParentId)
+                        .Where(z => z.MatchRule == rule.Parent)
                         .FirstOrDefault();
 
                 this.RefreshProperties();
@@ -363,9 +363,14 @@ namespace RSSViewer.Windows
                 }
 
                 // parent
-                if (this.ParentSelectorView.SelectedItem is not null)
+                var parent = this.ParentSelectorView.SelectedItem;
+                if (parent is not null)
                 {
-                    rule.ParentId = this.ParentSelectorView.SelectedItem.MatchRule?.Id;
+                    rule.Parent = parent.MatchRule;
+                    if (parent.Id > 0) // from db
+                    {
+                        rule.ParentId = parent.Id;
+                    }
                 }
             }
 

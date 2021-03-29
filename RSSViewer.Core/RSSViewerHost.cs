@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 using RSSViewer.Abstractions;
 using RSSViewer.Filter;
@@ -107,6 +108,7 @@ namespace RSSViewer
                 .AddSingleton<RegexCache>()
                 .AddSingleton<IRssItemHandler, EmptyHandler>()
                 .AddTransient<IAddMagnetOptions, AddMagnetOptions>()
+                .AddLogging(cfg => cfg.AddDebug())
                 ;
 
             var rssItemStates = new[]

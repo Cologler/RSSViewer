@@ -114,12 +114,22 @@ namespace RSSViewer.Services
             using var scope = this._serviceProvider.CreateScope();
             var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
 
-            //ctx.AttachRange(updateRules);
+            // because the db context is new instance
+            // we should attach no changes parents
+            // otherwish db context will try insert the items into db again.
+            // this change state to unchange, so we need it run before all others.
+            var toAttach = new List<MatchRule>();
+            foreach (var item in addRules.Concat(updateRules))
+            {
+                if (item.Parent is not null && item.Parent.Id > 0)
+                {
+                    toAttach.Add(item.Parent);
+                }
+            }
+            ctx.AttachRange(toAttach);
+
             ctx.UpdateRange(updateRules);
-
             ctx.AddRange(addRules);
-
-            //ctx.AttachRange(removeRules);
             ctx.RemoveRange(removeRules);
 
             await ctx.SaveChangesAsync().ConfigureAwait(false);

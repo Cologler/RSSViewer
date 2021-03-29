@@ -10,11 +10,16 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 namespace RSSViewer.ViewModels
 {
     public class MatchRuleViewModel : BaseViewModel
     {
+        private static int _newIdSeed;
+
+        private static int NewId() => Interlocked.Decrement(ref _newIdSeed);
+
         public static readonly MatchRuleViewModel None = new("< None >");
         public static readonly MatchRuleViewModel NoParent = new("< None Parent >");
 
@@ -26,12 +31,20 @@ namespace RSSViewer.ViewModels
         {
             this.MatchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
             this.IsAdded = isAdded;
+
+            Debug.Assert(matchRule.Id >= 0);
+            this.Id = matchRule.Id > 0 ? matchRule.Id : NewId();
+            Debug.Assert(this.Id != 0);
         }
 
         private MatchRuleViewModel(string displayValue)
         {
             this._displayValue = displayValue ?? throw new ArgumentNullException(nameof(displayValue));
+            this.Id = NewId();
+            Debug.Assert(this.Id != 0);
         }
+
+        public int Id { get; }
 
         [ModelProperty]
         public string DisplayValue

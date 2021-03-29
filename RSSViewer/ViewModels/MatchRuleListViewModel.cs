@@ -94,16 +94,16 @@ namespace RSSViewer.ViewModels
             if (currentIndex < 0)
                 throw new NotImplementedException();
 
-            int? GetCurrentParentId()
+            MatchRule GetCurrentParent()
             {
                 if (currentLevel == 0)
                     return null;
                 var currentParentLevel = item.TreeLevel - 1;
                 var currentParent = this.Items.Take(currentIndex).Where(z => z.TreeLevel == currentParentLevel).Last();
-                return currentParent.MatchRule.Id;
+                return currentParent.MatchRule;
             }
 
-            if (GetCurrentParentId() != item.MatchRule.ParentId)
+            if (GetCurrentParent() != item.MatchRule.Parent)
             {
                 int levelChanged;
                 int insertPos;
@@ -116,7 +116,7 @@ namespace RSSViewer.ViewModels
                     this.Items.RemoveAt(currentIndex);
                 }
 
-                if (item.MatchRule.ParentId is null)
+                if (item.MatchRule.Parent is null)
                 {
                     levelChanged = -currentLevel;
                     insertPos = this.Items.Count;
@@ -124,7 +124,7 @@ namespace RSSViewer.ViewModels
                 else
                 {
                     var newParentIndex = this.Items
-                        .Select((z, i) => z.MatchRule.Id == item.MatchRule.ParentId.Value ? i : -1)
+                        .Select((z, i) => z.MatchRule == item.MatchRule.Parent ? i : -1)
                         .Where(z => z >= 0)
                         .First();
                     var newParent = this.Items[newParentIndex];
@@ -156,7 +156,7 @@ namespace RSSViewer.ViewModels
             else
             {
                 var results = new HashSet<MatchRuleViewModel>();
-                var dictById = this.Items.Where(z => !z.IsAdded).ToDictionary(z => z.MatchRule.Id);
+                var dictById = this.Items.Where(z => !z.IsAdded).ToDictionary(z => z.MatchRule);
                 var direct = this.Items
                     .Where(z => z.MatchRule.Argument.Contains(text, StringComparison.OrdinalIgnoreCase))
                     .ToList();
@@ -166,7 +166,7 @@ namespace RSSViewer.ViewModels
                     while (x is not null && !results.Contains(x))
                     {
                         results.Add(x);
-                        x = x.MatchRule.ParentId.HasValue ? dictById.GetValueOrDefault(x.MatchRule.ParentId.Value) : null;
+                        x = x.MatchRule.Parent is not null ? dictById.GetValueOrDefault(x.MatchRule.Parent) : null;
                     }
                 }
                 return results;
