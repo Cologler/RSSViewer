@@ -363,15 +363,7 @@ namespace RSSViewer.Windows
                 }
 
                 // parent
-                var parent = this.ParentSelectorView.SelectedItem;
-                if (parent is not null)
-                {
-                    rule.Parent = parent.MatchRule;
-                    if (parent.Id > 0) // from db
-                    {
-                        rule.ParentId = parent.Id;
-                    }
-                }
+                rule.Parent = this.ParentSelectorView.SelectedItem?.MatchRule;
             }
 
             public SourcesViewModel SourcesView { get; } = new(false);
