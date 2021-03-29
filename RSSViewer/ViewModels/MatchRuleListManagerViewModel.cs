@@ -19,6 +19,7 @@ using System.Linq;
 using System.Printing;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
@@ -33,6 +34,8 @@ namespace RSSViewer.ViewModels
         {
             this.RulesView = new ListCollectionView(this.Items);
         }
+
+        protected override ValueTask LoadItemsAsync() => new(this.LoadItemsFromDbAsync());
 
         public string SearchText
         {

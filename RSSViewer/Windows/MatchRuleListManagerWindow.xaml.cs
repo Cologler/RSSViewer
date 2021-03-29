@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Configuration;
 using RSSViewer.RulesDb;
+using RSSViewer.Services;
 using RSSViewer.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -51,13 +52,21 @@ namespace RSSViewer.Windows
             }
         }
 
+        bool OpenEditRuleWindow(MatchRule rule)
+        {
+            var win = new EditRuleWindow { Owner = this };
+            win.ViewModel.ParentSelectorView.ResetItems(this.ViewModel.Items);
+            win.Rule = rule;
+            return win.ShowDialog() == true;
+        }
+
         private void AutoRules_Edit(object sender, RoutedEventArgs e)
         {
             var vm = this.SelectedAutoRules.FirstOrDefault();
             if (vm == null)
                 return;
 
-            if (EditRuleWindow.EditConf(this, vm.MatchRule))
+            if (this.OpenEditRuleWindow(vm.MatchRule))
             {
                 this.ViewModel.OnUpdateItem(vm);
                 vm.MarkChanged();
@@ -73,7 +82,7 @@ namespace RSSViewer.Windows
                 var mapper = serviceProvider.GetRequiredService<IMapper>();
 
                 var newMatchRule = mapper.Map<MatchRule>(viewModel.MatchRule);
-                if (EditRuleWindow.EditConf(this, newMatchRule))
+                if (this.OpenEditRuleWindow(newMatchRule))
                 {
                     this.ViewModel.AddRule(newMatchRule);
                 }
@@ -96,9 +105,10 @@ namespace RSSViewer.Windows
 
         private void AddAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
         {
-            if (EditRuleWindow.TryCreateConf(this, out var conf))
+            var newRule = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>().CreateMatchRule();
+            if (this.OpenEditRuleWindow(newRule))
             {
-                this.ViewModel.AddRule(conf);
+                this.ViewModel.AddRule(newRule);
             }
         }
 

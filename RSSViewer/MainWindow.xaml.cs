@@ -177,7 +177,7 @@ namespace RSSViewer
                 rule.IgnoreCase = true;
                 rule.Argument = text;
 
-                if (EditRuleWindow.EditConf(this, rule))
+                if (EditRuleWindow.Edit(this, rule))
                 {
                     var cs = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
                     await cs.AddMatchRuleAsync(rule);

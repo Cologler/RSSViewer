@@ -35,6 +35,7 @@ namespace RSSViewer.Windows
     public partial class EditRuleWindow : Window
     {
         private readonly RssItemHandlersService _handlersService;
+        private MatchRule _rule;
 
         public EditRuleWindow()
         {
@@ -59,9 +60,22 @@ namespace RSSViewer.Windows
             }
         }
 
-        DataContextViewModel ViewModel => (DataContextViewModel)this.DataContext;
+        public DataContextViewModel ViewModel => (DataContextViewModel)this.DataContext;
 
-        public void LoadFromConf(MatchRule rule)
+        public MatchRule Rule
+        {
+            get => this._rule;
+            set
+            {
+                if (this._rule != value)
+                {
+                    this._rule = value;
+                    this.LoadFrom(value);
+                }
+            }
+        }
+
+        void LoadFrom(MatchRule rule)
         {
             if (rule is null)
                 throw new ArgumentNullException(nameof(rule));
@@ -79,7 +93,7 @@ namespace RSSViewer.Windows
             this.ViewModel.LoadAsync(rule);
         }
 
-        public void WriteToConf(MatchRule rule)
+        public void WriteTo(MatchRule rule)
         {
             if (rule is null)
                 throw new ArgumentNullException(nameof(rule));
@@ -99,10 +113,6 @@ namespace RSSViewer.Windows
             } 
 
             this.ViewModel.Write(rule);
-        }
-
-        private void SelectModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
         }
 
         private MatchMode SelectedMatchStringMode
@@ -141,10 +151,22 @@ namespace RSSViewer.Windows
                 return;
             }
 
+            // check parent
+            var parent = this.ViewModel.ParentSelectorView.SelectedItem;
+            if (parent is not null)
+            {
+                if (parent.MatchRule is not null && parent.MatchRule.Id <= 0)
+                {
+                    MessageBox.Show("Not implemented yet!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+            }
+
             // check match
             if (this.TryCreateRssItemMatcher() == null)
                 return;
 
+            this.WriteTo(this.Rule);
             this.DialogResult = true;
         }
 
@@ -156,7 +178,7 @@ namespace RSSViewer.Windows
         private RuleMatchTreeNode TryCreateRssItemMatcher()
         {
             var rule = new MatchRule();
-            this.WriteToConf(rule);
+            this.WriteTo(rule);
             var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<RssItemFilterFactory>();
 
             try
@@ -186,25 +208,21 @@ namespace RSSViewer.Windows
             }
         }
 
-        internal static bool TryCreateConf(Window owner, out MatchRule rule)
-        {
-            rule = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>().CreateMatchRule();
-            return EditConf(owner, rule);
-        }
-
-        internal static bool EditConf(Window owner, MatchRule rule)
+        /// <summary>
+        /// use <see cref="EditRuleWindow"/> to edit a <see cref="MatchRule"/>.
+        /// </summary>
+        /// <param name="owner"></param>
+        /// <param name="rule"></param>
+        /// <returns></returns>
+        internal static bool Edit(Window owner, MatchRule rule)
         {
             var win = new EditRuleWindow { Owner = owner };
-            win.LoadFromConf(rule);
-            if (win.ShowDialog() == true)
-            {
-                win.WriteToConf(rule);
-                return true;
-            }
-            return false;
+            win.Rule = rule;
+            _ = win.ViewModel.ParentSelectorView.LoadItemsFromDbAsync();
+            return win.ShowDialog() == true;
         }
 
-        class DataContextViewModel : BaseViewModel
+        public class DataContextViewModel : BaseViewModel
         {
             private DateTime _lastMatched;
             private bool _isEnabledAutoDisabled;

@@ -20,15 +20,13 @@ namespace RSSViewer.ViewModels
 {
     public class MatchRuleListViewModel : ListViewModel<MatchRuleViewModel>
     {
-        protected override async ValueTask LoadItemsAsync()
+        /// <summary>
+        /// a helper method.
+        /// </summary>
+        /// <returns></returns>
+        public async Task LoadItemsFromDbAsync()
         {
-            this.ResetItemsFromTree(await this.ServiceProvider.GetRequiredService<ConfigService>().ListMatchRulesAsync());
-        }
-
-        protected void ResetItemsFromTree(IList<MatchRule> rules)
-        {
-            if (rules is null)
-                throw new ArgumentNullException(nameof(rules));
+            var rules = await this.ServiceProvider.GetRequiredService<ConfigService>().ListMatchRulesAsync();
 
             var tree = rules.BuildTree(out var noParentItems);
 
