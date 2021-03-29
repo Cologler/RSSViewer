@@ -22,8 +22,7 @@ namespace RSSViewer.ViewModels
     {
         protected override async ValueTask LoadItemsAsync()
         {
-            var serviceProvider = App.RSSViewerHost.ServiceProvider;
-            this.ResetItemsFromTree(await serviceProvider.GetRequiredService<ConfigService>().ListMatchRulesAsync());
+            this.ResetItemsFromTree(await this.ServiceProvider.GetRequiredService<ConfigService>().ListMatchRulesAsync());
         }
 
         protected void ResetItemsFromTree(IList<MatchRule> rules)
