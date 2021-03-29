@@ -10,7 +10,7 @@ namespace RSSViewer.RulesDb
     {
         private static Func<MatchRule, int> GetIdFunc = r => r?.Id ?? -1;
 
-        public static (MutableEntityTreeNode<int, MatchRule>, List<MatchRule>) ToTree(this IList<MatchRule> rules)
+        public static MutableEntityTreeNode<int, MatchRule> BuildTree(this IList<MatchRule> rules, out List<MatchRule> unreachableItems)
         {
             if (rules is null)
                 throw new ArgumentNullException(nameof(rules));
@@ -28,9 +28,8 @@ namespace RSSViewer.RulesDb
             {
                 Walk(root.AddChild(r));
             }
-            var itemsWithoutParent = rules.Except(root.Select(z => z.Item)).ToList();
-
-            return (root, itemsWithoutParent);
+            unreachableItems = rules.Except(root.Select(z => z.Item)).ToList();
+            return root;
         }
     }
 }

@@ -31,7 +31,7 @@ namespace RSSViewer.ViewModels
             if (rules is null)
                 throw new ArgumentNullException(nameof(rules));
 
-            var (tree, noParentItems) = rules.ToTree();
+            var tree = rules.BuildTree(out var noParentItems);
 
             var viewModels = tree
                 .Where(z => !z.IsRoot)
