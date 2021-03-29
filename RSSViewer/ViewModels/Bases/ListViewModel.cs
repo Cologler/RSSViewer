@@ -13,12 +13,10 @@ namespace RSSViewer.ViewModels.Bases
         public ListViewModel()
         {
             this.Items = new(this.LoadItems() ?? Enumerable.Empty<T>());
-            this.InitializedTask = this.InitializeAsync().AsTask();
+            _ = this.InitializeAsync();
         }
 
         public ObservableCollection<T> Items { get; }
-
-        public Task InitializedTask { get; }
 
         protected virtual ValueTask InitializeAsync()
         {

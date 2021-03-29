@@ -15,8 +15,8 @@ namespace RSSViewer.ViewModels
 {
     public class MatchRuleViewModel : BaseViewModel
     {
-        public static MatchRuleViewModel None = new("< None >");
-        public static MatchRuleViewModel NoParent = new("< None Parent >");
+        public static readonly MatchRuleViewModel None = new("< None >");
+        public static readonly MatchRuleViewModel NoParent = new("< None Parent >");
 
         private readonly string _displayValue;
 

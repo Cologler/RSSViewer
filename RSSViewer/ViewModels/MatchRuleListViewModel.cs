@@ -50,8 +50,7 @@ namespace RSSViewer.ViewModels
             }
 
             // setup handlers
-            var serviceProvider = App.RSSViewerHost.ServiceProvider;
-            var handlers = serviceProvider.GetRequiredService<RssItemHandlersService>()
+            var handlers = this.ServiceProvider.GetRequiredService<RssItemHandlersService>()
                 .GetRuleTargetHandlers()
                 .ToDictionary(z => z.Id);
             foreach (var item in viewModels)
@@ -86,8 +85,7 @@ namespace RSSViewer.ViewModels
                 throw new ArgumentNullException(nameof(item));
 
             var handlerId = item.MatchRule.HandlerId ?? KnownHandlerIds.DefaultHandlerId;
-            var serviceProvider = App.RSSViewerHost.ServiceProvider;
-            item.Handler = serviceProvider.GetRequiredService<RssItemHandlersService>()
+            item.Handler = this.ServiceProvider.GetRequiredService<RssItemHandlersService>()
                 .GetRuleTargetHandlers()
                 .Where(z => z.Id == handlerId)
                 .FirstOrDefault();

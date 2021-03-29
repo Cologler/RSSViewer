@@ -317,7 +317,7 @@ namespace RSSViewer.Windows
                 }
 
                 // parent
-                await this.ParentSelectorView.InitializedTask;
+                await this.ParentSelectorView.Ready;
                 this.ParentSelectorView.SelectedItem = 
                     this.ParentSelectorView.Items
                         .Where(z => z.MatchRule?.Id == rule.ParentId)
