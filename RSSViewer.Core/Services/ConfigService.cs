@@ -149,14 +149,19 @@ namespace RSSViewer.Services
         /// <returns></returns>
         internal MatchRule[] ListMatchRules()
         {
-            using var scope = this._serviceProvider.CreateScope();
-            var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
-            var rules = ctx.MatchRules.ToArray();
-            if (ctx.UpdateMatchRulesLifetime() > 0)
+            var retry = 0;
+            while (retry++ < 5) // try 4 times.
             {
+                using var scope = this._serviceProvider.CreateScope();
+                var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
+                var rules = ctx.MatchRules.ToArray();
+                if (ctx.UpdateMatchRulesLifetime() == 0)
+                {
+                    return rules;
+                }
                 ctx.SaveChanges();
             }
-            return rules;
+            throw new TimeoutException();
         }
     }
 }
