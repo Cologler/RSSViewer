@@ -17,6 +17,16 @@ namespace RSSViewer.RulesDb
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<MatchRule>()
+                .HasOne(z => z.Parent)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
         public DbSet<MatchRule> MatchRules { get; set; }
 
         public int UpdateMatchRulesLifetime()

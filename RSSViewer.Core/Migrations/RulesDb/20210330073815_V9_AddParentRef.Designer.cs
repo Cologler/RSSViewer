@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RSSViewer.RulesDb;
 
 namespace RSSViewer.Migrations
 {
     [DbContext(typeof(RulesDbContext))]
-    partial class RulesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210330073815_V9_AddParentRef")]
+    partial class V9_AddParentRef
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
