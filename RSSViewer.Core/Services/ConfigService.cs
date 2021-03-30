@@ -82,15 +82,6 @@ namespace RSSViewer.Services
             return rule;
         }
 
-        public async Task AddMatchRuleAsync(MatchRule matchRule)
-        {
-            using var scope = this._serviceProvider.CreateScope();
-            var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
-            ctx.Add(matchRule);
-            await ctx.SaveChangesAsync().ConfigureAwait(false);
-            this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Add, matchRule));
-        }
-
         private void RaiseMatchRulesChanged(IEnumerable<MatchRule> changedRules)
         {
             if (changedRules is null)
@@ -100,6 +91,19 @@ namespace RSSViewer.Services
             {
                 this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Refresh, changedRules.ToArray()));
             });
+        }
+
+        public async Task AddMatchRuleAsync(MatchRule matchRule)
+        {
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
+            if (matchRule.Parent is not null && matchRule.Parent.Id > 0)
+            {
+                ctx.Attach(matchRule.Parent);
+            }
+            ctx.Add(matchRule);
+            await ctx.SaveChangesAsync().ConfigureAwait(false);
+            this.MatchRulesChanged?.Invoke(this, new CollectionChangeEventArgs(CollectionChangeAction.Add, matchRule));
         }
 
         public async Task UpdateMatchRulesAsync(MatchRule[] updateRules, MatchRule[] addRules, MatchRule[] removeRules)
