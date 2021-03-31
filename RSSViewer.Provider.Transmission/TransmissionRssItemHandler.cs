@@ -101,21 +101,29 @@ namespace RSSViewer.Provider.Transmission
                     }
                 }
 
-                if (trackers.Length > 0)
+                if (trackers.Length > 0 && ids.Count > 0)
                 {
-                    try
+                    Task.Run(() =>
                     {
-                        client.TorrentSet(new()
+                        var retry = 3;
+                        while (--retry > 0) // 3 times
                         {
-                            IDs = ids.Cast<object>().ToArray(),
-                            TrackerAdd = trackers, // add here for prevent magnet link too long.
-                            QueuePosition = queuePosition
-                        });
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e.ToString());
-                    }
+                            try
+                            {
+                                client.TorrentSet(new()
+                                {
+                                    IDs = ids.Cast<object>().ToArray(),
+                                    TrackerAdd = trackers, // add here for prevent magnet link too long.
+                                    QueuePosition = queuePosition
+                                });
+                                return;
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e.ToString());
+                            }
+                        }
+                    });                    
                 }
 
                 return accepted;
