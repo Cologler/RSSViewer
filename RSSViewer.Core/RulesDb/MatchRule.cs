@@ -23,6 +23,8 @@ namespace RSSViewer.RulesDb
 
         public MatchRule Parent { get; set; }
 
+        public string DisplayName { get; set; }
+
         public MatchMode Mode { get; set; }
 
         /// <summary>

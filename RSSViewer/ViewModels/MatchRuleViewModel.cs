@@ -58,20 +58,29 @@ namespace RSSViewer.ViewModels
 
                 var sb = new StringBuilder();
                 sb.Append(this.DisplayPrefix);
-                sb.Append(this.MatchRule.ToDebugString());
-                if (this.MatchRule.OnFeedId is not null)
-                    sb.Append(" @").Append(this.MatchRule.OnFeedId);
-                if (this.Handler is IRssItemHandler handler)
+
+                if (!string.IsNullOrEmpty(this.MatchRule.DisplayName))
                 {
-                    if (handler.Id == KnownHandlerIds.EmptyHandlerId)
-                    {
-                        sb.Append(" (group) ");
-                    }
-                    else
-                    {
-                        sb.Append("  ->  ").Append(this.Handler.ShortDescription);
-                    }
+                    sb.Append(this.MatchRule.DisplayName);
                 }
+                else
+                {
+                    sb.Append(this.MatchRule.ToDebugString());
+                    if (this.MatchRule.OnFeedId is not null)
+                        sb.Append(" @").Append(this.MatchRule.OnFeedId);
+                    if (this.Handler is IRssItemHandler handler)
+                    {
+                        if (handler.Id == KnownHandlerIds.EmptyHandlerId)
+                        {
+                            sb.Append(" (group) ");
+                        }
+                        else
+                        {
+                            sb.Append("  ->  ").Append(this.Handler.ShortDescription);
+                        }
+                    }
+                } 
+                
                 return sb.ToString();
             }
         }

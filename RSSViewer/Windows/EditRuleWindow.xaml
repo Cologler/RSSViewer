@@ -65,6 +65,13 @@
                                 </ComboBox>
                             </StackPanel>
 
+                            <StackPanel Style="{StaticResource HeaderContentPair}" >
+                                <TextBlock Text="Display Name"
+                                           Style="{StaticResource HeaderStyle}" />
+
+                                <TextBox Text="{Binding DisplayName, Mode=TwoWay}" />
+                            </StackPanel>
+
                         </StackPanel>
                     </Grid>
                 </TabItem>

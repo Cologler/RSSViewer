@@ -8,6 +8,7 @@ using AutoMapper;
 
 using RSSViewer.Configuration;
 using RSSViewer.ViewModels;
+using RSSViewer.Windows;
 
 namespace RSSViewer.AutoMapperProfiles
 {
@@ -17,6 +18,8 @@ namespace RSSViewer.AutoMapperProfiles
         {
             this.CreateMap<AppConf, SettingsViewModel>()
                 .ReverseMap();
+
+            EditRuleWindow.ConfigureAutoMapperProfile(this);
         }
     }
 }

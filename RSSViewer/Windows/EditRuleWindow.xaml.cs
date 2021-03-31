@@ -1,4 +1,6 @@
-﻿using Jasily.ViewModel;
+﻿using AutoMapper;
+
+using Jasily.ViewModel;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +13,7 @@ using RSSViewer.RulesDb;
 using RSSViewer.Services;
 using RSSViewer.StringMatchers;
 using RSSViewer.ViewModels;
+using RSSViewer.ViewModels.Bases;
 
 using System;
 using System.Collections.Generic;
@@ -222,7 +225,24 @@ namespace RSSViewer.Windows
             return win.ShowDialog() == true;
         }
 
-        public class DataContextViewModel : BaseViewModel
+        public static void ConfigureAutoMapperProfile(Profile profile)
+        {
+            profile.CreateMap<DataContextViewModel, MatchRule>()
+                .AfterMap((v, m) =>
+                {
+                    if (m.DisplayName is not null)
+                    {
+                        m.DisplayName = m.DisplayName.Trim();
+                        if (m.DisplayName.Length == 0)
+                        {
+                            m.DisplayName = null;
+                        } 
+                    }
+                })
+                .ReverseMap();
+        }
+
+        public class DataContextViewModel : ViewModels.Bases.BaseViewModel
         {
             private DateTime _lastMatched;
             private bool _isEnabledAutoDisabled;
@@ -305,8 +325,13 @@ namespace RSSViewer.Windows
                 }
             }
 
+            [ModelProperty]
+            public string DisplayName { get; set; }
+
             public async void LoadAsync(MatchRule rule)
             {
+                this.ServiceProvider.GetRequiredService<IMapper>().Map(rule, this);
+
                 this.SourcesView.SelectedItem = this.SourcesView.Items.FirstOrDefault(z => z.FeedId == rule.OnFeedId);
 
                 this.IgnoreCase = rule.IgnoreCase;
@@ -346,6 +371,8 @@ namespace RSSViewer.Windows
 
             public void Write(MatchRule rule)
             {
+                this.ServiceProvider.GetRequiredService<IMapper>().Map(this, rule);
+
                 rule.OnFeedId = this.SourcesView.SelectedItem?.FeedId;
 
                 rule.IgnoreCase = this.IgnoreCase;
