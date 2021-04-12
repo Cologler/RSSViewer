@@ -6,9 +6,10 @@
         xmlns:local="clr-namespace:RSSViewer.Windows"
         mc:Ignorable="d"
         Title="Edit Rule"
+        MinHeight="400"
+        MinWidth="360"
         Height="400"
         Width="360"
-        ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="4">
         <Grid.RowDefinitions>
