@@ -1,7 +1,12 @@
-﻿using RSSViewer.Abstractions;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+using RSSViewer.Abstractions;
 using RSSViewer.Configuration;
+using RSSViewer.Filter;
 using RSSViewer.LocalDb;
 using RSSViewer.Models;
+using RSSViewer.RulesDb;
 using RSSViewer.Utils;
 
 using System;
@@ -10,6 +15,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RSSViewer.Services
@@ -17,10 +23,12 @@ namespace RSSViewer.Services
     public class ClassifyService
     {
         private ImmutableList<Regex> _regexes;
+        private readonly IServiceProvider _serviceProvider;
         private readonly RegexCache _regexCache;
 
-        public ClassifyService(ConfigService config, RegexCache regexCache)
+        public ClassifyService(IServiceProvider serviceProvider, ConfigService config, RegexCache regexCache)
         {
+            this._serviceProvider = serviceProvider;
             this._regexCache = regexCache;
             config.OnAppConfChanged += this.Reload;
             this.Reload(config.AppConf);
@@ -66,8 +74,14 @@ namespace RSSViewer.Services
             return string.Empty;
         }
 
-        public void Classify(IEnumerable<ClassifyContext<IPartialRssItem>> source, System.Threading.CancellationToken token)
+        public void Classify(IEnumerable<ClassifyContext<IPartialRssItem>> source, CancellationToken token)
         {
+            if (source is null)
+                throw new ArgumentNullException(nameof(source));
+
+            if (token.IsCancellationRequested)
+                return;
+
             var regexes = this._regexes;
 
             source.AsParallel()
@@ -77,6 +91,56 @@ namespace RSSViewer.Services
                     if (token.IsCancellationRequested)
                         return;
                     item.GroupName = GetGroupName(regexes, item.Item);
+                });
+
+            this.Tagify(source, token);
+        }
+
+        public void Tagify(IEnumerable<ClassifyContext<IPartialRssItem>> source, CancellationToken token)
+        {
+            if (source is null)
+                throw new ArgumentNullException(nameof(source));
+
+            if (token.IsCancellationRequested)
+                return;
+
+            using var scope = this._serviceProvider.CreateScope();
+            var factory = scope.ServiceProvider.GetRequiredService<RssItemFilterFactory>();
+            ;
+            using var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
+
+            var tags = ctx.Tags.AsQueryable().AsNoTracking().ToDictionary(z => z.Id);
+            var rules = ctx.MatchRules.AsQueryable()
+                .AsNoTracking()
+                .Where(z => z.HandlerType == HandlerType.AddTag)
+                .ToList();
+
+            var testRules = new List<(MatchRule, IRssItemFilter, Tag)>();
+            foreach (var rule in rules)
+            {
+                if (tags.TryGetValue(rule.HandlerId, out var tag))
+                {
+                    var filter = factory.Create(rule);
+                    testRules.Add((rule, filter, tag));
+                }
+            }
+
+            if (token.IsCancellationRequested)
+                return;
+
+            source.AsParallel()
+                .WithCancellation(token)
+                .ForAll(item =>
+                {
+                    if (token.IsCancellationRequested)
+                        return;
+                    foreach (var testRule in testRules)
+                    {
+                        if (testRule.Item2.IsMatch(item.Item))
+                        {
+                            item.Tags.Add(testRule.Item3);
+                        }
+                    }
                 });
         }
     }
