@@ -84,7 +84,7 @@
                         </Grid.RowDefinitions>
 
                         <Grid Grid.Row="0">
-                            <ListView ItemsSource="{Binding Items}"
+                            <ListView ItemsSource="{Binding ItemsView}"
                                       x:Name="SetTagRulesListView">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Linq;
@@ -12,13 +13,19 @@ using RSSViewer.ViewModels.Bases;
 
 namespace RSSViewer.ViewModels
 {
-    public class MatchRuleListViewModel : BaseViewModel
+    public class MatchRuleListManagerViewModel : BaseViewModel
     {
         private readonly List<MatchRuleViewModel> _removedRules = new();
 
+        public MatchRuleListManagerViewModel()
+        {
+            this.SetTagRulesViewModel.ItemsView.SortDescriptions.Add(
+                new(nameof(MatchRuleViewModel.DisplayValue), ListSortDirection.Ascending));
+        }
+
         public ActionRuleListManagerViewModel ActionRulesViewModel { get; } = new();
 
-        public ListViewModel<MatchRuleViewModel> SetTagRulesViewModel { get; } = new();
+        public ItemsViewerViewModel<MatchRuleViewModel> SetTagRulesViewModel { get; } = new();
 
         /// <summary>
         /// map by id.
