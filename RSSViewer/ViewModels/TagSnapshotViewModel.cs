@@ -17,8 +17,15 @@ namespace RSSViewer.ViewModels
         public static void ConfigureAutoMapperProfile(Profile profile)
         {
             profile.CreateMap<TagSnapshotViewModel, Tag>()
-                .AfterMap((v, m) => v.RefreshProperties())
-                .ReverseMap();
+                .AfterMap((v, m) =>
+                {
+                    m.TagGroupName = string.IsNullOrWhiteSpace(m.TagGroupName) ? null : m.TagGroupName.Trim();
+                })
+                .ReverseMap()
+                .AfterMap((m, v) =>
+                {
+                    v.RefreshProperties();
+                });
         }
     }
 }

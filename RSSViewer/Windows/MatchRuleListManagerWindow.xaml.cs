@@ -193,6 +193,10 @@ namespace RSSViewer.Windows
                 mapper.Map(editTagWin.ViewModel.TagViewModel, viewModel.Tag);
                 var tagViewModel = this.ViewModel.TagsViewModel[viewModel.Tag.Id];
                 tagViewModel.IsChanged = true;
+                foreach (var item in this.ViewModel.SetTagRulesViewModel.Items.Where(z => z.Tag == viewModel.Tag))
+                {
+                    item.RefreshProperties();
+                }
             }
         }
     }

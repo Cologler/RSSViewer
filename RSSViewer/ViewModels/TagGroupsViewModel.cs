@@ -27,7 +27,7 @@ namespace RSSViewer.ViewModels
             using var scope = this.ServiceProvider.CreateScope();
             using var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
 
-            this.ResetItems(tags.Select(z => z.TagGroupName).Where(z => !string.IsNullOrEmpty(z)));
+            this.ResetItems(tags.Select(z => z.TagGroupName).Distinct().Where(z => !string.IsNullOrEmpty(z)));
         }
     }
 }
