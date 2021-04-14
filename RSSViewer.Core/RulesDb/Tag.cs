@@ -14,5 +14,10 @@ namespace RSSViewer.RulesDb
 
         [Required(AllowEmptyStrings = false)]
         public string TagName { get; set; }
+
+        public override string ToString()
+        {
+            return this.TagGroupName is null ? $"[{this.TagName}]" : $"[{this.TagGroupName}].[{this.TagName}]";
+        }
     }
 }

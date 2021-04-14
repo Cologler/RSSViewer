@@ -29,13 +29,18 @@ namespace RSSViewer.ViewModels
             using var scope = this.ServiceProvider.CreateScope();
             using var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
 
+            var tags = ctx.Tags.AsQueryable()
+                .AsNoTracking()
+                .ToDictionary(z => z.Id);
+
             var matchRules = ctx.MatchRules.AsQueryable()
                 .AsNoTracking()
                 .ToList();
 
             var setTagRules = matchRules.Where(z => z.HandlerType == HandlerType.SetTag)
-                .Select(z => new MatchRuleViewModel(z))
+                .Select(z => new MatchRuleViewModel(z, tags.GetValueOrDefault(z.HandlerId)))
                 .ToList();
+
             this.SetTagRulesViewModel.ResetItems(setTagRules);
         }
 

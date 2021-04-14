@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 
@@ -27,10 +28,19 @@ namespace RSSViewer.ViewModels
 
         public MatchRule MatchRule { get; }
 
-        public MatchRuleViewModel(MatchRule matchRule, bool isAdded = false)
+        public MatchRuleViewModel(MatchRule matchRule)
         {
             this.MatchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
-            this.IsAdded = isAdded;
+
+            Debug.Assert(matchRule.Id >= 0);
+            this.Id = matchRule.Id > 0 ? matchRule.Id : NewId();
+            Debug.Assert(this.Id != 0);
+        }
+
+        public MatchRuleViewModel(MatchRule matchRule, Tag tag)
+        {
+            this.MatchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
+            this.Tag = tag;
 
             Debug.Assert(matchRule.Id >= 0);
             this.Id = matchRule.Id > 0 ? matchRule.Id : NewId();
@@ -56,8 +66,17 @@ namespace RSSViewer.ViewModels
 
                 Debug.Assert(this.MatchRule is not null);
 
+                if (this.MatchRule.HandlerType == HandlerType.SetTag)
+                {
+
+                }
+
                 var sb = new StringBuilder();
-                sb.Append(this.DisplayPrefix);
+
+                if (this.MatchRule.HandlerType == HandlerType.Action)
+                {
+                    sb.Append(this.DisplayPrefix);
+                }
 
                 if (!string.IsNullOrEmpty(this.MatchRule.DisplayName))
                 {
@@ -65,21 +84,35 @@ namespace RSSViewer.ViewModels
                 }
                 else
                 {
-                    sb.Append(this.MatchRule.ToDebugString());
-                    if (this.MatchRule.OnFeedId is not null)
-                        sb.Append(" @").Append(this.MatchRule.OnFeedId);
-                    if (this.Handler is IRssItemHandler handler)
+                    if (this.MatchRule.HandlerType == HandlerType.Action)
                     {
-                        if (handler.Id == KnownHandlerIds.EmptyHandlerId)
+                        sb.Append(this.MatchRule.ToDebugString());
+                        if (this.MatchRule.OnFeedId is not null)
+                            sb.Append(" @").Append(this.MatchRule.OnFeedId);
+                        if (this.Handler is IRssItemHandler handler)
                         {
-                            sb.Append(" (group) ");
+                            if (handler.Id == KnownHandlerIds.EmptyHandlerId)
+                            {
+                                sb.Append(" (group) ");
+                            }
+                            else
+                            {
+                                sb.Append("  ->  ").Append(this.Handler.ShortDescription);
+                            }
+                        }
+                    }
+                    else if (this.MatchRule.HandlerType == HandlerType.SetTag)
+                    {
+                        if (this.Tag is not null)
+                        {
+                            sb.Append(this.Tag.ToString());
                         }
                         else
                         {
-                            sb.Append("  ->  ").Append(this.Handler.ShortDescription);
-                        }
+                            sb.Append(this.MatchRule.ToDebugString());
+                        } 
                     }
-                } 
+                }
                 
                 return sb.ToString();
             }
@@ -87,7 +120,21 @@ namespace RSSViewer.ViewModels
 
         public IRssItemHandler Handler { get; set; }
 
+        public Tag Tag { get; private set; }
+
         public bool IsChanged { get; private set; }
+
+        public void SetTag(Tag tag)
+        {
+            if (tag is null)
+                throw new ArgumentNullException(nameof(tag));
+            if (this.MatchRule.HandlerType != HandlerType.SetTag)
+                throw new InvalidOperationException();
+
+            this.Tag = tag;
+            this.MatchRule.HandlerId = tag.Id;
+            this.MarkChanged();
+        }
 
         public void MarkChanged()
         {
@@ -97,7 +144,7 @@ namespace RSSViewer.ViewModels
             }
         }
 
-        public bool IsAdded { get; private set; }
+        public bool IsAdded => this.MatchRule is not null && this.MatchRule.Id == 0;
 
         public string DisplayPrefix { get; set; } = string.Empty;
 
