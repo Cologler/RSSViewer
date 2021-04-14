@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
 using RSSViewer.Extensions;
 using RSSViewer.LocalDb;
+using RSSViewer.Models;
 using RSSViewer.Services;
 using RSSViewer.Utils;
 
@@ -181,7 +182,7 @@ namespace RSSViewer.ViewModels
 
             token.ThrowIfCancellationRequested();
 
-            var sw = Stopwatch.StartNew();
+            var refreshStopwatch = Stopwatch.StartNew();
 
             var items = await App.RSSViewerHost.Query().SearchAsync(searchText, searchInfo.IncludeState, searchInfo.FeedId, token);
             token.ThrowIfCancellationRequested();
@@ -198,40 +199,47 @@ namespace RSSViewer.ViewModels
                     break;
             }
 
-            var groupService = App.RSSViewerHost.ServiceProvider.GetRequiredService<GroupService>();
-            var groupsMap = await Task.Run(() => groupService.GetGroupsMap(items));
+            var classifyService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ClassifyService>();
+            var classifiedItems = items
+                .Select(z => new RssItemViewModel.ClassifyContext(z))
+                .ToArray();
+
+            // classify start
+
+            var classifyStopwatch = Stopwatch.StartNew();
+            await Task.Run(() => classifyService.Classify(classifiedItems, token), token);
+            classifyStopwatch.Stop();
+            this._viewerLogger.AddLine($"Classify {classifiedItems.Length} items cost {classifyStopwatch.Elapsed.TotalSeconds}s.");
+
+            // classify end
+
             token.ThrowIfCancellationRequested();
 
             var groupList = new List<RssItemGroupViewModel>();
 
             var allItemsGroup = new RssItemGroupViewModel { DisplayName = "<ALL>" };
+            allItemsGroup.Items.AddRange(classifiedItems.Select(z => z.ViewModel));
             groupList.Add(allItemsGroup);
 
             var emptyItemsGroup = new RssItemGroupViewModel { DisplayName = "<>" };
+            emptyItemsGroup.Items.AddRange(classifiedItems.Where(z => z.GroupName == string.Empty).Select(z => z.ViewModel));
             groupList.Add(emptyItemsGroup);
 
-            allItemsGroup.Items.AddRange(items.Select(z => new RssItemViewModel(z)).ToArray());
-            var itemsIndexes = allItemsGroup.Items.ToDictionary(z => z.RssItem.GetKey());
-
-            RssItemViewModel FromCreated(IPartialRssItem rssItem) => itemsIndexes[rssItem.GetKey()];
-
-            await Task.Run(() =>
-            {
-                groupList.AddRange(groupsMap.Where(z =>
-                {
-                    if (z.Key == string.Empty)
+            groupList.AddRange(
+                classifiedItems
+                    .Where(z => z.GroupName != string.Empty)
+                    .GroupBy(z => z.GroupName)
+                    .OrderBy(z => z.Key)
+                    .Select(z =>
                     {
-                        emptyItemsGroup.Items.AddRange(z.Value.Select(x => FromCreated(x)));
-                        return false;
-                    }
-                    return true;
-                }).Select(z =>
-                {
-                    var gvm = new RssItemGroupViewModel { DisplayName = z.Key };
-                    gvm.Items.AddRange(z.Value.Select(x => FromCreated(x)));
-                    return gvm;
-                }).OrderBy(z => z.DisplayName));
-            });
+                        var g = new RssItemGroupViewModel { DisplayName = z.Key };
+                        g.Items.AddRange(z.Select(z => z.ViewModel));
+                        return g;
+                    })
+            );
+
+            var itemsIndexes = classifiedItems.Select(z => z.ViewModel).ToDictionary(z => z.RssItem.GetKey());
+
             token.ThrowIfCancellationRequested();
 
             this.Groups.Clear();
@@ -244,11 +252,11 @@ namespace RSSViewer.ViewModels
             Debug.Assert(changes != null);
             this.OnRssItemsStateChangedInternal(changes);
 
-            sw.Stop();
+            refreshStopwatch.Stop();
 
             var descState = string.Join(", ", searchInfo.IncludeState.Select(z => z.ToString().ToLower()));
             var desc = $"\"{searchText}\" from ({descState}) orderby ({searchInfo.SortBy.ToString().ToLower()})";
-            this._viewerLogger.AddLine($"Query {desc} takes {sw.Elapsed.TotalSeconds}s.");
+            this._viewerLogger.AddLine($"Query {desc} total cost {refreshStopwatch.Elapsed.TotalSeconds}s.");
 
             this.Title = searchText.Length == 0
                 ? "*"

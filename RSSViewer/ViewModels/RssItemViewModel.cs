@@ -42,5 +42,15 @@ namespace RSSViewer.ViewModels
         }
 
         int IRssItemsCount.Count => 1;
+
+        public class ClassifyContext : Models.ClassifyContext<IPartialRssItem>
+        {
+            public ClassifyContext(IPartialRssItem item) : base(item)
+            {
+                this.ViewModel = new(item);
+            }
+
+            public RssItemViewModel ViewModel { get; }
+        }
     }
 }

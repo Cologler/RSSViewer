@@ -83,7 +83,7 @@ namespace RSSViewer
                 .AddSingleton<TrackersService>()
                 .AddSingleton<RunRulesService>()
                 .AddSingleton<ConfigService>()
-                .AddSingleton<GroupService>()
+                .AddSingleton<ClassifyService>()
                 .AddSingleton<KeywordsService>()
                 .AddDbContext<LocalDbContext>((prov, options) => {
                     var path = prov.GetRequiredService<AppDirService>().GetDataFileFullPath("localdb.sqlite3");
