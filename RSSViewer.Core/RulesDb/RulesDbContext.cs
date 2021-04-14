@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 
 namespace RSSViewer.RulesDb
@@ -25,16 +26,22 @@ namespace RSSViewer.RulesDb
                 .HasOne(z => z.Parent)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Tag>()
+                .HasIndex(z => z.TagName)
+                .IsUnique();
         }
 
         public DbSet<MatchRule> MatchRules { get; set; }
+
+        public DbSet<Tag> Tags { get; set; }
 
         public int UpdateMatchRulesLifetime()
         {
             var now = DateTime.UtcNow;
             var changedCount = 0;
 
-            foreach (var rule in this.MatchRules)
+            foreach (var rule in this.MatchRules.AsQueryable().Where(z => z.HandlerType == HandlerType.Action))
             {
                 if (rule.AutoExpiredAfterLastMatched.HasValue)
                 {

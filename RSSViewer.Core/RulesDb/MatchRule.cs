@@ -34,6 +34,8 @@ namespace RSSViewer.RulesDb
 
         public bool IgnoreCase { get; set; }
 
+        public HandlerType HandlerType { get; set; }
+
         public string HandlerId { get; set; }
 
         public bool IsDisabled { get; set; }

@@ -154,7 +154,7 @@ namespace RSSViewer.Services
             {
                 using var scope = this._serviceProvider.CreateScope();
                 var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
-                var rules = ctx.MatchRules.ToArray();
+                var rules = ctx.MatchRules.AsQueryable().Where(z => z.HandlerType == HandlerType.Action).ToArray();
                 if (ctx.UpdateMatchRulesLifetime() == 0)
                 {
                     return rules;
