@@ -29,10 +29,10 @@ namespace RSSViewer.Windows
         public MatchRuleListManagerWindow()
         {
             InitializeComponent();
-            this.DataContext = new MatchRuleListManagerViewModel();
+            this.DataContext = new ActionRuleListManagerViewModel();
         }
 
-        internal MatchRuleListManagerViewModel ViewModel => (MatchRuleListManagerViewModel)this.DataContext;
+        internal ActionRuleListManagerViewModel ViewModel => (ActionRuleListManagerViewModel)this.DataContext;
 
         private MatchRuleViewModel[] SelectedAutoRules
         {

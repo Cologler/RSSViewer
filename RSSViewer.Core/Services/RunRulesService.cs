@@ -47,7 +47,7 @@ namespace RSSViewer.Services
         {
             lock (this._syncRoot)
             {
-                var rules = this._serviceProvider.GetRequiredService<ConfigService>().ListMatchRules();
+                var rules = this._serviceProvider.GetRequiredService<ConfigService>().ListActionRules();
 
                 using (this._viewerLogger.EnterEvent("Rebuild matchers"))
                 {

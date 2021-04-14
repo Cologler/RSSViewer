@@ -37,18 +37,12 @@ namespace RSSViewer.Windows
     /// </summary>
     public partial class EditRuleWindow : Window
     {
-        private readonly RssItemHandlersService _handlersService;
         private MatchRule _rule;
 
         public EditRuleWindow()
         {
             this.InitializeComponent();
             this.DataContext = new DataContextViewModel();
-
-            this._handlersService = App.RSSViewerHost.ServiceProvider.GetRequiredService<RssItemHandlersService>();
-
-            this.ActionsList.ItemsSource = this._handlersService.GetRuleTargetHandlers();
-            this.ActionsList.SelectedItem = this._handlersService.GetRuleTargetHandler(null);
 
             // build match mode
             foreach (var item in Enum.GetValues<MatchMode>())
@@ -83,15 +77,36 @@ namespace RSSViewer.Windows
             if (rule is null)
                 throw new ArgumentNullException(nameof(rule));
 
-            // general
-            this.ActionsList.SelectedItem = this._handlersService.GetRuleTargetHandler(rule.HandlerId);
+            var serviceProvider = this.ViewModel.ServiceProvider;
+
+            switch (rule.HandlerType)
+            {
+                case HandlerType.Action:
+                    this.Title = "Edit Action Rule";
+                    this.General_AddTag.Visibility = Visibility.Hidden;
+
+                    var handlersService = serviceProvider.GetRequiredService<RssItemHandlersService>();
+                    this.ActionsList.ItemsSource = handlersService.GetRuleTargetHandlers();
+                    this.ActionsList.SelectedItem = handlersService.GetRuleTargetHandler(rule.HandlerId);
+
+                    this.LastMatchedText.Text = rule.LastMatched.ToLocalTime().ToLongDateString();
+                    this.TotalMatchedCountText.Text = rule.TotalMatchedCount.ToString();
+                    break;
+
+                case HandlerType.AddTag:
+                    this.Title = "Edit AddTag Rule";
+                    this.General_Action.Visibility = Visibility.Hidden;
+                    this.ParentPanel.Visibility = Visibility.Hidden;
+                    this.LifetimePanel.Visibility = Visibility.Hidden;
+                    break;
+
+                default:
+                    throw new NotImplementedException();
+            }
 
             // match
             this.SelectedMatchStringMode = rule.Mode;
             this.MatchValueTextBox.Text = rule.Argument;
-
-            this.LastMatchedText.Text = rule.LastMatched.ToLocalTime().ToLongDateString();
-            this.TotalMatchedCountText.Text = rule.TotalMatchedCount.ToString();
 
             this.ViewModel.LoadAsync(rule);
         }
@@ -101,19 +116,22 @@ namespace RSSViewer.Windows
             if (rule is null)
                 throw new ArgumentNullException(nameof(rule));
 
-            // general
-            rule.HandlerId = ((IRssItemHandler)this.ActionsList.SelectedItem).Id;
+            switch (rule.HandlerType)
+            {
+                case HandlerType.Action:
+                    rule.HandlerId = ((IRssItemHandler)this.ActionsList.SelectedItem).Id;
+                    break;
+
+                case HandlerType.AddTag:
+                    break;
+
+                default:
+                    throw new NotImplementedException();
+            }
 
             // match
             rule.Mode = this.SelectedMatchStringMode;
-            if (rule.Mode.IsStringMode())
-            {
-                rule.Argument = this.MatchValueTextBox.Text;
-            }
-            else
-            {
-                rule.Argument = string.Empty;
-            } 
+            rule.Argument = rule.Mode.IsStringMode() ? this.MatchValueTextBox.Text : string.Empty;
 
             this.ViewModel.Write(rule);
         }
@@ -221,7 +239,7 @@ namespace RSSViewer.Windows
         {
             var win = new EditRuleWindow { Owner = owner };
             win.Rule = rule;
-            _ = win.ViewModel.ParentSelectorView.LoadItemsFromDbAsync();
+            _ = win.ViewModel.ParentSelectorView.LoadActionRulesFromDbAsync();
             return win.ShowDialog() == true;
         }
 

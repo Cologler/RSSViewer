@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
-    public class MatchRuleParentSelectorViewModel : MatchRuleListViewModel
+    public class MatchRuleParentSelectorViewModel : ActionRuleListViewModel
     {
         private readonly TaskCompletionSource _readyEvent = new();
 

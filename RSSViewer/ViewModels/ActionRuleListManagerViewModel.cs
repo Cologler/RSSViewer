@@ -25,17 +25,17 @@ using System.Windows.Data;
 
 namespace RSSViewer.ViewModels
 {
-    public class MatchRuleListManagerViewModel : MatchRuleListViewModel
+    public class ActionRuleListManagerViewModel : ActionRuleListViewModel
     {
         private readonly List<MatchRuleViewModel> _removedRules = new List<MatchRuleViewModel>();
         private string _searchText;
 
-        public MatchRuleListManagerViewModel()
+        public ActionRuleListManagerViewModel()
         {
             this.RulesView = new ListCollectionView(this.Items);
         }
 
-        protected override ValueTask LoadItemsAsync() => new(this.LoadItemsFromDbAsync());
+        protected override ValueTask LoadItemsAsync() => new(this.LoadActionRulesFromDbAsync());
 
         public string SearchText
         {

@@ -141,13 +141,13 @@ namespace RSSViewer.Services
             this.RaiseMatchRulesChanged(updateRules.Concat(addRules));
         }
 
-        public Task<MatchRule[]> ListMatchRulesAsync() => Task.Run(() => this.ListMatchRules());
+        public Task<MatchRule[]> ListActionRulesAsync() => Task.Run(() => this.ListActionRules());
 
         /// <summary>
         /// list match rules on sync way.
         /// </summary>
         /// <returns></returns>
-        internal MatchRule[] ListMatchRules()
+        internal MatchRule[] ListActionRules()
         {
             var retry = 0;
             while (retry++ < 5) // try 4 times.

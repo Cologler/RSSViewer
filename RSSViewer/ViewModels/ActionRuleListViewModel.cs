@@ -18,15 +18,15 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
-    public class MatchRuleListViewModel : ListViewModel<MatchRuleViewModel>
+    public class ActionRuleListViewModel : ListViewModel<MatchRuleViewModel>
     {
         /// <summary>
         /// a helper method.
         /// </summary>
         /// <returns></returns>
-        public async Task LoadItemsFromDbAsync()
+        public async Task LoadActionRulesFromDbAsync()
         {
-            var rules = await this.ServiceProvider.GetRequiredService<ConfigService>().ListMatchRulesAsync();
+            var rules = await this.ServiceProvider.GetRequiredService<ConfigService>().ListActionRulesAsync();
 
             var tree = rules.BuildTree(out var noParentItems);
 

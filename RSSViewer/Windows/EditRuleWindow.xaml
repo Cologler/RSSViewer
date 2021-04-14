@@ -38,32 +38,47 @@
         <Grid>
             <TabControl SelectionChanged="TabControl_SelectionChanged">
                 <TabItem Header="General">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="133*" />
-                            <ColumnDefinition Width="213*" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Margin="8,0"
-                                    Grid.ColumnSpan="2">
+                    <Grid>                        
+                        <StackPanel Margin="8,0">
 
-                            <StackPanel Style="{StaticResource HeaderContentPair}">
-                                <TextBlock Text="Action"
-                                           Style="{StaticResource HeaderStyle}" />
+                            <StackPanel x:Name="General_Action">
 
-                                <ComboBox x:Name="ActionsList"
-                                          DisplayMemberPath="HandlerName">
-                                </ComboBox>
+                                <StackPanel Style="{StaticResource HeaderContentPair}">
+                                    <TextBlock Text="Action"
+                                               Style="{StaticResource HeaderStyle}" />
+
+                                    <ComboBox x:Name="ActionsList"
+                                              DisplayMemberPath="HandlerName">
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <StackPanel Style="{StaticResource HeaderContentPair}"
+                                            DataContext="{Binding SourcesView}">
+                                    <TextBlock Text="On Source"
+                                               Style="{StaticResource HeaderStyle}" />
+
+                                    <ComboBox SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                              ItemsSource="{Binding Items}"
+                                              DisplayMemberPath="Name">
+                                    </ComboBox>
+                                </StackPanel>
+
                             </StackPanel>
 
-                            <StackPanel Style="{StaticResource HeaderContentPair}"
-                                        DataContext="{Binding SourcesView}">
-                                <TextBlock Text="On Source"
-                                           Style="{StaticResource HeaderStyle}" />
+                            <StackPanel x:Name="General_AddTag">
 
-                                <ComboBox SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                                          ItemsSource="{Binding Items}"
-                                          DisplayMemberPath="Name">
-                                </ComboBox>
+                                <StackPanel Style="{StaticResource HeaderContentPair}"
+                                            DataContext="{Binding TagsView}">
+                                    <TextBlock Text="Tag Name"
+                                               Style="{StaticResource HeaderStyle}" />
+
+                                    <ComboBox SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                              ItemsSource="{Binding Items}"
+                                              DisplayMemberPath="Name"
+                                              IsEditable="True">
+                                    </ComboBox>
+                                </StackPanel>
+
                             </StackPanel>
 
                             <StackPanel Style="{StaticResource HeaderContentPair}" >
@@ -125,7 +140,8 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="Lifetime">
+                <TabItem Header="Lifetime"
+                         x:Name="LifetimePanel">
                     <Grid>
                         <StackPanel>
                             <StackPanel Style="{StaticResource HeaderContentPair}">
