@@ -77,7 +77,9 @@ namespace RSSViewer.Windows
                     var tagsvm = win.ViewModel.TagsViewModel;
                     if (tagsvm.SelectedItem is null)
                     {
-                        if (!this.ViewModel.NewTags.TryGetValue(tagsvm.TagName, out var tag))
+                        var tag = tagsvm.Items.Select(z => z.Tag).FirstOrDefault(z => z.TagName == tagsvm.TagName);
+
+                        if (tag is null && !this.ViewModel.NewTags.TryGetValue(tagsvm.TagName, out tag))
                         {
                             tag = new Tag
                             {
