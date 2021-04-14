@@ -230,7 +230,7 @@ namespace RSSViewer.ViewModels
             var tagsGroupsMap = taggedItems
                 .SelectMany(z => z.Tags)
                 .Distinct()
-                .ToDictionary(z => z, z => new RssItemGroupViewModel { DisplayName = $"[{z.TagName}]" });
+                .ToDictionary(z => z, z => new RssItemGroupViewModel { DisplayName = z.ToString() });
             foreach (var item in taggedItems)
             {
                 foreach (var tag in item.Tags)
@@ -238,9 +238,21 @@ namespace RSSViewer.ViewModels
                     tagsGroupsMap[tag].Items.Add(item.ViewModel);
                 }
             }
+            var tagGroupWithoutTagMap = classifiedItems
+                .SelectMany(z => z.TagGroupWithoutTag)
+                .Distinct()
+                .ToDictionary(z => z, z => new RssItemGroupViewModel { DisplayName = $"[{z}].<>" });
+            foreach (var item in classifiedItems)
+            {
+                foreach (var tagGroup in item.TagGroupWithoutTag)
+                {
+                    tagGroupWithoutTagMap[tagGroup].Items.Add(item.ViewModel);
+                }
+            }
             groupList.AddRange(
                 tagsGroupsMap
                     .Select(z => z.Value)
+                    .Concat(tagGroupWithoutTagMap.Select(z => z.Value))
                     .OrderBy(z => z.DisplayName)                    
             );
 

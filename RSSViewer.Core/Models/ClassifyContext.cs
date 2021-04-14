@@ -20,5 +20,7 @@ namespace RSSViewer.Models
         public string GroupName { get; set; }
 
         public HashSet<Tag> Tags { get; } = new();
+
+        public HashSet<string> TagGroupWithoutTag = new();
     }
 }

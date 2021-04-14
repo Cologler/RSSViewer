@@ -125,6 +125,8 @@ namespace RSSViewer.Services
                 }
             }
 
+            var groupedTestRules = testRules.GroupBy(z => z.Item3.TagGroupName);
+
             if (token.IsCancellationRequested)
                 return;
 
@@ -134,11 +136,20 @@ namespace RSSViewer.Services
                 {
                     if (token.IsCancellationRequested)
                         return;
-                    foreach (var testRule in testRules)
+                    foreach (var group in groupedTestRules)
                     {
-                        if (testRule.Item2.IsMatch(item.Item))
+                        var match = false;
+                        foreach (var testRule in group)
                         {
-                            item.Tags.Add(testRule.Item3);
+                            if (testRule.Item2.IsMatch(item.Item))
+                            {
+                                item.Tags.Add(testRule.Item3);
+                                match = true;
+                            }
+                        }
+                        if (!match && !string.IsNullOrEmpty(group.Key))
+                        {
+                            item.TagGroupWithoutTag.Add(group.Key);
                         }
                     }
                 });
