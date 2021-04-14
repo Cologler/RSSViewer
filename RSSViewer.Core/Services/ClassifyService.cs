@@ -112,7 +112,7 @@ namespace RSSViewer.Services
             var tags = ctx.Tags.AsQueryable().AsNoTracking().ToDictionary(z => z.Id);
             var rules = ctx.MatchRules.AsQueryable()
                 .AsNoTracking()
-                .Where(z => z.HandlerType == HandlerType.AddTag)
+                .Where(z => z.HandlerType == HandlerType.SetTag)
                 .ToList();
 
             var testRules = new List<(MatchRule, IRssItemFilter, Tag)>();

@@ -23,49 +23,100 @@
         </Grid.Resources>
         
         <Grid>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+            <TabControl x:Name="RulesTabsPanel">
+                
+                <TabItem Header="Action Rules"
+                         x:Name="ActionRulesPanel"
+                         DataContext="{Binding ActionRulesViewModel}">
 
-                <Grid Margin="0,0,0,4">
-                    <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                </Grid>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                <Grid Grid.Row="1">
-                    <ListView ItemsSource="{Binding RulesView}"
-                              x:Name="AutoRejectMatchesListView">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding DisplayValue}" />
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                        <ListView.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Edit"
-                                          Click="AutoRules_Edit" />
-                                <MenuItem Header="Clone"
-                                          Click="AutoRules_Clone" />
-                                <MenuItem Header="Combine"
-                                          Click="AutoRules_Combine" />
-                                <MenuItem Header="Remove"
-                                          Click="AutoRules_Remove" />
-                            </ContextMenu>
-                        </ListView.ContextMenu>
-                    </ListView>
-                </Grid>
+                        <Grid Margin="0,0,0,4">
+                            <TextBox Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
 
-                <Grid Grid.Row="2"
-                      HorizontalAlignment="Left"
-                      Margin="0,4,0,0">
+                        <Grid Grid.Row="1">
+                            <ListView ItemsSource="{Binding RulesView}"
+                                      x:Name="ActionRulesListView">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayValue}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                                <ListView.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Edit"
+                                                  Click="Rules_Edit" />
+                                        <MenuItem Header="Clone"
+                                                  Click="Rules_Clone" />
+                                        <MenuItem Header="Combine"
+                                                  Click="Rules_Combine" />
+                                        <MenuItem Header="Remove"
+                                                  Click="Rules_Remove" />
+                                    </ContextMenu>
+                                </ListView.ContextMenu>
+                            </ListView>
+                        </Grid>
 
-                    <Button Content="Add"
-                            x:Name="AddAutoRejectMatchButton"
-                            Click="AddAutoRejectMatchButton_Click" />
-                </Grid>
-            </Grid>
+                        <Grid Grid.Row="2"
+                              HorizontalAlignment="Left"
+                              Margin="0,4,0,0">
+
+                            <Button Content="Add"
+                                    x:Name="AddAutoRejectMatchButton"
+                                    Click="AddAutoRejectMatchButton_Click" />
+                        </Grid>
+                    </Grid>
+
+                </TabItem>
+
+                <TabItem Header="SetTag Rules"
+                         x:Name="SetTagRulesPanel">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="1">
+                            <ListView ItemsSource="{Binding RulesView}"
+                                      x:Name="SetTagRulesListView">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayValue}" />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                                <ListView.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Edit"
+                                                  Click="Rules_Edit" />
+                                        <MenuItem Header="Clone"
+                                                  Click="Rules_Clone" />
+                                        <MenuItem Header="Remove"
+                                                  Click="Rules_Remove" />
+                                    </ContextMenu>
+                                </ListView.ContextMenu>
+                            </ListView>
+                        </Grid>
+
+                        <Grid Grid.Row="2"
+                              HorizontalAlignment="Left"
+                              Margin="0,4,0,0">
+
+                            <Button Content="Add"
+                                    x:Name="AddSetTagRuleButton"
+                                    Click="AddSetTagRuleButton_Click" />
+                        </Grid>
+                    </Grid>
+                </TabItem>
+                
+            </TabControl>
+            
         </Grid>
 
         <Grid Grid.Row="1"

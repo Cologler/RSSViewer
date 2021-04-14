@@ -64,20 +64,36 @@ namespace RSSViewer.Services
             this.OnAppConfChanged?.Invoke(this.AppConf);
         }
 
-        public MatchRule CreateMatchRule()
+        public MatchRule CreateActionRule()
         {
             var rule = new MatchRule
             {
+                HandlerType = HandlerType.Action,
                 HandlerId = KnownHandlerIds.DefaultHandlerId
             };
 
             rule.Mode = MatchMode.Contains;
             rule.IgnoreCase = true;
             rule.Argument = string.Empty;
+
             rule.AutoDisabledAfterLastMatched = TimeSpan.FromDays(365 * 2);
             rule.AutoExpiredAfterLastMatched = TimeSpan.FromDays(365 * 4);
 
             rule.LastMatched = DateTime.UtcNow;
+
+            return rule;
+        }
+
+        public MatchRule CreateSetTagRule()
+        {
+            var rule = new MatchRule
+            {
+                HandlerType = HandlerType.SetTag
+            };
+
+            rule.Mode = MatchMode.Regex;
+            rule.IgnoreCase = true;
+            rule.Argument = string.Empty;
 
             return rule;
         }

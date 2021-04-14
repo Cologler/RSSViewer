@@ -3,6 +3,6 @@
     public enum HandlerType : int
     {
         Action = 0,
-        AddTag = 1,
+        SetTag = 1,
     }
 }

@@ -99,6 +99,10 @@ namespace RSSViewer.ViewModels
         {
             if (items is null)
                 throw new ArgumentNullException(nameof(items));
+
+            if (items.Any(z => z.MatchRule.HandlerType != HandlerType.Action))
+                throw new InvalidOperationException();
+
             if (items.Count < 2)
                 return;
 

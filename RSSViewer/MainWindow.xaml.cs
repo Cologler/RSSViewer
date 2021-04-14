@@ -163,7 +163,7 @@ namespace RSSViewer
             if (StringsPickerWindow.TryPickString(this, kw, out var text))
             {
                 var rule = sp.GetRequiredService<ConfigService>()
-                    .CreateMatchRule();
+                    .CreateActionRule();
 
                 var title = viewModel.RssItem.Title ?? string.Empty;
                 if (title.StartsWith(text, StringComparison.OrdinalIgnoreCase))

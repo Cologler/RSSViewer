@@ -83,7 +83,7 @@ namespace RSSViewer.Windows
             {
                 case HandlerType.Action:
                     this.Title = "Edit Action Rule";
-                    this.General_AddTag.Visibility = Visibility.Hidden;
+                    this.General_AddTag.Visibility = Visibility.Collapsed;
 
                     var handlersService = serviceProvider.GetRequiredService<RssItemHandlersService>();
                     this.ActionsList.ItemsSource = handlersService.GetRuleTargetHandlers();
@@ -93,11 +93,11 @@ namespace RSSViewer.Windows
                     this.TotalMatchedCountText.Text = rule.TotalMatchedCount.ToString();
                     break;
 
-                case HandlerType.AddTag:
-                    this.Title = "Edit AddTag Rule";
-                    this.General_Action.Visibility = Visibility.Hidden;
-                    this.ParentPanel.Visibility = Visibility.Hidden;
-                    this.LifetimePanel.Visibility = Visibility.Hidden;
+                case HandlerType.SetTag:
+                    this.Title = "Edit SetTag Rule";
+                    this.General_Action.Visibility = Visibility.Collapsed;
+                    this.ParentPanel.Visibility = Visibility.Collapsed;
+                    this.LifetimePanel.Visibility = Visibility.Collapsed;
                     break;
 
                 default:
@@ -122,7 +122,7 @@ namespace RSSViewer.Windows
                     rule.HandlerId = ((IRssItemHandler)this.ActionsList.SelectedItem).Id;
                     break;
 
-                case HandlerType.AddTag:
+                case HandlerType.SetTag:
                     break;
 
                 default:

@@ -29,87 +29,41 @@ namespace RSSViewer.Windows
         public MatchRuleListManagerWindow()
         {
             InitializeComponent();
-            this.DataContext = new ActionRuleListManagerViewModel();
+            this.DataContext = new MatchRuleListManagerViewModel();
         }
 
-        internal ActionRuleListManagerViewModel ViewModel => (ActionRuleListManagerViewModel)this.DataContext;
+        internal MatchRuleListManagerViewModel ViewModel => (MatchRuleListManagerViewModel)this.DataContext;
 
-        private MatchRuleViewModel[] SelectedAutoRules
+        private MatchRuleViewModel[] GetSelectedRules()
         {
-            get
+            ListView activatedListView;
+            if (this.RulesTabsPanel.SelectedItem == this.ActionRulesPanel)
             {
-                return this.AutoRejectMatchesListView.SelectedItems
-                    .OfType<MatchRuleViewModel>()
-                    .ToArray();
+                activatedListView = this.ActionRulesListView;
             }
-            set
+            else if (this.RulesTabsPanel.SelectedItem == this.ActionRulesPanel)
             {
-                this.AutoRejectMatchesListView.SelectedItems.Clear();
-                foreach (var item in value)
-                {
-                    this.AutoRejectMatchesListView.SelectedItems.Add(item);
-                }
+                activatedListView = this.SetTagRulesListView;
+            } 
+            else
+            {
+                throw new NotImplementedException();
             }
+            
+            return activatedListView.SelectedItems
+                .OfType<MatchRuleViewModel>()
+                .ToArray();
         }
 
         bool OpenEditRuleWindow(MatchRule rule)
         {
             var win = new EditRuleWindow { Owner = this };
-            win.ViewModel.ParentSelectorView.ResetItems(this.ViewModel.Items);
+            if (rule.HandlerType == HandlerType.Action)
+            {
+                win.ViewModel.ParentSelectorView.ResetItems(this.ViewModel.ActionRulesViewModel.Items);
+            }
             win.Rule = rule;
             return win.ShowDialog() == true;
-        }
-
-        private void AutoRules_Edit(object sender, RoutedEventArgs e)
-        {
-            var vm = this.SelectedAutoRules.FirstOrDefault();
-            if (vm == null)
-                return;
-
-            if (this.OpenEditRuleWindow(vm.MatchRule))
-            {
-                this.ViewModel.OnUpdateItem(vm);
-                vm.MarkChanged();
-                vm.RefreshProperties();
-            }
-        }
-
-        private void AutoRules_Clone(object sender, RoutedEventArgs e)
-        {
-            if (this.AutoRejectMatchesListView.SelectedItem is MatchRuleViewModel viewModel)
-            {
-                var serviceProvider = App.RSSViewerHost.ServiceProvider;
-                var mapper = serviceProvider.GetRequiredService<IMapper>();
-
-                var newMatchRule = mapper.Map<MatchRule>(viewModel.MatchRule);
-                if (this.OpenEditRuleWindow(newMatchRule))
-                {
-                    this.ViewModel.AddRule(newMatchRule);
-                }
-            }
-        }
-
-        private void AutoRules_Combine(object sender, RoutedEventArgs e)
-        {
-            this.ViewModel.Combine(this.SelectedAutoRules);
-        }
-
-        private void AutoRules_Remove(object sender, RoutedEventArgs e)
-        {
-            var svm = this.ViewModel;
-            foreach (var vm in this.SelectedAutoRules)
-            {
-                svm.RemoveRule(vm);
-            }
-        }
-
-        private void AddAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
-        {
-            var newRule = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>().CreateMatchRule();
-            if (this.OpenEditRuleWindow(newRule))
-            {
-                this.ViewModel.AddRule(newRule);
-            }
         }
 
         private void OKButton_Click(object sender, RoutedEventArgs e)
@@ -121,6 +75,68 @@ namespace RSSViewer.Windows
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = false;
+        }
+
+        private void Rules_Edit(object sender, RoutedEventArgs e)
+        {
+            var vm = this.GetSelectedRules().FirstOrDefault();
+            if (vm == null)
+                return;
+
+            if (this.OpenEditRuleWindow(vm.MatchRule))
+            {
+                this.ViewModel.OnUpdateItem(vm);
+                vm.MarkChanged();
+                vm.RefreshProperties();
+            }
+        }
+
+        private void Rules_Clone(object sender, RoutedEventArgs e)
+        {
+            var viewModel = this.GetSelectedRules().FirstOrDefault();
+            if (viewModel == null)
+                return;
+
+            var serviceProvider = App.RSSViewerHost.ServiceProvider;
+            var mapper = serviceProvider.GetRequiredService<IMapper>();
+
+            var newMatchRule = mapper.Map<MatchRule>(viewModel.MatchRule);
+            if (this.OpenEditRuleWindow(newMatchRule))
+            {
+                this.ViewModel.AddRule(newMatchRule);
+            }
+        }
+
+        private void Rules_Combine(object sender, RoutedEventArgs e)
+        {
+            this.ViewModel.ActionRulesViewModel.Combine(this.GetSelectedRules());
+        }
+
+        private void Rules_Remove(object sender, RoutedEventArgs e)
+        {
+            var svm = this.ViewModel;
+            foreach (var vm in this.GetSelectedRules())
+            {
+                svm.RemoveRule(vm);
+            }
+        }
+
+        private void AddAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
+        {
+            var newRule = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>().CreateActionRule();
+            if (this.OpenEditRuleWindow(newRule))
+            {
+                this.ViewModel.AddRule(newRule);
+            }
+        }
+
+        private void AddSetTagRuleButton_Click(object sender, RoutedEventArgs e)
+        {
+            var newRule = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>().CreateSetTagRule();
+            if (this.OpenEditRuleWindow(newRule))
+            {
+                this.ViewModel.AddRule(newRule);
+            }
         }
     }
 }
