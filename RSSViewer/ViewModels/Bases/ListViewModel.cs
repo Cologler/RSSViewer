@@ -4,8 +4,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Jasily.ViewModel;
-
 namespace RSSViewer.ViewModels.Bases
 {
     public class ListViewModel<T> : SelectorViewModel<T>

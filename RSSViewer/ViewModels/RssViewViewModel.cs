@@ -4,10 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.ViewModels.Bases;
 
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using System.Text;
-using System.Windows;
 using System.Windows.Data;
 
 namespace RSSViewer.ViewModels

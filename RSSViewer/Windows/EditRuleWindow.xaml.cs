@@ -5,30 +5,17 @@ using Jasily.ViewModel;
 using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
-using RSSViewer.Configuration;
 using RSSViewer.Filter;
 using RSSViewer.Helpers;
-using RSSViewer.LocalDb;
 using RSSViewer.RulesDb;
 using RSSViewer.Services;
-using RSSViewer.StringMatchers;
 using RSSViewer.ViewModels;
-using RSSViewer.ViewModels.Bases;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace RSSViewer.Windows
 {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 using AutoMapper;
 
 using RSSViewer.Configuration;
@@ -20,6 +15,7 @@ namespace RSSViewer.AutoMapperProfiles
                 .ReverseMap();
 
             EditRuleWindow.ConfigureAutoMapperProfile(this);
+            TagSnapshotViewModel.ConfigureAutoMapperProfile(this);
         }
     }
 }

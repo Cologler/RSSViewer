@@ -1,9 +1,6 @@
 ﻿using Jasily.ViewModel;
 
-using RSSViewer.LocalDb;
-
 using System.Collections.Generic;
-using System.ComponentModel;
 
 namespace RSSViewer.ViewModels
 {

@@ -1,7 +1,7 @@
 ﻿using Jasily.ViewModel;
 
 using RSSViewer.Abstractions;
-using RSSViewer.LocalDb;
+
 using System.Windows;
 
 namespace RSSViewer.ViewModels

@@ -1,9 +1,4 @@
-﻿using System.ComponentModel.Design;
-using System.Linq;
-
-using Jasily.ViewModel;
-
-namespace RSSViewer.ViewModels.Bases
+﻿namespace RSSViewer.ViewModels.Bases
 {
     public abstract class SelectorViewModel<T> : BaseViewModel
     {

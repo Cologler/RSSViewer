@@ -1,24 +1,12 @@
-﻿using Accessibility;
-
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.DependencyInjection;
-
-using RSSViewer.Configuration;
-using RSSViewer.Helpers;
+﻿using RSSViewer.Helpers;
 using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
-using RSSViewer.Services;
 using RSSViewer.Utils;
-
-using SQLitePCL;
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Printing;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;

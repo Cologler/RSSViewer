@@ -1,6 +1,4 @@
 ﻿
-using Jasily.ViewModel;
-
 using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.RssItemHandlers;
@@ -10,10 +8,8 @@ using RSSViewer.ViewModels.Bases;
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels

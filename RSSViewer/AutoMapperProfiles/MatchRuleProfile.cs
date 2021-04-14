@@ -1,9 +1,7 @@
 ﻿
 using AutoMapper;
 
-using RSSViewer.Configuration;
 using RSSViewer.RulesDb;
-using RSSViewer.ViewModels;
 
 namespace RSSViewer.AutoMapperProfiles
 {

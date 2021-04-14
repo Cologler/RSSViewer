@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Linq;
 
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +12,7 @@ using RSSViewer.ViewModels.Bases;
 
 namespace RSSViewer.ViewModels
 {
-    public class MatchRuleListManagerViewModel : BaseViewModel
+    public class MatchRuleListViewModel : BaseViewModel
     {
         private readonly List<MatchRuleViewModel> _removedRules = new();
 
@@ -21,9 +21,9 @@ namespace RSSViewer.ViewModels
         public ListViewModel<MatchRuleViewModel> SetTagRulesViewModel { get; } = new();
 
         /// <summary>
-        /// the new tags map by tag name.
+        /// map by id.
         /// </summary>
-        public Dictionary<string, Tag> NewTags = new();
+        public Dictionary<string, TagViewModel> TagsViewModel { get; } = new();
 
         public void Load()
         {
@@ -33,6 +33,11 @@ namespace RSSViewer.ViewModels
             var tags = ctx.Tags.AsQueryable()
                 .AsNoTracking()
                 .ToDictionary(z => z.Id);
+            this.TagsViewModel.Clear();
+            foreach (var kvp in tags)
+            {
+                this.TagsViewModel.Add(kvp.Key, new TagViewModel(kvp.Value));
+            }
 
             var matchRules = ctx.MatchRules.AsQueryable()
                 .AsNoTracking()
@@ -47,13 +52,15 @@ namespace RSSViewer.ViewModels
 
         public async void Save()
         {
-            if (this.NewTags.Count > 0)
+            var tags = this.TagsViewModel.Select(z => z.Value).ToList();
+            if (tags.Where(z => z.IsChanged || z.IsAdded).Any())
             {
                 using (var scope = this.ServiceProvider.CreateScope())
                 {
                     using (var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>())
                     {
-                        ctx.Tags.AddRange(this.NewTags.Values);
+                        ctx.Tags.AddRange(tags.Where(z => z.IsAdded).Select(z => z.Tag));
+                        ctx.Tags.UpdateRange(tags.Where(z => !z.IsAdded && z.IsChanged).Select(z => z.Tag));
                         ctx.SaveChanges();
                     }              
                 }

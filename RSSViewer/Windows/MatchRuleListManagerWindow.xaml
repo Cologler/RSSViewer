@@ -95,6 +95,8 @@
                                     <ContextMenu>
                                         <MenuItem Header="Edit"
                                                   Click="Rules_Edit" />
+                                        <MenuItem Header="Edit Tag"
+                                                  Click="Rules_EditTag" />
                                         <MenuItem Header="Clone"
                                                   Click="Rules_Clone" />
                                         <MenuItem Header="Remove"

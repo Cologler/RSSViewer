@@ -2,22 +2,14 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using RSSViewer.Configuration;
 using RSSViewer.RulesDb;
 using RSSViewer.Services;
 using RSSViewer.ViewModels;
+
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace RSSViewer.Windows
 {
@@ -29,11 +21,11 @@ namespace RSSViewer.Windows
         public MatchRuleListManagerWindow()
         {
             InitializeComponent();
-            this.DataContext = new MatchRuleListManagerViewModel();
+            this.DataContext = new MatchRuleListViewModel();
             this.ViewModel.Load();
         }
 
-        internal MatchRuleListManagerViewModel ViewModel => (MatchRuleListManagerViewModel)this.DataContext;
+        internal MatchRuleListViewModel ViewModel => (MatchRuleListViewModel)this.DataContext;
 
         private MatchRuleViewModel[] GetSelectedRules()
         {
@@ -65,8 +57,7 @@ namespace RSSViewer.Windows
             }
             else
             {
-                win.ViewModel.TagsViewModel.ResetItemsFromDb();
-                win.ViewModel.TagsViewModel.AddItems(this.ViewModel.NewTags.Values.Select(z => new TagViewModel(z)));
+                win.ViewModel.TagsViewModel.ResetItems(this.ViewModel.TagsViewModel.Values);
             } 
             win.Rule = viewModel.MatchRule;
 
@@ -77,19 +68,20 @@ namespace RSSViewer.Windows
                     var tagsvm = win.ViewModel.TagsViewModel;
                     if (tagsvm.SelectedItem is null)
                     {
-                        var tag = tagsvm.Items.Select(z => z.Tag).FirstOrDefault(z => z.TagName == tagsvm.TagName);
+                        var tagViewModel = tagsvm.Items.FirstOrDefault(z => z.Tag.TagName == tagsvm.TagName);
 
-                        if (tag is null && !this.ViewModel.NewTags.TryGetValue(tagsvm.TagName, out tag))
+                        if (tagViewModel is null)
                         {
-                            tag = new Tag
+                            var tag = new Tag
                             {
                                 Id = Guid.NewGuid().ToString(),
                                 TagName = tagsvm.TagName
                             };
-                            this.ViewModel.NewTags.Add(tag.TagName, tag);
+                            tagViewModel = new TagViewModel(tag) { IsAdded = true };
+                            this.ViewModel.TagsViewModel.Add(tag.Id, tagViewModel);
                         }
 
-                        viewModel.SetTag(tag);
+                        viewModel.SetTag(tagViewModel.Tag);
                     }
                     else
                     {
@@ -176,6 +168,31 @@ namespace RSSViewer.Windows
             if (this.OpenEditRuleWindow(viewModel))
             {
                 this.ViewModel.AddRule(viewModel);
+            }
+        }
+
+        private void Rules_EditTag(object sender, RoutedEventArgs e)
+        {
+            var viewModel = this.GetSelectedRules().FirstOrDefault();
+            if (viewModel == null)
+                return;
+
+            if (viewModel.MatchRule.HandlerType != HandlerType.SetTag)
+                throw new InvalidOperationException();
+
+            if (viewModel.Tag is null)
+                throw new NotImplementedException();
+
+            var mapper = this.ViewModel.ServiceProvider.GetRequiredService<IMapper>();
+
+            var editTagWin = new EditTagWindow { Owner = this };
+            editTagWin.ViewModel.TagGroupsViewModel.ResetItems(this.ViewModel.TagsViewModel.Values.Select(z => z.Tag));
+            mapper.Map(viewModel.Tag, editTagWin.ViewModel.TagViewModel);
+            if (editTagWin.ShowDialog() == true)
+            {
+                mapper.Map(editTagWin.ViewModel.TagViewModel, viewModel.Tag);
+                var tagViewModel = this.ViewModel.TagsViewModel[viewModel.Tag.Id];
+                tagViewModel.IsChanged = true;
             }
         }
     }

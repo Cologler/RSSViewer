@@ -3,12 +3,11 @@
 using Jasily.ViewModel;
 
 using Microsoft.Extensions.DependencyInjection;
+
 using RSSViewer.Configuration;
 using RSSViewer.Services;
+
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
