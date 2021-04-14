@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -58,17 +59,22 @@ namespace RSSViewer.ViewModels
                 }
             }
 
-            var updated = this.SetTagRulesViewModel.Items
+            var updated = Enumerable.Empty<MatchRuleViewModel>()
+                .Concat(this.ActionRulesViewModel.Items)
+                .Concat(this.SetTagRulesViewModel.Items)
                 .Where(z => !z.IsAdded && z.IsChanged).Select(z => z.MatchRule).ToArray();
 
-            var added = this.SetTagRulesViewModel.Items
+            var added = Enumerable.Empty<MatchRuleViewModel>()
+                .Concat(this.ActionRulesViewModel.Items)
+                .Concat(this.SetTagRulesViewModel.Items)
                 .Where(z => z.IsAdded).Select(z => z.MatchRule).ToArray();
 
-            var removed = this._removedRules.Select(z => z.MatchRule).ToArray();
+            var removed = Enumerable.Empty<MatchRuleViewModel>()
+                .Concat(this._removedRules)
+                .Concat(this.ActionRulesViewModel.RemovedRules)
+                .Select(z => z.MatchRule).ToArray();
 
             await this.ServiceProvider.GetRequiredService<ConfigService>().UpdateMatchRulesAsync(updated, added, removed);
-
-            this.ActionRulesViewModel.Save();
         }
 
         public void OnUpdateItem(MatchRuleViewModel viewModel)

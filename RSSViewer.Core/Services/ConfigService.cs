@@ -131,13 +131,16 @@ namespace RSSViewer.Services
             if (removeRules is null)
                 throw new ArgumentNullException(nameof(removeRules));
 
+            if ((updateRules.Length + addRules.Length + removeRules.Length) == 0)
+                return;
+
             using var scope = this._serviceProvider.CreateScope();
             var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
 
             // because the db context is new instance
             // we should attach no changes parents
             // otherwish db context will try insert the items into db again.
-            // this change state to unchange, so we need it run before all others.
+            // this change the state to unchange, so we need it run before all others.
             var toAttach = new List<MatchRule>();
             foreach (var item in addRules.Concat(updateRules))
             {

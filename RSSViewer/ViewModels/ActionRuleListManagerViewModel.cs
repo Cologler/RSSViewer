@@ -27,7 +27,6 @@ namespace RSSViewer.ViewModels
 {
     public class ActionRuleListManagerViewModel : ActionRuleListViewModel
     {
-        private readonly List<MatchRuleViewModel> _removedRules = new List<MatchRuleViewModel>();
         private string _searchText;
 
         public ActionRuleListManagerViewModel()
@@ -71,6 +70,8 @@ namespace RSSViewer.ViewModels
 
         public ListCollectionView RulesView { get; }
 
+        public List<MatchRuleViewModel> RemovedRules { get; } = new List<MatchRuleViewModel>();
+
         internal void AddRule(MatchRuleViewModel viewModel)
         {
             Debug.Assert(viewModel.IsAdded);
@@ -83,17 +84,8 @@ namespace RSSViewer.ViewModels
         {
             if (ruleViewModel is null)
                 throw new ArgumentNullException(nameof(ruleViewModel));
-            this._removedRules.Add(ruleViewModel);
+            this.RemovedRules.Add(ruleViewModel);
             this.Items.Remove(ruleViewModel);
-        }
-
-        internal async void Save()
-        {
-            var configService = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>();
-            await configService.UpdateMatchRulesAsync(
-                this.Items.Where(z => !z.IsAdded && z.IsChanged).Select(z => z.MatchRule).ToArray(),
-                this.Items.Where(z => z.IsAdded).Select(z => z.MatchRule).ToArray(),
-                this._removedRules.Select(z => z.MatchRule).ToArray());
         }
 
         public void Combine(IList<MatchRuleViewModel> items)
