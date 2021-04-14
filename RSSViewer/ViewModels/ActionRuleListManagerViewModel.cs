@@ -71,9 +71,10 @@ namespace RSSViewer.ViewModels
 
         public ListCollectionView RulesView { get; }
 
-        internal void AddRule(MatchRule conf)
+        internal void AddRule(MatchRuleViewModel viewModel)
         {
-            var viewModel = new MatchRuleViewModel(conf, true);
+            Debug.Assert(viewModel.IsAdded);
+
             this.Items.Add(viewModel);
             base.OnUpdateItem(viewModel);
         }

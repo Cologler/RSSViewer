@@ -68,23 +68,23 @@
                               Margin="0,4,0,0">
 
                             <Button Content="Add"
-                                    x:Name="AddAutoRejectMatchButton"
-                                    Click="AddAutoRejectMatchButton_Click" />
+                                    Click="AddActionRuleButton_Click" />
                         </Grid>
                     </Grid>
 
                 </TabItem>
 
                 <TabItem Header="SetTag Rules"
-                         x:Name="SetTagRulesPanel">
+                         x:Name="SetTagRulesPanel"
+                         DataContext="{Binding SetTagRulesViewModel}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <Grid Grid.Row="1">
-                            <ListView ItemsSource="{Binding RulesView}"
+                        <Grid Grid.Row="0">
+                            <ListView ItemsSource="{Binding Items}"
                                       x:Name="SetTagRulesListView">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
@@ -104,7 +104,7 @@
                             </ListView>
                         </Grid>
 
-                        <Grid Grid.Row="2"
+                        <Grid Grid.Row="1"
                               HorizontalAlignment="Left"
                               Margin="0,4,0,0">
 

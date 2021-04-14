@@ -1,14 +1,68 @@
-﻿using RSSViewer.RulesDb;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+using RSSViewer.RulesDb;
+using RSSViewer.Services;
 using RSSViewer.ViewModels.Bases;
 
 namespace RSSViewer.ViewModels
 {
     public class MatchRuleListManagerViewModel : BaseViewModel
     {
+        private readonly List<MatchRuleViewModel> _removedRules = new();
+
         public ActionRuleListManagerViewModel ActionRulesViewModel { get; } = new();
 
-        public void Save()
+        public ListViewModel<MatchRuleViewModel> SetTagRulesViewModel { get; } = new();
+
+        /// <summary>
+        /// the new tags map by tag name.
+        /// </summary>
+        public Dictionary<string, Tag> NewTags = new();
+
+        public void Load()
         {
+            using var scope = this.ServiceProvider.CreateScope();
+            using var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
+
+            var matchRules = ctx.MatchRules.AsQueryable()
+                .AsNoTracking()
+                .ToList();
+
+            var setTagRules = matchRules.Where(z => z.HandlerType == HandlerType.SetTag)
+                .Select(z => new MatchRuleViewModel(z))
+                .ToList();
+            this.SetTagRulesViewModel.ResetItems(setTagRules);
+        }
+
+        public async void Save()
+        {
+            if (this.NewTags.Count > 0)
+            {
+                using (var scope = this.ServiceProvider.CreateScope())
+                {
+                    using (var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>())
+                    {
+                        ctx.Tags.AddRange(this.NewTags.Values);
+                        ctx.SaveChanges();
+                    }              
+                }
+            }
+
+            var updated = this.SetTagRulesViewModel.Items
+                .Where(z => !z.IsAdded && z.IsChanged).Select(z => z.MatchRule).ToArray();
+
+            var added = this.SetTagRulesViewModel.Items
+                .Where(z => z.IsAdded).Select(z => z.MatchRule).ToArray();
+
+            var removed = this._removedRules.Select(z => z.MatchRule).ToArray();
+
+            await this.ServiceProvider.GetRequiredService<ConfigService>().UpdateMatchRulesAsync(updated, added, removed);
+
             this.ActionRulesViewModel.Save();
         }
 
@@ -20,11 +74,17 @@ namespace RSSViewer.ViewModels
             }
         }
 
-        public void AddRule(MatchRule matchRule)
+        public void AddRule(MatchRuleViewModel viewModel)
         {
-            if (matchRule.HandlerType == HandlerType.Action)
+            Debug.Assert(viewModel.IsAdded);
+
+            if (viewModel.MatchRule.HandlerType == HandlerType.Action)
             {
-                this.ActionRulesViewModel.AddRule(matchRule);
+                this.ActionRulesViewModel.AddRule(viewModel);
+            }
+            else
+            {
+                this.SetTagRulesViewModel.Items.Add(viewModel);
             }
         }
 
@@ -34,6 +94,11 @@ namespace RSSViewer.ViewModels
             {
                 this.ActionRulesViewModel.RemoveRule(viewModel);
             }
+            else
+            {
+                this._removedRules.Add(viewModel);
+                this.SetTagRulesViewModel.Items.Remove(viewModel);
+            } 
         }
     }
 }

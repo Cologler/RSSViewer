@@ -153,35 +153,38 @@ namespace RSSViewer.Windows
 
         private void OKButton_Click(object sender, RoutedEventArgs e)
         {
-            // check handler
-            if (!(this.ActionsList.SelectedItem is IRssItemHandler))
-            {
-                MessageBox.Show("Please select a handler", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+            if (this.Rule is null)
+                throw new InvalidOperationException();
 
-            // check lifetime
-            if (this.ViewModel.IsEnabledAutoDisabled && !int.TryParse(this.ViewModel.AutoDisabledAfterDaysText, out _))
+            switch (this.Rule.HandlerType)
             {
-                MessageBox.Show("Auto disabled days is not a integer", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-            if (this.ViewModel.IsEnabledAutoExpired && !int.TryParse(this.ViewModel.AutoExpiredAfterDaysText, out _))
-            {
-                MessageBox.Show("Auto expired days is not a integer", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+                case HandlerType.Action:
+                    // check handler
+                    if (!(this.ActionsList.SelectedItem is IRssItemHandler))
+                    {
+                        MessageBox.Show("Please select a handler", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
 
-            // check parent
-            //var parent = this.ViewModel.ParentSelectorView.SelectedItem;
-            //if (parent is not null)
-            //{
-            //    if (parent.MatchRule is not null && parent.MatchRule.Id <= 0)
-            //    {
-            //        MessageBox.Show("Not implemented yet!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            //        return;
-            //    }
-            //}
+                    // check lifetime
+                    if (this.ViewModel.IsEnabledAutoDisabled && !int.TryParse(this.ViewModel.AutoDisabledAfterDaysText, out _))
+                    {
+                        MessageBox.Show("Auto disabled days is not a integer", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                    if (this.ViewModel.IsEnabledAutoExpired && !int.TryParse(this.ViewModel.AutoExpiredAfterDaysText, out _))
+                    {
+                        MessageBox.Show("Auto expired days is not a integer", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                    break;
+
+                case HandlerType.SetTag:
+                    break;
+
+                default:
+                    throw new NotImplementedException();
+            }
 
             // check match
             if (this.TryCreateRssItemMatcher() == null)
@@ -198,7 +201,7 @@ namespace RSSViewer.Windows
 
         private RuleMatchTreeNode TryCreateRssItemMatcher()
         {
-            var rule = new MatchRule();
+            var rule = new MatchRule { HandlerType = this.Rule.HandlerType };
             this.WriteTo(rule);
             var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<RssItemFilterFactory>();
 
@@ -350,39 +353,49 @@ namespace RSSViewer.Windows
             {
                 this.ServiceProvider.GetRequiredService<IMapper>().Map(rule, this);
 
-                this.SourcesView.SelectedItem = this.SourcesView.Items.FirstOrDefault(z => z.FeedId == rule.OnFeedId);
-
-                this.IgnoreCase = rule.IgnoreCase;
-
-                this._lastMatched = rule.LastMatched.ToLocalTime();
-
-                // lifetime: disabled
-                this.IsEnabledAutoDisabled = rule.AutoDisabledAfterLastMatched.HasValue;
-                if (rule.AutoDisabledAfterLastMatched.HasValue)
+                switch (rule.HandlerType)
                 {
-                    this.AutoDisabledAfterDaysText = rule.AutoDisabledAfterLastMatched.Value.Days.ToString();
-                }
-                else
-                {
-                    this.AutoDisabledAfterDaysText = string.Empty;
-                }
-                // lifetime: expired
-                this.IsEnabledAutoExpired = rule.AutoExpiredAfterLastMatched.HasValue;
-                if (rule.AutoExpiredAfterLastMatched.HasValue)
-                {
-                    this.AutoExpiredAfterDaysText = rule.AutoExpiredAfterLastMatched.Value.Days.ToString();
-                }
-                else
-                {
-                    this.AutoExpiredAfterDaysText = string.Empty;
-                }
+                    case HandlerType.Action:
+                        this.SourcesView.SelectedItem = this.SourcesView.Items.FirstOrDefault(z => z.FeedId == rule.OnFeedId);
+                        this._lastMatched = rule.LastMatched.ToLocalTime();
 
-                // parent
-                await this.ParentSelectorView.Ready;
-                this.ParentSelectorView.SelectedItem = 
-                    this.ParentSelectorView.Items
-                        .Where(z => z.MatchRule == rule.Parent)
-                        .FirstOrDefault();
+                        // lifetime: disabled
+                        this.IsEnabledAutoDisabled = rule.AutoDisabledAfterLastMatched.HasValue;
+                        if (rule.AutoDisabledAfterLastMatched.HasValue)
+                        {
+                            this.AutoDisabledAfterDaysText = rule.AutoDisabledAfterLastMatched.Value.Days.ToString();
+                        }
+                        else
+                        {
+                            this.AutoDisabledAfterDaysText = string.Empty;
+                        }
+                        // lifetime: expired
+                        this.IsEnabledAutoExpired = rule.AutoExpiredAfterLastMatched.HasValue;
+                        if (rule.AutoExpiredAfterLastMatched.HasValue)
+                        {
+                            this.AutoExpiredAfterDaysText = rule.AutoExpiredAfterLastMatched.Value.Days.ToString();
+                        }
+                        else
+                        {
+                            this.AutoExpiredAfterDaysText = string.Empty;
+                        }
+
+                        // parent
+                        await this.ParentSelectorView.Ready;
+                        this.ParentSelectorView.SelectedItem = this.ParentSelectorView.Items
+                            .Where(z => z.MatchRule == rule.Parent)
+                            .FirstOrDefault();
+                        break;
+
+                    case HandlerType.SetTag:
+                        this.TagsViewModel.SelectedItem = rule.HandlerId is null
+                            ? null
+                            : this.TagsViewModel.Items.FirstOrDefault(z => z.Tag.Id == rule.HandlerId);
+                        break;
+
+                    default:
+                        throw new NotImplementedException();
+                }
 
                 this.RefreshProperties();
             }
@@ -391,31 +404,49 @@ namespace RSSViewer.Windows
             {
                 this.ServiceProvider.GetRequiredService<IMapper>().Map(this, rule);
 
-                rule.OnFeedId = this.SourcesView.SelectedItem?.FeedId;
-
-                rule.IgnoreCase = this.IgnoreCase;
-
-                // lifetime
-                // lifetime: disabled
-                if (this.IsEnabledAutoDisabled)
+                switch (rule.HandlerType)
                 {
-                    rule.AutoDisabledAfterLastMatched = TimeSpan.FromDays(int.Parse(this.AutoDisabledAfterDaysText));
-                }
-                // lifetime: expired
-                if (this.IsEnabledAutoExpired)
-                {
-                    rule.AutoExpiredAfterLastMatched = TimeSpan.FromDays(int.Parse(this.AutoExpiredAfterDaysText));
-                }
+                    case HandlerType.Action:
+                        rule.OnFeedId = this.SourcesView.SelectedItem?.FeedId;
 
-                // parent
-                rule.Parent = this.ParentSelectorView.SelectedItem?.MatchRule;
+                        // lifetime
+                        // lifetime: disabled
+                        if (this.IsEnabledAutoDisabled)
+                        {
+                            rule.AutoDisabledAfterLastMatched = TimeSpan.FromDays(int.Parse(this.AutoDisabledAfterDaysText));
+                        }
+                        // lifetime: expired
+                        if (this.IsEnabledAutoExpired)
+                        {
+                            rule.AutoExpiredAfterLastMatched = TimeSpan.FromDays(int.Parse(this.AutoExpiredAfterDaysText));
+                        }
+
+                        // parent
+                        rule.Parent = this.ParentSelectorView.SelectedItem?.MatchRule;
+                        break;
+
+                    case HandlerType.SetTag:
+                        // set from manager window
+                        break;
+
+                    default:
+                        throw new NotImplementedException();
+                }
             }
 
             public SourcesViewModel SourcesView { get; } = new(false);
 
+            [ModelProperty]
+            public TagsSelectorViewModel TagsViewModel { get; } = new();
+
             public bool IgnoreCase { get => _ignoreCase; set => this.ChangeModelProperty(ref _ignoreCase, value); }
 
-            public MatchRuleParentSelectorViewModel ParentSelectorView { get; } = new();
+            public ActionRuleParentSelectorViewModel ParentSelectorView { get; } = new();
+        }
+
+        public class TagsSelectorViewModel : TagsViewModel
+        {
+            public string TagName { get; set; }
         }
 
         private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)

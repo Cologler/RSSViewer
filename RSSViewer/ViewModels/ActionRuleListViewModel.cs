@@ -26,7 +26,7 @@ namespace RSSViewer.ViewModels
         /// <returns></returns>
         public async Task LoadActionRulesFromDbAsync()
         {
-            var rules = await this.ServiceProvider.GetRequiredService<ConfigService>().ListActionRulesAsync();
+            var rules = await this.ServiceProvider.GetRequiredService<ConfigService>().GetActionRulesAsync();
 
             var tree = rules.BuildTree(out var noParentItems);
 

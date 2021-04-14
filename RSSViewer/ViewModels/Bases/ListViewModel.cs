@@ -8,7 +8,7 @@ using Jasily.ViewModel;
 
 namespace RSSViewer.ViewModels.Bases
 {
-    public abstract class ListViewModel<T> : SelectorViewModel<T>
+    public class ListViewModel<T> : SelectorViewModel<T>
     {
         public ListViewModel()
         {

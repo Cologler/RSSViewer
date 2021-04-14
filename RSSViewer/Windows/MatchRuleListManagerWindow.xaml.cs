@@ -30,6 +30,7 @@ namespace RSSViewer.Windows
         {
             InitializeComponent();
             this.DataContext = new MatchRuleListManagerViewModel();
+            this.ViewModel.Load();
         }
 
         internal MatchRuleListManagerViewModel ViewModel => (MatchRuleListManagerViewModel)this.DataContext;
@@ -41,7 +42,7 @@ namespace RSSViewer.Windows
             {
                 activatedListView = this.ActionRulesListView;
             }
-            else if (this.RulesTabsPanel.SelectedItem == this.ActionRulesPanel)
+            else if (this.RulesTabsPanel.SelectedItem == this.SetTagRulesPanel)
             {
                 activatedListView = this.SetTagRulesListView;
             } 
@@ -55,15 +56,51 @@ namespace RSSViewer.Windows
                 .ToArray();
         }
 
-        bool OpenEditRuleWindow(MatchRule rule)
+        bool OpenEditRuleWindow(MatchRuleViewModel viewModel)
         {
             var win = new EditRuleWindow { Owner = this };
-            if (rule.HandlerType == HandlerType.Action)
+            if (viewModel.MatchRule.HandlerType == HandlerType.Action)
             {
                 win.ViewModel.ParentSelectorView.ResetItems(this.ViewModel.ActionRulesViewModel.Items);
             }
-            win.Rule = rule;
-            return win.ShowDialog() == true;
+            else
+            {
+                win.ViewModel.TagsViewModel.ResetItemsFromDb();
+                win.ViewModel.TagsViewModel.AddItems(this.ViewModel.NewTags.Values.Select(z => new TagViewModel(z)));
+            } 
+            win.Rule = viewModel.MatchRule;
+
+            if (win.ShowDialog() == true)
+            {
+                if (viewModel.MatchRule.HandlerType == HandlerType.SetTag)
+                {
+                    var tagsvm = win.ViewModel.TagsViewModel;
+                    if (tagsvm.SelectedItem is null)
+                    {
+                        if (!this.ViewModel.NewTags.TryGetValue(tagsvm.TagName, out var tag))
+                        {
+                            tag = new Tag
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                TagName = tagsvm.TagName
+                            };
+                            this.ViewModel.NewTags.Add(tag.TagName, tag);
+                        }
+
+                        viewModel.MatchRule.HandlerId = tag.Id;
+                    }
+                    else
+                    {
+                        viewModel.MatchRule.HandlerId = tagsvm.SelectedItem.Tag.Id;
+                    }
+                }
+
+                viewModel.MarkChanged();
+                viewModel.RefreshProperties();
+
+                return true;
+            }
+            return false;
         }
 
         private void OKButton_Click(object sender, RoutedEventArgs e)
@@ -83,11 +120,9 @@ namespace RSSViewer.Windows
             if (vm == null)
                 return;
 
-            if (this.OpenEditRuleWindow(vm.MatchRule))
+            if (this.OpenEditRuleWindow(vm))
             {
                 this.ViewModel.OnUpdateItem(vm);
-                vm.MarkChanged();
-                vm.RefreshProperties();
             }
         }
 
@@ -100,10 +135,11 @@ namespace RSSViewer.Windows
             var serviceProvider = App.RSSViewerHost.ServiceProvider;
             var mapper = serviceProvider.GetRequiredService<IMapper>();
 
-            var newMatchRule = mapper.Map<MatchRule>(viewModel.MatchRule);
-            if (this.OpenEditRuleWindow(newMatchRule))
+            var newRule = mapper.Map<MatchRule>(viewModel.MatchRule);
+            var newViewModel = new MatchRuleViewModel(newRule, true);
+            if (this.OpenEditRuleWindow(newViewModel))
             {
-                this.ViewModel.AddRule(newMatchRule);
+                this.ViewModel.AddRule(newViewModel);
             }
         }
 
@@ -121,21 +157,23 @@ namespace RSSViewer.Windows
             }
         }
 
-        private void AddAutoRejectMatchButton_Click(object sender, RoutedEventArgs e)
+        private void AddActionRuleButton_Click(object sender, RoutedEventArgs e)
         {
             var newRule = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>().CreateActionRule();
-            if (this.OpenEditRuleWindow(newRule))
+            var viewModel = new MatchRuleViewModel(newRule, true);
+            if (this.OpenEditRuleWindow(viewModel))
             {
-                this.ViewModel.AddRule(newRule);
+                this.ViewModel.AddRule(viewModel);
             }
         }
 
         private void AddSetTagRuleButton_Click(object sender, RoutedEventArgs e)
         {
             var newRule = App.RSSViewerHost.ServiceProvider.GetRequiredService<ConfigService>().CreateSetTagRule();
-            if (this.OpenEditRuleWindow(newRule))
+            var viewModel = new MatchRuleViewModel(newRule, true);
+            if (this.OpenEditRuleWindow(viewModel))
             {
-                this.ViewModel.AddRule(newRule);
+                this.ViewModel.AddRule(viewModel);
             }
         }
     }

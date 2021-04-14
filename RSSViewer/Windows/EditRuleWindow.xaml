@@ -68,11 +68,12 @@
                             <StackPanel x:Name="General_AddTag">
 
                                 <StackPanel Style="{StaticResource HeaderContentPair}"
-                                            DataContext="{Binding TagsView}">
+                                            DataContext="{Binding TagsViewModel}">
                                     <TextBlock Text="Tag Name"
                                                Style="{StaticResource HeaderStyle}" />
 
                                     <ComboBox SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                              Text="{Binding TagName, Mode=TwoWay}"
                                               ItemsSource="{Binding Items}"
                                               DisplayMemberPath="Name"
                                               IsEditable="True">

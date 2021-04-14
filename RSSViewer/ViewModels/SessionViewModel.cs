@@ -217,14 +217,36 @@ namespace RSSViewer.ViewModels
 
             var groupList = new List<RssItemGroupViewModel>();
 
-            var allItemsGroup = new RssItemGroupViewModel { DisplayName = "<ALL>" };
+            // spec: all
+            var allItemsGroup = new RssItemGroupViewModel { DisplayName = "ALL" };
             allItemsGroup.Items.AddRange(classifiedItems.Select(z => z.ViewModel));
             groupList.Add(allItemsGroup);
 
-            var emptyItemsGroup = new RssItemGroupViewModel { DisplayName = "<>" };
-            emptyItemsGroup.Items.AddRange(classifiedItems.Where(z => z.GroupName == string.Empty).Select(z => z.ViewModel));
-            groupList.Add(emptyItemsGroup);
+            // spec: no group
+            var emptyGroupItemsGroup = new RssItemGroupViewModel { DisplayName = "NO_GROUP" };
+            emptyGroupItemsGroup.Items.AddRange(classifiedItems.Where(z => z.GroupName == string.Empty).Select(z => z.ViewModel));
+            groupList.Add(emptyGroupItemsGroup);
 
+            // tags
+            var taggedItems = classifiedItems.Where(z => z.Tags.Count > 0).ToList();
+            var tagsGroupsMap = taggedItems
+                .SelectMany(z => z.Tags)
+                .Distinct()
+                .ToDictionary(z => z, z => new RssItemGroupViewModel { DisplayName = $"[{z.TagName}]" });
+            foreach (var item in taggedItems)
+            {
+                foreach (var tag in item.Tags)
+                {
+                    tagsGroupsMap[tag].Items.Add(item.ViewModel);
+                }
+            }
+            groupList.AddRange(
+                tagsGroupsMap
+                    .Select(z => z.Value)
+                    .OrderBy(z => z.DisplayName)                    
+            );
+
+            // groups
             groupList.AddRange(
                 classifiedItems
                     .Where(z => z.GroupName != string.Empty)
@@ -232,7 +254,7 @@ namespace RSSViewer.ViewModels
                     .OrderBy(z => z.Key)
                     .Select(z =>
                     {
-                        var g = new RssItemGroupViewModel { DisplayName = z.Key };
+                        var g = new RssItemGroupViewModel { DisplayName = $"{{{z.Key}}}" };
                         g.Items.AddRange(z.Select(z => z.ViewModel));
                         return g;
                     })
