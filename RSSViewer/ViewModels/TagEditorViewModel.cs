@@ -1,4 +1,7 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+
+using AutoMapper;
 
 using Jasily.ViewModel;
 
@@ -6,7 +9,7 @@ using RSSViewer.RulesDb;
 
 namespace RSSViewer.ViewModels
 {
-    public class TagSnapshotViewModel : Bases.BaseViewModel
+    public class TagEditorViewModel : Bases.BaseViewModel
     {
         [ModelProperty]
         public string TagGroupName { get; set; }
@@ -16,7 +19,7 @@ namespace RSSViewer.ViewModels
 
         public static void ConfigureAutoMapperProfile(Profile profile)
         {
-            profile.CreateMap<TagSnapshotViewModel, Tag>()
+            profile.CreateMap<TagEditorViewModel, Tag>()
                 .AfterMap((v, m) =>
                 {
                     m.TagGroupName = string.IsNullOrWhiteSpace(m.TagGroupName) ? null : m.TagGroupName.Trim();

@@ -173,30 +173,63 @@ namespace RSSViewer.Windows
 
         private void Rules_EditTag(object sender, RoutedEventArgs e)
         {
-            var viewModel = this.GetSelectedRules().FirstOrDefault();
-            if (viewModel == null)
+            var selectedViewModel = this.GetSelectedRules();
+            if (selectedViewModel.Length == 0)
                 return;
 
-            if (viewModel.MatchRule.HandlerType != HandlerType.SetTag)
+            if (selectedViewModel.Where(z => z.MatchRule.HandlerType != HandlerType.SetTag).Any())
                 throw new InvalidOperationException();
 
-            if (viewModel.Tag is null)
+            if (selectedViewModel.Where(z => z.Tag is null).Any())
                 throw new NotImplementedException();
+
+            var editGroupOnly = selectedViewModel.Length > 1;
 
             var mapper = this.ViewModel.ServiceProvider.GetRequiredService<IMapper>();
 
+            var tags = selectedViewModel.Select(z => z.Tag).ToList();
+
             var editTagWin = new EditTagWindow { Owner = this };
             editTagWin.ViewModel.TagGroupsViewModel.ResetItems(this.ViewModel.TagsViewModel.Values.Select(z => z.Tag));
-            mapper.Map(viewModel.Tag, editTagWin.ViewModel.TagViewModel);
+
+            if (editGroupOnly)
+            {
+                editTagWin.ViewModel.TagViewModel.TagGroupName = 
+                    tags.Select(z => z.TagGroupName ?? string.Empty).Distinct().First();
+                editTagWin.ViewModel.TagViewModel.RefreshProperties();
+            }
+            else
+            {
+                mapper.Map(tags[0], editTagWin.ViewModel.TagViewModel);
+            }
+
             if (editTagWin.ShowDialog() == true)
             {
-                mapper.Map(editTagWin.ViewModel.TagViewModel, viewModel.Tag);
-                var tagViewModel = this.ViewModel.TagsViewModel[viewModel.Tag.Id];
-                tagViewModel.IsChanged = true;
-                foreach (var item in this.ViewModel.SetTagRulesViewModel.Items.Where(z => z.Tag == viewModel.Tag))
+                if (editGroupOnly)
+                {
+                    foreach (var tag in tags)
+                    {
+                        tag.TagGroupName = string.IsNullOrWhiteSpace(editTagWin.ViewModel.TagViewModel.TagGroupName) 
+                            ? null 
+                            : editTagWin.ViewModel.TagViewModel.TagGroupName.Trim();
+                    }
+                }
+                else
+                {
+                    mapper.Map(editTagWin.ViewModel.TagViewModel, tags[0]);
+                } 
+
+                foreach (var tag in tags)
+                {
+                    this.ViewModel.TagsViewModel[tag.Id].IsChanged = true;
+                }
+
+                foreach (var item in this.ViewModel.SetTagRulesViewModel.Items.Where(z => tags.Contains(z.Tag)))
                 {
                     item.RefreshProperties();
                 }
+
+                this.ViewModel.SetTagRulesViewModel.ItemsView.Refresh();
             }
         }
     }

@@ -6,6 +6,8 @@
         xmlns:local="clr-namespace:RSSViewer.Windows"
         mc:Ignorable="d"
         Title="Edit Tag"
+        MinHeight="200"
+        MinWidth="380"
         Height="200"
         Width="380"
         WindowStartupLocation="CenterOwner">

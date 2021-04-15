@@ -15,7 +15,7 @@ namespace RSSViewer.AutoMapperProfiles
                 .ReverseMap();
 
             EditRuleWindow.ConfigureAutoMapperProfile(this);
-            TagSnapshotViewModel.ConfigureAutoMapperProfile(this);
+            TagEditorViewModel.ConfigureAutoMapperProfile(this);
         }
     }
 }

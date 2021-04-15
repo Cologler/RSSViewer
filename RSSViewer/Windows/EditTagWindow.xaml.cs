@@ -32,7 +32,7 @@ namespace RSSViewer.Windows
         {
             public TagGroupsViewModel TagGroupsViewModel { get; } = new();
 
-            public TagSnapshotViewModel TagViewModel { get; } = new();
+            public TagEditorViewModel TagViewModel { get; } = new();
         }
     }
 }
