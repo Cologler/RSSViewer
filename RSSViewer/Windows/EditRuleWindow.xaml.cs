@@ -167,6 +167,11 @@ namespace RSSViewer.Windows
                     break;
 
                 case HandlerType.SetTag:
+                    if (string.IsNullOrWhiteSpace(this.ViewModel.TagsViewModel.TagName))
+                    {
+                        MessageBox.Show("TagName cannot be empty", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
                     break;
 
                 default:
