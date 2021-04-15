@@ -230,7 +230,7 @@ namespace RSSViewer.ViewModels
             var tagsGroupsMap = taggedItems
                 .SelectMany(z => z.Tags)
                 .Distinct()
-                .ToDictionary(z => z, z => new RssItemGroupViewModel { DisplayName = z.ToString() });
+                .ToDictionary(z => z, z => new RssItemGroupViewModel(RssItemGroupViewModel.GroupBy.Tag) { DisplayName = z.ToString() });
             foreach (var item in taggedItems)
             {
                 foreach (var tag in item.Tags)
@@ -241,7 +241,7 @@ namespace RSSViewer.ViewModels
             var tagGroupWithoutTagMap = classifiedItems
                 .SelectMany(z => z.TagGroupWithoutTag)
                 .Distinct()
-                .ToDictionary(z => z, z => new RssItemGroupViewModel { DisplayName = $"[{z}].<>" });
+                .ToDictionary(z => z, z => new RssItemGroupViewModel(RssItemGroupViewModel.GroupBy.Tag) { DisplayName = $"[{z}].<>" });
             foreach (var item in classifiedItems)
             {
                 foreach (var tagGroup in item.TagGroupWithoutTag)
@@ -301,7 +301,8 @@ namespace RSSViewer.ViewModels
                 throw new ArgumentNullException(nameof(groups));
 
             this.SelectedItems.Clear();
-            groups.SelectMany(z => z.Items).Distinct().ToList().ForEach(this.SelectedItems.Add);
+
+            RssItemGroupViewModel.Combine(groups.ToList()).ToList().ForEach(this.SelectedItems.Add);
         }
 
         public async Task HandleAsync(RssItemViewModel[] items, IRssItemHandler handler)
