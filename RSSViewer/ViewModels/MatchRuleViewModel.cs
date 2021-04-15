@@ -101,12 +101,10 @@ namespace RSSViewer.ViewModels
                     {
                         if (this.Tag is not null)
                         {
-                            sb.Append(this.Tag.ToString());
+                            sb.Append(this.Tag.ToString()).Append("  ");
                         }
-                        else
-                        {
-                            sb.Append(this.MatchRule.ToDebugString());
-                        } 
+
+                        sb.Append(this.MatchRule.ToDebugString());
                     }
                 }
                 
