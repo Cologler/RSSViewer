@@ -39,7 +39,7 @@ namespace RSSViewer.ViewModels
         {
             if (this._watchChanges)
             {
-                App.RSSViewerHost.ServiceProvider.RemoveListener(EventNames.AddedRssItems, this.OnAddedRssItems);
+                this.ServiceProvider.RemoveListener(EventNames.AddedRssItems, this.OnAddedRssItems);
             }
         }
 
