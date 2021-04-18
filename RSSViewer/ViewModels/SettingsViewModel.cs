@@ -38,7 +38,7 @@ namespace RSSViewer.ViewModels
             configService.Save();
         }
 
-        public bool AddToQueueTop 
+        public bool AddToQueueTop
         { 
             get => _addToQueueTop;
             set => this.ChangeModelProperty(ref _addToQueueTop, value);
