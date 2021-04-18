@@ -8,15 +8,16 @@ using System.Windows.Data;
 
 namespace RSSViewer.ViewModels
 {
-    public class RssViewViewModel : ItemsViewerViewModel<SessionViewModel>
+    public class MainViewModel : ItemsViewerViewModel<SessionViewModel>
     {
-        public RssViewViewModel()
+        public MainViewModel()
         {
             this.LoggerMessage = this.ServiceProvider.GetRequiredService<ViewerLoggerViewModel>();
 
             this.ItemsView.NewItemPlaceholderPosition = System.ComponentModel.NewItemPlaceholderPosition.AtEnd;
 
             this.Items.Add(this.CreateSession(false));
+            this.SelectFirst();
         }
 
         public ViewerLoggerViewModel LoggerMessage { get; }

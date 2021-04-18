@@ -29,8 +29,7 @@ namespace RSSViewer
                 .AcceptHandlersChanged += (_, __) => this.RefreshAcceptHandlers();
             this.RefreshAcceptHandlers();
 
-            var viewModel = new RssViewViewModel();
-            viewModel.SelectFirst();
+            var viewModel = new MainViewModel();
             this.DataContext = viewModel;
             _ = viewModel.Items.First().RefreshContentAsync(0);
         }
@@ -69,7 +68,7 @@ namespace RSSViewer
             }
         }
 
-        public RssViewViewModel ViewModel => (RssViewViewModel)this.DataContext;
+        public MainViewModel ViewModel => (MainViewModel)this.DataContext;
 
         public SessionViewModel CurrentSession => this.ViewModel.SelectedItem;
 
