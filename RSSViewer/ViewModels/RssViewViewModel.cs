@@ -8,23 +8,20 @@ using System.Windows.Data;
 
 namespace RSSViewer.ViewModels
 {
-    public class RssViewViewModel : ListViewModel<SessionViewModel>
+    public class RssViewViewModel : ItemsViewerViewModel<SessionViewModel>
     {
         public RssViewViewModel()
         {
-            var serviceProvider = App.RSSViewerHost.ServiceProvider;
+            this.LoggerMessage = this.ServiceProvider.GetRequiredService<ViewerLoggerViewModel>();
 
-            this.LoggerMessage = serviceProvider.GetRequiredService<ViewerLoggerViewModel>();
-
-            this.ItemsView = new ListCollectionView(this.Items);
             this.ItemsView.NewItemPlaceholderPosition = System.ComponentModel.NewItemPlaceholderPosition.AtEnd;
+
+            this.Items.Add(this.CreateSession(false));
         }
 
         public ViewerLoggerViewModel LoggerMessage { get; }
 
         public AnalyticsViewModel AnalyticsView { get; } = new();
-
-        public ListCollectionView ItemsView { get; }
 
         public override SessionViewModel SelectedItem
         {
@@ -44,14 +41,6 @@ namespace RSSViewer.ViewModels
                 }
                 base.SelectedItem = value;
             }
-        }
-
-        protected override IEnumerable<SessionViewModel> LoadItems()
-        {
-            return new[]
-            {
-                this.CreateSession(false)
-            };
         }
 
         private SessionViewModel CreateSession(bool removable)

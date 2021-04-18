@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace RSSViewer.ViewModels.Bases
 {
@@ -29,6 +30,11 @@ namespace RSSViewer.ViewModels.Bases
             {
                 this.Items.Add(item);
             }
+        }
+
+        public override void SelectFirst()
+        {
+            this.SelectedItem = this.Items.FirstOrDefault();
         }
     }
 }
