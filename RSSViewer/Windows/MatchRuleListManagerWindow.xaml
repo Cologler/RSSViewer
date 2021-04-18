@@ -41,7 +41,7 @@
                         </Grid>
 
                         <Grid Grid.Row="1">
-                            <ListView ItemsSource="{Binding RulesView}"
+                            <ListView ItemsSource="{Binding ItemsView}"
                                       x:Name="ActionRulesListView">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>

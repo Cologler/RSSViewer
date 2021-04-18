@@ -97,7 +97,7 @@ namespace RSSViewer.ViewModels
         {
             if (viewModel.MatchRule.HandlerType == HandlerType.Action)
             {
-                this.ActionRulesViewModel.OnUpdateItem(viewModel);
+                this.ActionRulesViewModel.UpdateItem(viewModel);
             }
         }
 
@@ -119,7 +119,7 @@ namespace RSSViewer.ViewModels
         {
             if (viewModel.MatchRule.HandlerType == HandlerType.Action)
             {
-                this.ActionRulesViewModel.RemoveRule(viewModel);
+                this.ActionRulesViewModel.RemoveItem(viewModel);
             }
             else
             {

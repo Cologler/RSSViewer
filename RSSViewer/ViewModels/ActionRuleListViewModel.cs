@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
-    public class ActionRuleListViewModel : ItemsViewModel<MatchRuleViewModel>
+    public class ActionRuleListViewModel : ItemsViewerViewModel<MatchRuleViewModel>
     {
         /// <summary>
         /// a helper method.
@@ -70,10 +70,7 @@ namespace RSSViewer.ViewModels
             return index..(index + childs.Count + 1);
         }
 
-        /// <summary>
-        /// call after a item was updated
-        /// </summary>
-        public virtual void OnUpdateItem(MatchRuleViewModel item)
+        public override void UpdateItem(MatchRuleViewModel item)
         {
             if (item is null)
                 throw new ArgumentNullException(nameof(item));
@@ -143,7 +140,7 @@ namespace RSSViewer.ViewModels
             }
         }
 
-        public HashSet<MatchRuleViewModel> Search(string text)
+        public HashSet<MatchRuleViewModel> Find(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -166,6 +163,20 @@ namespace RSSViewer.ViewModels
                     }
                 }
                 return results;
+            }
+        }
+
+        protected override Predicate<MatchRuleViewModel> GetFilter(string searchText)
+        {
+            var value = searchText;
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+            else
+            {
+                var r = this.Find(value.Trim());
+                return v => r.Contains(v);
             }
         }
     }

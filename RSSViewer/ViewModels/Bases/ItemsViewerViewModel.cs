@@ -22,10 +22,15 @@ namespace RSSViewer.ViewModels.Bases
             {
                 if (this.ChangeModelProperty(ref this._searchText, value))
                 {
-                    var filter = this.GetFilter(value);
-                    this.ItemsView.Filter = filter is null ? null : o => filter((T)o);
+                    this.UpdateItemsViewFilter();
                 }
             }
+        }
+
+        public virtual void UpdateItemsViewFilter()
+        {
+            var filter = this.GetFilter(this.SearchText);
+            this.ItemsView.Filter = filter is null ? null : o => filter((T)o);
         }
 
         protected virtual Predicate<T> GetFilter(string searchText) => null;
@@ -40,6 +45,18 @@ namespace RSSViewer.ViewModels.Bases
 
             using var _ = this.ItemsView.DeferRefresh();
             this.ResetItems(items);
+        }
+
+        public override void RemoveItem(T item)
+        {
+            base.RemoveItem(item);
+            this.UpdateItemsViewFilter();
+        }
+
+        public override void RemoveItems(IEnumerable<T> items)
+        {
+            base.RemoveItems(items);
+            this.UpdateItemsViewFilter();
         }
     }
 }

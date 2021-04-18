@@ -15,46 +15,11 @@ namespace RSSViewer.ViewModels
 {
     public class ActionRuleListManagerViewModel : ActionRuleListViewModel
     {
-        private string _searchText;
-
-        public ActionRuleListManagerViewModel()
+        public override void UpdateItem(MatchRuleViewModel item)
         {
-            this.RulesView = new ListCollectionView(this.Items);
+            base.UpdateItem(item);
+            this.ItemsView.Refresh();
         }
-
-        public string SearchText
-        {
-            get => this._searchText;
-            set
-            {
-                if (this.ChangeModelProperty(ref this._searchText, value))
-                {
-                    this.UpdateSearchView();
-                }
-            }
-        }
-
-        private void UpdateSearchView()
-        {
-            var value = this._searchText;
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                this.RulesView.Filter = null;
-            }
-            else
-            {
-                var r = this.Search(value.Trim());
-                this.RulesView.Filter = (v) => r.Contains((MatchRuleViewModel)v);
-            }
-        }
-
-        public override void OnUpdateItem(MatchRuleViewModel item)
-        {
-            base.OnUpdateItem(item);
-            this.UpdateSearchView();
-        }
-
-        public ListCollectionView RulesView { get; }
 
         public List<MatchRuleViewModel> RemovedRules { get; } = new List<MatchRuleViewModel>();
 
@@ -63,7 +28,7 @@ namespace RSSViewer.ViewModels
             Debug.Assert(viewModel.IsAdded);
 
             this.Items.Add(viewModel);
-            base.OnUpdateItem(viewModel);
+            base.UpdateItem(viewModel);
         }
 
         internal void RemoveRule(MatchRuleViewModel ruleViewModel)
@@ -72,6 +37,21 @@ namespace RSSViewer.ViewModels
                 throw new ArgumentNullException(nameof(ruleViewModel));
             this.RemovedRules.Add(ruleViewModel);
             this.Items.Remove(ruleViewModel);
+            this.UpdateItemsViewFilter();
+        }
+
+        protected override void OnRemoveItem(MatchRuleViewModel item)
+        {
+            var range = this.GetRange(item);
+            if (range.HasValue)
+            {
+                var (offset, length) = range.Value.GetOffsetAndLength(this.Items.Count);
+                while (--length > 0)
+                {
+                    this.Items.RemoveAt(offset);
+                }
+                this.RemovedRules.Add(item);
+            }
         }
 
         public void Combine(IList<MatchRuleViewModel> items)
@@ -171,12 +151,9 @@ namespace RSSViewer.ViewModels
                 }
             }
 
-            foreach (var item in itemsToRemove)
-            {
-                this.RemoveRule(item);
-            }
+            this.RemoveItems(itemsToRemove);
 
-            this.OnUpdateItem(target);
+            this.UpdateItem(target);
             target.RefreshProperties();
         }
     }
