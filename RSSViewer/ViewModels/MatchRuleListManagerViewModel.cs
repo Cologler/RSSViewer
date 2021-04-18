@@ -32,8 +32,10 @@ namespace RSSViewer.ViewModels
         /// </summary>
         public Dictionary<string, TagViewModel> TagsViewModel { get; } = new();
 
-        public void Load()
+        public async void Load()
         {
+            await this.ActionRulesViewModel.LoadActionRulesFromDbAsync();
+
             using var scope = this.ServiceProvider.CreateScope();
             using var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
 

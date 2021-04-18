@@ -22,8 +22,6 @@ namespace RSSViewer.ViewModels
             this.RulesView = new ListCollectionView(this.Items);
         }
 
-        protected override ValueTask LoadItemsAsync() => new(this.LoadActionRulesFromDbAsync());
-
         public string SearchText
         {
             get => this._searchText;

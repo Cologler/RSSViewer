@@ -30,16 +30,16 @@ namespace RSSViewer.ViewModels.Bases
 
         protected virtual Predicate<T> GetFilter(string searchText) => null;
 
-        public override void AddItems(IEnumerable<T> items)
+        public void ResetItems(IEnumerable<T> items, bool deferRefresh)
         {
-            using var _ = this.ItemsView.DeferRefresh();
-            base.AddItems(items);
-        }
+            if (!deferRefresh)
+            {
+                this.ResetItems(items);
+                return;
+            }
 
-        public override void ResetItems(IEnumerable<T> items)
-        {
             using var _ = this.ItemsView.DeferRefresh();
-            base.ResetItems(items);
+            this.ResetItems(items);
         }
     }
 }

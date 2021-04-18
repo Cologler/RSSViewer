@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
-    public class ActionRuleListViewModel : ListViewModel<MatchRuleViewModel>
+    public class ActionRuleListViewModel : ItemsViewModel<MatchRuleViewModel>
     {
         /// <summary>
         /// a helper method.

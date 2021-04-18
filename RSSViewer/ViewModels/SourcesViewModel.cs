@@ -12,27 +12,15 @@ using RSSViewer.ViewModels.Bases;
 
 namespace RSSViewer.ViewModels
 {
-    public class SourcesViewModel : ListViewModel<SourcesViewModel.SourceViewModel>, IDisposable
+    public class SourcesViewModel : ItemsViewModel<SourcesViewModel.SourceViewModel>, IDisposable
     {
         private readonly bool _watchChanges;
 
-        public SourcesViewModel(bool watchChanges = true) : base()
+        public SourcesViewModel(bool watchChanges = true)
         {
-            this.SelectFirst();
             this._watchChanges = watchChanges;
-        }
 
-        public void Dispose()
-        {
-            if (this._watchChanges)
-            {
-                App.RSSViewerHost.ServiceProvider.RemoveListener(EventNames.AddedRssItems, this.OnAddedRssItems);
-            }
-        }
-
-        protected override IEnumerable<SourceViewModel> LoadItems() 
-        {
-            var serviceProvider = App.RSSViewerHost.ServiceProvider;
+            var serviceProvider = this.ServiceProvider;
             if (this._watchChanges)
             {
                 serviceProvider.AddListener(EventNames.AddedRssItems, this.OnAddedRssItems);
@@ -43,7 +31,16 @@ namespace RSSViewer.ViewModels
                 serviceProvider.GetRequiredService<RssItemsQueryService>()
                     .GetFeedIds()
                     .Select(z => new SourceViewModel(z)));
-            return sources;
+            this.ResetItems(sources);
+            this.SelectFirst();
+        }
+
+        public void Dispose()
+        {
+            if (this._watchChanges)
+            {
+                App.RSSViewerHost.ServiceProvider.RemoveListener(EventNames.AddedRssItems, this.OnAddedRssItems);
+            }
         }
 
         private void OnAddedRssItems(object sender, IReadOnlyCollection<IPartialRssItem> e)
