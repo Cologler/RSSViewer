@@ -66,7 +66,7 @@ namespace RSSViewer.ViewModels.Bases
             }
         }
 
-        public override void SelectFirst()
+        public virtual void SelectFirst()
         {
             this.SelectedItem = this.Items.FirstOrDefault();
         }

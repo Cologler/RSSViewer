@@ -20,7 +20,5 @@
         }
 
         protected virtual void OnSelectedItemChanged(T oldValue, T newValue) { }
-
-        public virtual void SelectFirst() { }
     }
 }

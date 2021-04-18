@@ -31,15 +31,6 @@ namespace RSSViewer.ViewModels
             base.UpdateItem(viewModel);
         }
 
-        internal void RemoveRule(MatchRuleViewModel ruleViewModel)
-        {
-            if (ruleViewModel is null)
-                throw new ArgumentNullException(nameof(ruleViewModel));
-            this.RemovedRules.Add(ruleViewModel);
-            this.Items.Remove(ruleViewModel);
-            this.UpdateItemsViewFilter();
-        }
-
         protected override void OnRemoveItem(MatchRuleViewModel item)
         {
             var range = this.GetRange(item);
