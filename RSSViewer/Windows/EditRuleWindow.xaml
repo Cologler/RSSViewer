@@ -105,19 +105,23 @@
                 </TabItem>
 
                 <TabItem Header="Match">
-                    <Grid>
-                        <StackPanel Margin="8,0">
-                            <StackPanel.Resources>
+                    <Grid Margin="8,0">
+                        <Grid.Resources>
+                            <Style TargetType="RadioButton">
+                                <Setter Property="Margin"
+                                        Value="0,3" />
+                            </Style>
+                            <Style TargetType="CheckBox">
+                                <Setter Property="Margin"
+                                        Value="0,3" />
+                            </Style>
+                        </Grid.Resources>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
 
-                                <Style TargetType="RadioButton">
-                                    <Setter Property="Margin"
-                                            Value="0,3" />
-                                </Style>
-                                <Style TargetType="CheckBox">
-                                    <Setter Property="Margin"
-                                            Value="0,3" />
-                                </Style>
-                            </StackPanel.Resources>
+                        <StackPanel>
 
                             <TextBlock Text="Mode"
                                        Style="{StaticResource HeaderStyle}" />
@@ -128,32 +132,34 @@
                                       SelectionChanged="MatchRuleModeComboBox_SelectionChanged" 
                                       Margin="0,0,0,12" />
 
-                            <StackPanel x:Name="Match_String">
-                                <TextBlock Text="Value"
-                                           Style="{StaticResource HeaderStyle}" />
-
-                                <TextBox Height="19"
-                                         x:Name="MatchValueTextBox" />
-
-                                <CheckBox Content="IgnoreCase"
-                                          IsChecked="{Binding IgnoreCase}"
-                                          Margin="4" />
-                            </StackPanel>
-
-                            <Grid x:Name="Match_Tags">
-                                <ListBox ItemsSource="{Binding MatchTagsViewModel.Items}">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid>
-                                                <CheckBox Content="{Binding}"
-                                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Grid>
-
                         </StackPanel>
+
+                        <StackPanel x:Name="Match_String"
+                                    Grid.Row="1">
+                            <TextBlock Text="Value"
+                                       Style="{StaticResource HeaderStyle}" />
+
+                            <TextBox Height="19"
+                                     x:Name="MatchValueTextBox" />
+
+                            <CheckBox Content="IgnoreCase"
+                                      IsChecked="{Binding IgnoreCase}"
+                                      Margin="4" />
+                        </StackPanel>
+
+                        <Grid x:Name="Match_Tags"
+                              Grid.Row="1">
+                            <ListBox ItemsSource="{Binding MatchTagsViewModel.Items}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <CheckBox Content="{Binding InnerModel.DisplayName}"
+                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
                     </Grid>
                 </TabItem>
 

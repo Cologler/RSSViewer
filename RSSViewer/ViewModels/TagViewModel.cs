@@ -18,5 +18,7 @@ namespace RSSViewer.ViewModels
         public bool IsChanged { get; set; }
 
         public bool IsAdded { get; set; }
+
+        public string DisplayName => this.Tag.ToString();
     }
 }
