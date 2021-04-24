@@ -37,7 +37,7 @@ namespace RSSViewer.ViewModels
             if (range.HasValue)
             {
                 var (offset, length) = range.Value.GetOffsetAndLength(this.Items.Count);
-                while (--length > 0)
+                while (length-- > 0)
                 {
                     this.Items.RemoveAt(offset);
                 }
