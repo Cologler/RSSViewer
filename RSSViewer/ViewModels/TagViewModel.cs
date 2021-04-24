@@ -1,9 +1,10 @@
 ﻿
 using RSSViewer.RulesDb;
+using RSSViewer.ViewModels.Bases;
 
 namespace RSSViewer.ViewModels
 {
-    public class TagViewModel : Bases.BaseViewModel
+    public class TagViewModel : BaseViewModel
     {
         public TagViewModel(Tag tag)
         {

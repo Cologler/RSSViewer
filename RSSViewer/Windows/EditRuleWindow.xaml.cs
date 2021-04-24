@@ -5,13 +5,16 @@ using Jasily.ViewModel;
 using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
+using RSSViewer.Extensions;
 using RSSViewer.Filter;
 using RSSViewer.Helpers;
 using RSSViewer.RulesDb;
 using RSSViewer.Services;
 using RSSViewer.ViewModels;
+using RSSViewer.ViewModels.Bases;
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -36,7 +39,7 @@ namespace RSSViewer.Windows
             {
                 if (item != MatchMode.None)
                 {
-                    this.SelectModeComboBox.Items.Add(new ComboBoxItem
+                    this.MatchRuleModeComboBox.Items.Add(new ComboBoxItem
                     {
                         Content = item.ToString()
                     });
@@ -57,6 +60,14 @@ namespace RSSViewer.Windows
                     this.LoadFrom(value);
                 }
             }
+        }
+
+        private void MatchRuleModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var mode = this.SelectedMatchStringMode;
+
+            this.Match_String.Visibility = mode.IsStringMode() ? Visibility.Visible : Visibility.Collapsed;
+            this.Match_Tags.Visibility = mode == MatchMode.Tags ? Visibility.Visible : Visibility.Collapsed;
         }
 
         void LoadFrom(MatchRule rule)
@@ -127,12 +138,12 @@ namespace RSSViewer.Windows
         {
             get
             {
-                return Enum.Parse<MatchMode>((string)((ComboBoxItem)this.SelectModeComboBox.SelectedItem).Content);
+                return Enum.Parse<MatchMode>((string)((ComboBoxItem)this.MatchRuleModeComboBox.SelectedItem).Content);
             }
             set
             {
                 var mode = value.ToString();
-                this.SelectModeComboBox.SelectedItem = this.SelectModeComboBox.Items
+                this.MatchRuleModeComboBox.SelectedItem = this.MatchRuleModeComboBox.Items
                     .OfType<ComboBoxItem>()
                     .Single(z => ((string)z.Content) == mode);
             }
@@ -210,18 +221,20 @@ namespace RSSViewer.Windows
 
         private async void RunTestButton_Click(object sender, RoutedEventArgs e)
         {
-            if (this.TryCreateRssItemMatcher() is RuleMatchTreeNode matcher)
-            {
-                var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<RssItemFilterFactory>();
-                var query = App.RSSViewerHost.Query();
-                var items = await query.ListAsync(new[] { RssItemState.Undecided }, null, CancellationToken.None);
-                items = items.Where(z => matcher.IsMatch(z)).ToArray();
-                this.MatchedRssItemsListView.Items.Clear();
-                foreach (var item in items)
-                {
-                    this.MatchedRssItemsListView.Items.Add(item);
-                }
-            }
+            MessageBox.Show("TODO");
+
+            //if (this.TryCreateRssItemMatcher() is RuleMatchTreeNode matcher)
+            //{
+            //    var factory = App.RSSViewerHost.ServiceProvider.GetRequiredService<RssItemFilterFactory>();
+            //    var query = App.RSSViewerHost.Query();
+            //    var items = await query.ListAsync(new[] { RssItemState.Undecided }, null, CancellationToken.None);
+            //    items = items.Where(z => matcher.IsMatch(z)).ToArray();
+            //    this.MatchedRssItemsListView.Items.Clear();
+            //    foreach (var item in items)
+            //    {
+            //        this.MatchedRssItemsListView.Items.Add(item);
+            //    }
+            //}
         }
 
         /// <summary>
@@ -348,7 +361,7 @@ namespace RSSViewer.Windows
                 switch (rule.HandlerType)
                 {
                     case HandlerType.Action:
-                        this.SourcesView.SelectedItem = this.SourcesView.Items.FirstOrDefault(z => z.FeedId == rule.OnFeedId);
+                        this.OnSourcesViewModel.SelectedItem = this.OnSourcesViewModel.Items.FirstOrDefault(z => z.FeedId == rule.OnFeedId);
                         this._lastMatched = rule.LastMatched.ToLocalTime();
 
                         // lifetime: disabled
@@ -389,6 +402,11 @@ namespace RSSViewer.Windows
                         throw new NotImplementedException();
                 }
 
+                if (rule.Mode == MatchMode.Tags)
+                {
+
+                }
+
                 this.RefreshProperties();
             }
 
@@ -399,7 +417,7 @@ namespace RSSViewer.Windows
                 switch (rule.HandlerType)
                 {
                     case HandlerType.Action:
-                        rule.OnFeedId = this.SourcesView.SelectedItem?.FeedId;
+                        rule.OnFeedId = this.OnSourcesViewModel.SelectedItem?.FeedId;
 
                         // lifetime
                         // lifetime: disabled
@@ -426,14 +444,27 @@ namespace RSSViewer.Windows
                 }
             }
 
-            public SourcesViewModel SourcesView { get; } = new(false);
-
-            [ModelProperty]
-            public TagsSelectorViewModel TagsViewModel { get; } = new();
+            public SourcesViewModel OnSourcesViewModel { get; } = new(false);
 
             public bool IgnoreCase { get => _ignoreCase; set => this.ChangeModelProperty(ref _ignoreCase, value); }
 
             public ActionRuleParentSelectorViewModel ParentSelectorView { get; } = new();
+
+            [ModelProperty]
+            public TagsSelectorViewModel TagsViewModel { get; } = new();
+
+            public ItemsViewModel<SelectableViewModel<TagViewModel>> MatchTagsViewModel { get; } = new();
+
+            public void ResetTags(IEnumerable<TagViewModel> tagViewModels)
+            {
+                this.TagsViewModel.ResetItems(tagViewModels);
+                this.MatchTagsViewModel.ResetItems(tagViewModels.Select(z => new SelectableViewModel<TagViewModel>(z)));
+            }
+
+            public void ResetTagsFromDb()
+            {
+                this.ResetTags(this.ServiceProvider.LoadMany<Tag>().Select(z => new TagViewModel(z)));
+            }
         }
 
         public class TagsSelectorViewModel : TagsViewModel

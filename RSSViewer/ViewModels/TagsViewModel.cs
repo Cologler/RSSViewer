@@ -3,6 +3,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using RSSViewer.Extensions;
 using RSSViewer.RulesDb;
 using RSSViewer.ViewModels.Bases;
 
@@ -12,11 +13,8 @@ namespace RSSViewer.ViewModels
     {
         public void ResetItemsFromDb()
         {
-            using var scope = this.ServiceProvider.CreateScope();
-            using var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
-
             this.ResetItems(
-                ctx.Tags.AsQueryable().AsNoTracking().ToList().Select(z => new TagViewModel(z))
+                this.ServiceProvider.LoadMany<Tag>().Select(z => new TagViewModel(z))
             );
         }
     }

@@ -55,10 +55,8 @@ namespace RSSViewer.Windows
             {
                 win.ViewModel.ParentSelectorView.ResetItems(this.ViewModel.ActionRulesViewModel.Items);
             }
-            else
-            {
-                win.ViewModel.TagsViewModel.ResetItems(this.ViewModel.TagsViewModel.Values);
-            } 
+            win.ViewModel.ResetTags(this.ViewModel.TagsViewModel.Values);
+
             win.Rule = viewModel.MatchRule;
 
             if (win.ShowDialog() == true)

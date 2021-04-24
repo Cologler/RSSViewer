@@ -53,7 +53,7 @@
                                 </StackPanel>
 
                                 <StackPanel Style="{StaticResource HeaderContentPair}"
-                                            DataContext="{Binding SourcesView}">
+                                            DataContext="{Binding OnSourcesViewModel}">
                                     <TextBlock Text="On Source"
                                                Style="{StaticResource HeaderStyle}" />
 
@@ -124,18 +124,34 @@
 
                             <ComboBox Width="140"
                                       HorizontalAlignment="Left"
-                                      x:Name="SelectModeComboBox">
-                            </ComboBox>
+                                      x:Name="MatchRuleModeComboBox"
+                                      SelectionChanged="MatchRuleModeComboBox_SelectionChanged" 
+                                      Margin="0,0,0,12" />
 
-                            <TextBlock Text="Value"
-                                       Style="{StaticResource HeaderStyle}" />
+                            <StackPanel x:Name="Match_String">
+                                <TextBlock Text="Value"
+                                           Style="{StaticResource HeaderStyle}" />
 
-                            <TextBox Height="19"
-                                     x:Name="MatchValueTextBox" />
+                                <TextBox Height="19"
+                                         x:Name="MatchValueTextBox" />
 
-                            <CheckBox Content="IgnoreCase"
-                                      IsChecked="{Binding IgnoreCase}"
-                                      Margin="4"/>
+                                <CheckBox Content="IgnoreCase"
+                                          IsChecked="{Binding IgnoreCase}"
+                                          Margin="4" />
+                            </StackPanel>
+
+                            <Grid x:Name="Match_Tags">
+                                <ListBox ItemsSource="{Binding MatchTagsViewModel.Items}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <CheckBox Content="{Binding}"
+                                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
 
                         </StackPanel>
                     </Grid>
