@@ -14,7 +14,6 @@ namespace RSSViewer.AutoMapperProfiles
             this.CreateMap<AppConf, SettingsViewModel>()
                 .ReverseMap();
 
-            EditRuleWindow.ConfigureAutoMapperProfile(this);
             TagEditorViewModel.ConfigureAutoMapperProfile(this);
         }
     }

@@ -15,6 +15,7 @@ using RSSViewer.ViewModels.Bases;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -114,10 +115,12 @@ namespace RSSViewer.Windows
             if (rule is null)
                 throw new ArgumentNullException(nameof(rule));
 
-            switch (rule.HandlerType)
+            var state = this.ViewModel.State;
+
+            switch (state.HandlerType)
             {
                 case HandlerType.Action:
-                    rule.HandlerId = ((IRssItemHandler)this.ActionsList.SelectedItem).Id;
+                    state.HandlerId = ((IRssItemHandler)this.ActionsList.SelectedItem).Id;
                     break;
 
                 case HandlerType.SetTag:
@@ -128,8 +131,8 @@ namespace RSSViewer.Windows
             }
 
             // match
-            rule.Mode = this.SelectedMatchStringMode;
-            rule.Argument = rule.Mode.IsStringMode() ? this.MatchValueTextBox.Text : string.Empty;
+            state.Mode = this.SelectedMatchStringMode;
+            state.Argument = state.Mode.IsStringMode() ? this.MatchValueTextBox.Text : string.Empty;
 
             this.ViewModel.Write(rule);
         }
@@ -277,6 +280,9 @@ namespace RSSViewer.Windows
             private string _autoExpiredAfterDaysText;
             private bool _ignoreCase;
 
+            [ModelProperty]
+            public MatchRule State { get; } = new();
+
             public bool IsEnabledAutoDisabled
             {
                 get => _isEnabledAutoDisabled;
@@ -354,31 +360,36 @@ namespace RSSViewer.Windows
             [ModelProperty]
             public string DisplayName { get; set; }
 
-            public async void LoadAsync(MatchRule rule)
+            public async void LoadAsync(MatchRule state)
             {
-                this.ServiceProvider.GetRequiredService<IMapper>().Map(rule, this);
+                this.ServiceProvider.GetRequiredService<IMapper>().Map(state, this.State);
+                this.ServiceProvider.GetRequiredService<IMapper>().Map(this.State, this);
 
-                switch (rule.HandlerType)
+                state = this.State;
+
+                // update from state
+
+                switch (state.HandlerType)
                 {
                     case HandlerType.Action:
-                        this.OnSourcesViewModel.SelectedItem = this.OnSourcesViewModel.Items.FirstOrDefault(z => z.FeedId == rule.OnFeedId);
-                        this._lastMatched = rule.LastMatched.ToLocalTime();
+                        this.OnSourcesViewModel.SelectedItem = this.OnSourcesViewModel.Items.FirstOrDefault(z => z.FeedId == state.OnFeedId);
+                        this._lastMatched = state.LastMatched.ToLocalTime();
 
                         // lifetime: disabled
-                        this.IsEnabledAutoDisabled = rule.AutoDisabledAfterLastMatched.HasValue;
-                        if (rule.AutoDisabledAfterLastMatched.HasValue)
+                        this.IsEnabledAutoDisabled = state.AutoDisabledAfterLastMatched.HasValue;
+                        if (state.AutoDisabledAfterLastMatched.HasValue)
                         {
-                            this.AutoDisabledAfterDaysText = rule.AutoDisabledAfterLastMatched.Value.Days.ToString();
+                            this.AutoDisabledAfterDaysText = state.AutoDisabledAfterLastMatched.Value.Days.ToString();
                         }
                         else
                         {
                             this.AutoDisabledAfterDaysText = string.Empty;
                         }
                         // lifetime: expired
-                        this.IsEnabledAutoExpired = rule.AutoExpiredAfterLastMatched.HasValue;
-                        if (rule.AutoExpiredAfterLastMatched.HasValue)
+                        this.IsEnabledAutoExpired = state.AutoExpiredAfterLastMatched.HasValue;
+                        if (state.AutoExpiredAfterLastMatched.HasValue)
                         {
-                            this.AutoExpiredAfterDaysText = rule.AutoExpiredAfterLastMatched.Value.Days.ToString();
+                            this.AutoExpiredAfterDaysText = state.AutoExpiredAfterLastMatched.Value.Days.ToString();
                         }
                         else
                         {
@@ -388,51 +399,59 @@ namespace RSSViewer.Windows
                         // parent
                         await this.ParentSelectorView.Ready;
                         this.ParentSelectorView.SelectedItem = this.ParentSelectorView.Items
-                            .Where(z => z.MatchRule == rule.Parent)
+                            .Where(z => z.MatchRule == state.Parent)
                             .FirstOrDefault();
                         break;
 
                     case HandlerType.SetTag:
-                        this.TagsViewModel.SelectedItem = rule.HandlerId is null
+                        this.TagsViewModel.SelectedItem = state.HandlerId is null
                             ? null
-                            : this.TagsViewModel.Items.FirstOrDefault(z => z.Tag.Id == rule.HandlerId);
+                            : this.TagsViewModel.Items.FirstOrDefault(z => z.Tag.Id == state.HandlerId);
                         break;
 
                     default:
                         throw new NotImplementedException();
                 }
 
-                if (rule.Mode == MatchMode.Tags)
+                if (state.Mode == MatchMode.Tags)
                 {
-
+                    var tagsMap = this.MatchTagsViewModel.Items.ToDictionary(z => z.InnerModel.Tag.Id);
+                    foreach (var tagId in state.AsTagsMatch())
+                    {
+                        var val = tagsMap.GetValueOrDefault(tagId);
+                        if (val is not null)
+                        {
+                            val.IsSelected = true;
+                        }
+                    }
                 }
 
                 this.RefreshProperties();
             }
 
-            public void Write(MatchRule rule)
+            public void Write(MatchRule state)
             {
-                this.ServiceProvider.GetRequiredService<IMapper>().Map(this, rule);
+                this.ServiceProvider.GetRequiredService<IMapper>().Map(this, this.State);
 
-                switch (rule.HandlerType)
+                switch (this.State.HandlerType)
                 {
                     case HandlerType.Action:
-                        rule.OnFeedId = this.OnSourcesViewModel.SelectedItem?.FeedId;
+                        this.State.OnFeedId = this.OnSourcesViewModel.SelectedItem?.FeedId;
 
                         // lifetime
                         // lifetime: disabled
                         if (this.IsEnabledAutoDisabled)
                         {
-                            rule.AutoDisabledAfterLastMatched = TimeSpan.FromDays(int.Parse(this.AutoDisabledAfterDaysText));
+                            this.State.AutoDisabledAfterLastMatched = TimeSpan.FromDays(int.Parse(this.AutoDisabledAfterDaysText));
                         }
                         // lifetime: expired
                         if (this.IsEnabledAutoExpired)
                         {
-                            rule.AutoExpiredAfterLastMatched = TimeSpan.FromDays(int.Parse(this.AutoExpiredAfterDaysText));
+                            this.State.AutoExpiredAfterLastMatched = TimeSpan.FromDays(int.Parse(this.AutoExpiredAfterDaysText));
                         }
 
                         // parent
-                        rule.Parent = this.ParentSelectorView.SelectedItem?.MatchRule;
+                        this.State.Parent = this.ParentSelectorView.SelectedItem?.MatchRule;
                         break;
 
                     case HandlerType.SetTag:
@@ -442,6 +461,18 @@ namespace RSSViewer.Windows
                     default:
                         throw new NotImplementedException();
                 }
+
+                if (this.State.Mode == MatchMode.Tags)
+                {
+                    this.State.SetTagIds(
+                        this.MatchTagsViewModel.Items
+                            .Where(z => z.IsSelected)
+                            .Select(z => z.InnerModel.Tag.Id)
+                            .ToArray());
+                }
+
+                this.ServiceProvider.GetRequiredService<IMapper>().Map(this.State, state);
+                Debug.Assert(ReferenceEquals(this.State.Parent, state.Parent));
             }
 
             public SourcesViewModel OnSourcesViewModel { get; } = new(false);
