@@ -25,6 +25,8 @@ namespace RSSViewer.RulesDb
 
         public string DisplayName { get; set; }
 
+        #region match condition
+
         public MatchMode Mode { get; set; }
 
         /// <summary>
@@ -34,9 +36,15 @@ namespace RSSViewer.RulesDb
 
         public bool IgnoreCase { get; set; }
 
+        #endregion
+
+        #region handler
+
         public HandlerType HandlerType { get; set; }
 
         public string HandlerId { get; set; }
+
+        #endregion
 
         public bool IsDisabled { get; set; }
 
@@ -69,7 +77,7 @@ namespace RSSViewer.RulesDb
         /// <returns></returns>
         public string ToDebugString() => $"({this.Mode}) {this.Argument}";
 
-        public StringMatchArguments CreateStringMatchArguments()
+        public StringMatchArguments AsStringMatch()
         {
             var mode = this.Mode switch
             {
@@ -79,10 +87,28 @@ namespace RSSViewer.RulesDb
                 MatchMode.EndsWith => StringMatchMode.EndsWith,
                 MatchMode.Wildcard => StringMatchMode.Wildcard,
                 MatchMode.Regex => StringMatchMode.Regex,
-                _ => throw new InvalidOperationException(),
+                _ => throw new InvalidOperationException(this.Mode.ToString()),
             };
 
             return new(mode, this.Argument, this.IgnoreCase);
+        }
+
+        public string[] AsTagsMatch()
+        {
+            if (this.Mode != MatchMode.Tags)
+                throw new InvalidOperationException(this.Mode.ToString());
+
+            return this.Argument.Split('\n');
+        }
+
+        public void SetTagIds(string[] tagIds)
+        {
+            if (tagIds is null)
+                throw new ArgumentNullException(nameof(tagIds));
+            if (this.Mode != MatchMode.Tags)
+                throw new InvalidOperationException(this.Mode.ToString());
+
+            this.Argument = string.Join('\n', tagIds);
         }
     }
 }

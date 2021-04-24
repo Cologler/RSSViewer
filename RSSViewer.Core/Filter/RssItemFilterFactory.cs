@@ -28,7 +28,12 @@ namespace RSSViewer.Filter
 
             if (rule.Mode.IsStringMode())
             {
-                return new StringMatcherRssItemFilter(this.CreateStringMatcher(rule.CreateStringMatchArguments()));
+                return new StringMatcherRssItemFilter(this.CreateStringMatcher(rule.AsStringMatch()));
+            }
+
+            if (rule.Mode == MatchMode.Tags)
+            {
+                return new TagsRssItemFilter(rule.AsTagsMatch());
             }
 
             return rule.Mode switch

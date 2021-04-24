@@ -105,9 +105,8 @@ namespace RSSViewer.Services
                 return;
 
             using var scope = this._serviceProvider.CreateScope();
-            var factory = scope.ServiceProvider.GetRequiredService<RssItemFilterFactory>();
-            ;
             using var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
+            var factory = scope.ServiceProvider.GetRequiredService<RssItemFilterFactory>();
 
             var tags = ctx.Tags.AsQueryable().AsNoTracking().ToDictionary(z => z.Id);
             var rules = ctx.MatchRules.AsQueryable()
@@ -141,9 +140,10 @@ namespace RSSViewer.Services
                         var match = false;
                         foreach (var testRule in group)
                         {
-                            if (testRule.Item2.IsMatch(item.Item))
+                            if (testRule.Item2.IsMatch(item))
                             {
                                 item.Tags.Add(testRule.Item3);
+                                item.TagIds.Add(testRule.Item3.Id);
                                 match = true;
                             }
                         }

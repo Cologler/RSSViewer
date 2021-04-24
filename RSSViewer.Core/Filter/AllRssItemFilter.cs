@@ -1,10 +1,11 @@
 ﻿
 using RSSViewer.Abstractions;
+using RSSViewer.Models;
 
 namespace RSSViewer.Filter
 {
-    internal class AllRssItemFilter : IRssItemFilter
+    class AllRssItemFilter : IRssItemFilter
     {
-        public bool IsMatch(IPartialRssItem rssItem) => true;
+        public bool IsMatch(ClassifyContext<IPartialRssItem> context) => true;
     }
 }

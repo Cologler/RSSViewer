@@ -1,11 +1,12 @@
 ﻿using System;
 
 using RSSViewer.Abstractions;
+using RSSViewer.Models;
 using RSSViewer.StringMatchers;
 
 namespace RSSViewer.Filter
 {
-    internal class StringMatcherRssItemFilter : IRssItemFilter
+    class StringMatcherRssItemFilter : IRssItemFilter
     {
         private readonly IStringMatcher _stringMatcher;
 
@@ -14,6 +15,6 @@ namespace RSSViewer.Filter
             this._stringMatcher = stringMatcher ?? throw new ArgumentNullException(nameof(stringMatcher));
         }
 
-        public bool IsMatch(IPartialRssItem rssItem) => this._stringMatcher.IsMatch(rssItem.Title);
+        public bool IsMatch(ClassifyContext<IPartialRssItem> context) => this._stringMatcher.IsMatch(context.Item.Title);
     }
 }

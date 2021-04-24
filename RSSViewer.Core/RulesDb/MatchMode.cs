@@ -12,6 +12,9 @@
         Wildcard = 4,
         Regex = 5,
 
+        // match tags:
+        Tags = 11,
+
         // match all/any items
         All = 99,
     }
