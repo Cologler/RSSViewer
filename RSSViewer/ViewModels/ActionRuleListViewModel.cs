@@ -1,9 +1,11 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
 
+using RSSViewer.Extensions;
 using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
 using RSSViewer.Services;
+using RSSViewer.ViewModels.Abstractions;
 using RSSViewer.ViewModels.Bases;
 
 using System;
@@ -16,25 +18,43 @@ namespace RSSViewer.ViewModels
 {
     public class ActionRuleListViewModel : ItemsViewerViewModel<MatchRuleViewModel>
     {
+        class OneShotDependencies : IMatchRuleViewModelDependencies
+        {
+            private Dictionary<string, Tag> _tags;
+
+            public OneShotDependencies(Dictionary<string, Tag> tags)
+            {
+                this._tags = tags;
+            }
+
+            public Tag FindTag(string tagId) => this._tags.GetValueOrDefault(tagId);
+        }
+
         /// <summary>
         /// a helper method.
         /// </summary>
         /// <returns></returns>
-        public async Task LoadActionRulesFromDbAsync()
+        public async Task LoadActionRulesFromDbAsync(IMatchRuleViewModelDependencies dependencies)
         {
+            if (dependencies is null)
+            {
+                dependencies = new OneShotDependencies(
+                    await Task.Run(() => this.ServiceProvider.LoadMany<Tag>().ToDictionary(z => z.Id)));
+            }
+
             var rules = await this.ServiceProvider.GetRequiredService<ConfigService>().GetActionRulesAsync();
 
             var tree = rules.BuildTree(out var noParentItems);
 
             var viewModels = tree
                 .Where(z => !z.IsRoot)
-                .Select(z => new MatchRuleViewModel(z.Item) { TreeLevel = z.Level-1 })
+                .Select(z => new MatchRuleViewModel(z.Item, dependencies) { TreeLevel = z.Level-1 })
                 .ToList();
 
             if (noParentItems.Count > 0)
             {
                 viewModels.InsertRange(0, noParentItems
-                    .Select(z => new MatchRuleViewModel(z) { TreeLevel = 1 })
+                    .Select(z => new MatchRuleViewModel(z, dependencies) { TreeLevel = 1 })
                     .Prepend(MatchRuleViewModel.NoParent));
             }
 

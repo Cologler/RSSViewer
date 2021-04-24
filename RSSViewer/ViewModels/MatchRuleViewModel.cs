@@ -3,9 +3,11 @@
 using RSSViewer.Abstractions;
 using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
+using RSSViewer.ViewModels.Abstractions;
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -21,13 +23,14 @@ namespace RSSViewer.ViewModels
         public static readonly MatchRuleViewModel NoParent = new("< None Parent >");
 
         private readonly string _displayValue;
+        private readonly IMatchRuleViewModelDependencies _dependencies;
 
         public MatchRule MatchRule { get; }
 
-        public MatchRuleViewModel(MatchRule matchRule)
+        public MatchRuleViewModel(MatchRule matchRule, IMatchRuleViewModelDependencies dependencies)
         {
             this.MatchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
-
+            this._dependencies = dependencies ?? throw new ArgumentNullException(nameof(dependencies));
             Debug.Assert(matchRule.Id >= 0);
             this.Id = matchRule.Id > 0 ? matchRule.Id : NewId();
             Debug.Assert(this.Id != 0);
@@ -62,11 +65,6 @@ namespace RSSViewer.ViewModels
 
                 Debug.Assert(this.MatchRule is not null);
 
-                if (this.MatchRule.HandlerType == HandlerType.SetTag)
-                {
-
-                }
-
                 var sb = new StringBuilder();
 
                 if (this.MatchRule.HandlerType == HandlerType.Action)
@@ -82,9 +80,24 @@ namespace RSSViewer.ViewModels
                 {
                     if (this.MatchRule.HandlerType == HandlerType.Action)
                     {
-                        sb.Append(this.MatchRule.ToDebugString());
+                        if (this.MatchRule.Mode.IsStringMode())
+                        {
+                            sb.Append(this.MatchRule.ToDebugString());
+                        }
+                        else if (this.MatchRule.Mode == MatchMode.Tags) 
+                        {
+                            sb.Append(
+                                string.Join(
+                                    "+", 
+                                    this.MatchRule
+                                        .AsTagsMatch()
+                                        .Select(z => this._dependencies.FindTag(z)?.ToShortString() ?? "[???]"))
+                                );
+                        }
+
                         if (this.MatchRule.OnFeedId is not null)
                             sb.Append(" @").Append(this.MatchRule.OnFeedId);
+                        
                         if (this.Handler is IRssItemHandler handler)
                         {
                             if (handler.Id == KnownHandlerIds.EmptyHandlerId)

@@ -250,7 +250,7 @@ namespace RSSViewer.Windows
         {
             var win = new EditRuleWindow { Owner = owner };
             win.Rule = rule;
-            _ = win.ViewModel.ParentSelectorView.LoadActionRulesFromDbAsync();
+            _ = win.ViewModel.ParentSelectorView.LoadActionRulesFromDbAsync(null);
             return win.ShowDialog() == true;
         }
 

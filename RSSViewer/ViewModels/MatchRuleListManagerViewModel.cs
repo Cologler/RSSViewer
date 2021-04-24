@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO.Compression;
@@ -9,11 +10,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.RulesDb;
 using RSSViewer.Services;
+using RSSViewer.ViewModels.Abstractions;
 using RSSViewer.ViewModels.Bases;
 
 namespace RSSViewer.ViewModels
 {
-    public class MatchRuleListManagerViewModel : BaseViewModel
+    public class MatchRuleListManagerViewModel : BaseViewModel, IMatchRuleViewModelDependencies
     {
         private readonly List<MatchRuleViewModel> _removedRules = new();
 
@@ -34,7 +36,7 @@ namespace RSSViewer.ViewModels
 
         public async void Load()
         {
-            await this.ActionRulesViewModel.LoadActionRulesFromDbAsync();
+            await this.ActionRulesViewModel.LoadActionRulesFromDbAsync(this);
 
             using var scope = this.ServiceProvider.CreateScope();
             using var ctx = scope.ServiceProvider.GetRequiredService<RulesDbContext>();
@@ -53,10 +55,25 @@ namespace RSSViewer.ViewModels
                 .ToList();
 
             var setTagRules = matchRules.Where(z => z.HandlerType == HandlerType.SetTag)
-                .Select(z => new MatchRuleViewModel(z, tags.GetValueOrDefault(z.HandlerId)))
+                .Select(CreateViewModel)
                 .ToList();
 
             this.SetTagRulesViewModel.ResetItems(setTagRules);
+        }
+
+        public MatchRuleViewModel CreateViewModel(MatchRule matchRule)
+        {
+            if (matchRule is null)
+                throw new ArgumentNullException(nameof(matchRule));
+
+            if (matchRule.HandlerType == HandlerType.Action)
+            {
+                return new MatchRuleViewModel(matchRule, this);
+            }
+            else
+            {
+                return new MatchRuleViewModel(matchRule, this.FindTag(matchRule.HandlerId));
+            }
         }
 
         public async void Save()
@@ -127,5 +144,7 @@ namespace RSSViewer.ViewModels
                 this.SetTagRulesViewModel.Items.Remove(viewModel);
             } 
         }
+
+        public Tag FindTag(string tagId) => this.TagsViewModel.GetValueOrDefault(tagId)?.Tag;
     }
 }

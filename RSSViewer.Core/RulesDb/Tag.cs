@@ -19,5 +19,7 @@ namespace RSSViewer.RulesDb
         {
             return this.TagGroupName is null ? $"[{this.TagName}]" : $"[{this.TagGroupName}].[{this.TagName}]";
         }
+
+        public string ToShortString() => $"[{this.TagName}]";
     }
 }
