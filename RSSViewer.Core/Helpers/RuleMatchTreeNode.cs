@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using RSSViewer.Abstractions;
 using RSSViewer.Filter;
 using RSSViewer.LocalDb;
+using RSSViewer.Models;
 using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
 using RSSViewer.StringMatchers;
@@ -37,26 +38,26 @@ namespace RSSViewer.Helpers
 
         public MatchRule Rule { get; }
 
-        public bool IsMatch(IPartialRssItem rssItem)
+        public bool IsMatch(ClassifyContext<IPartialRssItem> context)
         {
-            if (this.Rule.OnFeedId is not null && this.Rule.OnFeedId != rssItem.FeedId)
+            if (this.Rule.OnFeedId is not null && this.Rule.OnFeedId != context.Item.FeedId)
                 return false;
 
-            return this._filter.IsMatch(rssItem);
+            return this._filter.IsMatch(context);
         }
 
         /// <summary>
         /// return the chained rules, or <see langword="default"/> if not match.
         /// </summary>
-        /// <param name="rssItem"></param>
+        /// <param name="context"></param>
         /// <param name="now"></param>
         /// <returns></returns>
-        public ImmutableArray<MatchRule> TryFindMatchedRule(IPartialRssItem rssItem, DateTime now, bool isParentMatchable)
+        public ImmutableArray<MatchRule> TryFindMatchedRule(ClassifyContext<IPartialRssItem> context, DateTime now, bool isParentMatchable)
         {
-            if (this.Rule.OnFeedId is not null && this.Rule.OnFeedId != rssItem.FeedId)
+            if (this.Rule.OnFeedId is not null && this.Rule.OnFeedId != context.Item.FeedId)
                 return default;
 
-            if (!this._filter.IsMatch(rssItem))
+            if (!this._filter.IsMatch(context))
                 return default;
 
             var isMatchable = isParentMatchable || this.IsMatchable;
@@ -64,7 +65,7 @@ namespace RSSViewer.Helpers
             // childs
             foreach (var child in this._branchs)
             {
-                rulesChain = child.TryFindMatchedRule(rssItem, now, isMatchable);
+                rulesChain = child.TryFindMatchedRule(context, now, isMatchable);
                 if (!rulesChain.IsDefault)
                 {
                     rulesChain = ImmutableArray.Create(this.Rule).AddRange(rulesChain);

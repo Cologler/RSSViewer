@@ -74,6 +74,11 @@ namespace RSSViewer.Services
             return string.Empty;
         }
 
+        /// <summary>
+        /// set groups and tags on source. 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="token"></param>
         public void Classify(IEnumerable<ClassifyContext<IPartialRssItem>> source, CancellationToken token)
         {
             if (source is null)
@@ -96,7 +101,12 @@ namespace RSSViewer.Services
             this.Tagify(source, token);
         }
 
-        public void Tagify(IEnumerable<ClassifyContext<IPartialRssItem>> source, CancellationToken token)
+        /// <summary>
+        /// set groups and tags on source. 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="token"></param>
+        public void Tagify(IEnumerable<ClassifyContext<IPartialRssItem>> source, CancellationToken token = default)
         {
             if (source is null)
                 throw new ArgumentNullException(nameof(source));

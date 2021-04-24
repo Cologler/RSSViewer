@@ -6,6 +6,7 @@ using System.Linq;
 
 using RSSViewer.Abstractions;
 using RSSViewer.Filter;
+using RSSViewer.Models;
 using RSSViewer.RulesDb;
 using RSSViewer.StringMatchers;
 
@@ -68,15 +69,15 @@ namespace RSSViewer.Helpers
             }
         }
 
-        public ImmutableArray<MatchRule> TryFindMatchedRule(IPartialRssItem rssItem, DateTime now)
+        public ImmutableArray<MatchRule> TryFindMatchedRule(ClassifyContext<IPartialRssItem> context, DateTime now)
         {
-            if (rssItem is null)
-                throw new ArgumentNullException(nameof(rssItem));
+            if (context is null)
+                throw new ArgumentNullException(nameof(context));
 
             var rootNodes = this._rootNodes; // make a clone
             foreach (var node in rootNodes)
             {
-                var rulesChain = node.TryFindMatchedRule(rssItem, now, false);
+                var rulesChain = node.TryFindMatchedRule(context, now, false);
                 if (!rulesChain.IsDefault)
                 {
                     Debug.Assert(!rulesChain.IsEmpty);

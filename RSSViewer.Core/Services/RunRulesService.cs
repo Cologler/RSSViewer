@@ -4,6 +4,7 @@ using RSSViewer.Configuration;
 using RSSViewer.Filter;
 using RSSViewer.Helpers;
 using RSSViewer.LocalDb;
+using RSSViewer.Models;
 using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
 using RSSViewer.StringMatchers;
@@ -212,14 +213,20 @@ namespace RSSViewer.Services
                 if (matchTree is null)
                     return;
 
-                var results = this.SourceItems.AsParallel()
+                var sources = this.SourceItems
+                    .Select(z => new ClassifyContext<IPartialRssItem>(z))
+                    .ToList();
+
+                this._serviceProvider.GetRequiredService<ClassifyService>().Tagify(sources);
+
+                var results = sources.AsParallel()
                     .Select(item =>
                     {
                         var rulesChain = matchTree.TryFindMatchedRule(item, now);
                         if (rulesChain.IsDefault)
                             return (default, null);
                         Debug.Assert(!rulesChain.IsEmpty);
-                        this.LogMatched(rulesChain, item);
+                        this.LogMatched(rulesChain, item.Item);
                         return (RulesChain: rulesChain, Item: item);
                     })
                     .Where(z => !z.RulesChain.IsDefaultOrEmpty)
@@ -241,7 +248,7 @@ namespace RSSViewer.Services
                     if (handler is not null)
                     {
                         var applyItems = group
-                            .Select(z => (z.Item, z.Item.State))
+                            .Select(z => (z.Item.Item, z.Item.Item.State))
                             .ToList();
 
                         var handledItems = await handler.HandleAsync(applyItems).ToListAsync();
