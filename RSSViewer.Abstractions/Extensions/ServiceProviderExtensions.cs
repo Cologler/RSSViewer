@@ -43,7 +43,7 @@ namespace RSSViewer.Extensions
 
         public static IEnumerable<T> LoadMany<T>(this IServiceProvider serviceProvider, bool newScope, CancellationToken cancellationToken = default)
         {
-            return Load<IEnumerable<T>>(serviceProvider, cancellationToken);
+            return Load<IEnumerable<T>>(serviceProvider, newScope, cancellationToken);
         }
 
         public static IEnumerable<T> LoadMany<T>(this IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
