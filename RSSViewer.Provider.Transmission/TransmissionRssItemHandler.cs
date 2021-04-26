@@ -92,12 +92,19 @@ namespace RSSViewer.Provider.Transmission
                         Paused = false
                     };
 
-                    var newTorrentInfo = client.TorrentAdd(torrent);
-                    if (newTorrentInfo != null && newTorrentInfo.ID != 0)
+                    try
                     {
-                        ids.Add(newTorrentInfo.ID);
-                        accepted.Add(rssItem);
-                        logger.AddLine($"Sent <{rssItem.Title}> to {SiteName}.");
+                        var newTorrentInfo = client.TorrentAdd(torrent);
+                        if (newTorrentInfo != null && newTorrentInfo.ID != 0)
+                        {
+                            ids.Add(newTorrentInfo.ID);
+                            accepted.Add(rssItem);
+                            logger.AddLine($"Sent <{rssItem.Title}> to {SiteName}.");
+                        }
+                    } 
+                    catch (Exception e)
+                    {
+                        logger.AddLine($"Error on <{rssItem.Title}>: {e.Message}.");
                     }
                 }
 
