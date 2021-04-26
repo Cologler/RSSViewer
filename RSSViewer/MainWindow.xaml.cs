@@ -99,8 +99,7 @@ namespace RSSViewer
             var selectedTargets = GetSelectedTargets(menuItem);
             var handler = (IRssItemHandler)menuItem.Tag;
             await this.CurrentSession.HandleAsync(
-                selectedTargets.Cast<RssItemGroupViewModel>()
-                    .SelectMany(z => z.Items)
+                RssItemGroupViewModel.Combine(selectedTargets.Cast<RssItemGroupViewModel>().ToList())
                     .Distinct()
                     .ToArray(),
                 handler);
