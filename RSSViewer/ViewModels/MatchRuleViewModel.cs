@@ -31,19 +31,24 @@ namespace RSSViewer.ViewModels
         {
             this.MatchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
             this._dependencies = dependencies ?? throw new ArgumentNullException(nameof(dependencies));
+
+            // id
             Debug.Assert(matchRule.Id >= 0);
             this.Id = matchRule.Id > 0 ? matchRule.Id : NewId();
             Debug.Assert(this.Id != 0);
-        }
 
-        public MatchRuleViewModel(MatchRule matchRule, Tag tag)
-        {
-            this.MatchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
-            this.Tag = tag;
-
-            Debug.Assert(matchRule.Id >= 0);
-            this.Id = matchRule.Id > 0 ? matchRule.Id : NewId();
-            Debug.Assert(this.Id != 0);
+            // 
+            if (matchRule.HandlerType == HandlerType.SetTag)
+            {
+                if (matchRule.HandlerId is not null)
+                {
+                    this.Tag = dependencies.FindTag(matchRule.HandlerId);
+                }
+                else
+                {
+                    Debug.Assert(this.Id < 0); // new
+                }
+            }
         }
 
         private MatchRuleViewModel(string displayValue)

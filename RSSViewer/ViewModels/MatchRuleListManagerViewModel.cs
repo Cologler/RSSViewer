@@ -66,14 +66,7 @@ namespace RSSViewer.ViewModels
             if (matchRule is null)
                 throw new ArgumentNullException(nameof(matchRule));
 
-            if (matchRule.HandlerType == HandlerType.Action)
-            {
-                return new MatchRuleViewModel(matchRule, this);
-            }
-            else
-            {
-                return new MatchRuleViewModel(matchRule, this.FindTag(matchRule.HandlerId));
-            }
+            return new MatchRuleViewModel(matchRule, this);
         }
 
         public async void Save()
