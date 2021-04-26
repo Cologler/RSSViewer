@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RSSViewer.Helpers.Loaders
+namespace RSSViewer.Abstractions
 {
     public interface ILoader<T>
     {

@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using RSSViewer.Abstractions;
 using RSSViewer.Filter;
 using RSSViewer.Helpers;
-using RSSViewer.Helpers.Loaders;
 using RSSViewer.HttpCacheDb;
 using RSSViewer.Json;
 using RSSViewer.KeywordsFinders;
@@ -114,8 +113,7 @@ namespace RSSViewer
                 .AddLogging(cfg => cfg.AddDebug())
 
                 // loader
-                .AddTransient(typeof(ILoader<>), typeof(Loader<>))
-                .AddScoped<IScopedLoader<IEnumerable<Tag>>>(z => z.GetRequiredService<RulesDbContext>())
+                .AddScoped<ILoader<IEnumerable<Tag>>>(z => z.GetRequiredService<RulesDbContext>())
                 ;
 
             var rssItemStates = new[]

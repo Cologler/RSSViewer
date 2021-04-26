@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
+using RSSViewer.Abstractions;
 using RSSViewer.Extensions;
-using RSSViewer.Helpers.Loaders;
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace RSSViewer.RulesDb
 {
-    public class RulesDbContext : DbContext, IScopedLoader<IEnumerable<Tag>>
+    public class RulesDbContext : DbContext, ILoader<IEnumerable<Tag>>
     {
         public RulesDbContext()
         {
@@ -71,7 +71,7 @@ namespace RSSViewer.RulesDb
             return changedCount;
         }
 
-        IEnumerable<Tag> IScopedLoader<IEnumerable<Tag>>.Load(CancellationToken token)
+        IEnumerable<Tag> ILoader<IEnumerable<Tag>>.Load(CancellationToken token)
         {
             return this.Tags.AsQueryable().AsNoTracking().WithCancellation(token).ToList();
         }
