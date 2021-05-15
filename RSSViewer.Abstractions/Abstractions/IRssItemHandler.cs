@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using RSSViewer.Models;
 
 namespace RSSViewer.Abstractions
 {
@@ -13,12 +16,7 @@ namespace RSSViewer.Abstractions
 
         bool CanbeRuleTarget { get; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="rssItems"></param>
-        /// <returns>the new state to change</returns>
-        IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems);
+        ValueTask HandleAsync(IReadOnlyCollection<IRssItemHandlerContext> contexts);
 
         string ShortDescription => this.HandlerName;
     }

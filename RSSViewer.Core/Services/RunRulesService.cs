@@ -248,32 +248,35 @@ namespace RSSViewer.Services
                     if (handler is not null)
                     {
                         var applyItems = group
-                            .Select(z => (z.Item.Item, z.Item.Item.State))
+                            .Select(z => new InternalRssItemHandlerContext(z.Item.Item, z.RulesChain.Last()))
                             .ToList();
 
-                        var handledItems = await handler.HandleAsync(applyItems).ToListAsync();
-                        foreach (var (item, newState) in handledItems)
+                        await handler.HandleAsync(applyItems).ConfigureAwait(false);
+
+                        foreach (var ctx in applyItems)
                         {
-                            if (newState != RssItemState.Undecided)
+                            if (ctx.NewState.HasValue)
                             {
-                                if (newState == RssItemState.Accepted)
+                                Debug.Assert(ctx.NewState.Value != RssItemState.Undecided);
+
+                                if (ctx.NewState == RssItemState.Accepted)
                                 {
-                                    this.AcceptedItems.Add(item);
+                                    this.AcceptedItems.Add(ctx.RssItem);
                                 }
-                                else if (newState == RssItemState.Rejected)
+                                else if (ctx.NewState == RssItemState.Rejected)
                                 {
-                                    this.RejectedItems.Add(item);
+                                    this.RejectedItems.Add(ctx.RssItem);
                                 }
-                                else if (newState == RssItemState.Archived)
+                                else if (ctx.NewState == RssItemState.Archived)
                                 {
-                                    this.ArchivedItems.Add(item);
+                                    this.ArchivedItems.Add(ctx.RssItem);
                                 }
                                 else
                                 {
-                                    throw new NotImplementedException(newState.ToString());
+                                    throw new NotImplementedException(ctx.NewState.ToString());
                                 }
 
-                                changer.AddForMatchRuler(item, newState, handler);
+                                changer.AddForMatchRule(ctx.RssItem, ctx.NewState.Value, ctx.MatchRule.Id.ToString());
                             }
                         }
                     }
@@ -298,6 +301,17 @@ namespace RSSViewer.Services
                         ctx.SaveChanges();
                     }
                 }
+            }
+
+            class InternalRssItemHandlerContext : RssItemHandlerContext
+            {
+                public InternalRssItemHandlerContext(IPartialRssItem rssItem, MatchRule matchRule) : base(rssItem)
+                {
+                    this.OldState = rssItem.State;
+                    this.MatchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
+                }
+
+                public MatchRule MatchRule { get; set; }
             }
 
             public string GetResultMessage()

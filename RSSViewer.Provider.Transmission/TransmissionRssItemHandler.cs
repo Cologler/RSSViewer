@@ -43,21 +43,20 @@ namespace RSSViewer.Provider.Transmission
 
         public bool CanbeRuleTarget => true;
 
-        public async IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems)
+        public async ValueTask HandleAsync(IReadOnlyCollection<IRssItemHandlerContext> contexts)
         {
-            if (rssItems is null)
-                throw new ArgumentNullException(nameof(rssItems));
+            if (contexts is null)
+                throw new ArgumentNullException(nameof(contexts));
 
             var logger = this._serviceProvider.GetRequiredService<IViewerLogger>();
 
-            var rssItemsWithMagnetLink = rssItems
-                .Select(z => z.Item1)
-                .Select(z => (RssItem: z, MagnetLink: z.GetPropertyOrDefault(RssItemProperties.MagnetLink)))
+            var rssItemsWithMagnetLink = contexts
+                .Select(z => (Context: z, MagnetLink: z.RssItem.GetPropertyOrDefault(RssItemProperties.MagnetLink)))
                 .Where(z =>
                 {
                     if (string.IsNullOrWhiteSpace(z.MagnetLink))
                     {
-                        logger.AddLine($"Ignore {z.RssItem.Title} which did't have magnet link.");
+                        logger.AddLine($"Ignore {z.Context.RssItem.Title} which did't have magnet link.");
                         return false;
                     }
                     return true;
@@ -66,16 +65,15 @@ namespace RSSViewer.Provider.Transmission
 
             if (rssItemsWithMagnetLink.Count == 0)
             {
-                yield break;
+                return;
             }
 
             var options = this._serviceProvider.GetRequiredService<IAddMagnetOptions>();
             int? queuePosition = (await options.IsAddMagnetToQueueTopAsync().ConfigureAwait(false)) ? 0 : null;
             var trackers = await options.GetExtraTrackersAsync().ConfigureAwait(false);
 
-            var task = await Task.Run(() =>
+            await Task.Run(() =>
             {
-                var accepted = new List<IPartialRssItem>();
                 var ids = new List<int>();
 
                 var client = new Client(
@@ -84,7 +82,7 @@ namespace RSSViewer.Provider.Transmission
                     this.UserName,
                     this.Password);
 
-                foreach (var (rssItem, ml) in rssItemsWithMagnetLink)
+                foreach (var (ctx, ml) in rssItemsWithMagnetLink)
                 {
                     var torrent = new NewTorrent
                     {
@@ -98,18 +96,19 @@ namespace RSSViewer.Provider.Transmission
                         if (newTorrentInfo != null && newTorrentInfo.ID != 0)
                         {
                             ids.Add(newTorrentInfo.ID);
-                            accepted.Add(rssItem);
-                            logger.AddLine($"Sent <{rssItem.Title}> to {SiteName}.");
+                            ctx.NewState = RssItemState.Accepted;
+                            logger.AddLine($"Sent <{ctx.RssItem.Title}> to {this.SiteName}.");
                         }
                     } 
                     catch (Exception e)
                     {
-                        logger.AddLine($"Error on <{rssItem.Title}>: {e.Message}.");
+                        logger.AddLine($"Error on <{ctx.RssItem.Title}>: {e.Message}.");
                     }
                 }
 
-                if (trackers.Length > 0 && ids.Count > 0)
+                if (ids.Count > 0 && trackers.Length > 0)
                 {
+                    // don't wait this...
                     Task.Run(() =>
                     {
                         var retry = 3;
@@ -132,14 +131,7 @@ namespace RSSViewer.Provider.Transmission
                         }
                     });                    
                 }
-
-                return accepted;
             }).ConfigureAwait(false);
-
-            foreach (var rssItem in task)
-            {
-                yield return (rssItem, RssItemState.Accepted);
-            }
         }
     }
 }

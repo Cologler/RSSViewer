@@ -4,6 +4,7 @@ using RSSViewer.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace RSSViewer.AcceptHandlers
@@ -16,15 +17,17 @@ namespace RSSViewer.AcceptHandlers
 
         public bool CanbeRuleTarget => false;
 
-        public IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems)
+        public ValueTask HandleAsync(IReadOnlyCollection<IRssItemHandlerContext> contexts)
         {
             var urls = new List<string>();
-            foreach (var (item, _) in rssItems)
+            var errors = new List<string>();
+
+            foreach (var ctx in contexts)
             {
-                var ml = item.GetPropertyOrDefault(RssItemProperties.MagnetLink);
+                var ml = ctx.RssItem.GetPropertyOrDefault(RssItemProperties.MagnetLink);
                 if (string.IsNullOrWhiteSpace(ml))
                 {
-                    MessageBox.Show($"Some item's magnet link is empty: (FeedId={item.FeedId}, RssId={item.RssId})");
+                    errors.Add($"<FeedId={ctx.RssItem.FeedId}, RssId={ctx.RssItem.RssId}>");
                 }
                 else
                 {
@@ -32,9 +35,17 @@ namespace RSSViewer.AcceptHandlers
                 }
             }
 
+            if (errors.Count > 0)
+            {
+                MessageBox.Show(
+                    "Some item's magnet link is empty: " + 
+                    Environment.NewLine + 
+                    string.Join(Environment.NewLine, errors));
+            }
+
             if (urls.Count > 0)
             {
-                var text = string.Join("\r\n", urls);
+                var text = string.Join(Environment.NewLine, urls);
 
                 try
                 {
@@ -45,8 +56,12 @@ namespace RSSViewer.AcceptHandlers
                     MessageBox.Show($"Unable to copy: {e}");
                 }
             }
+            else
+            {
+                MessageBox.Show($"Nothing is copied.");
+            }
 
-            return AsyncEnumerable.Empty<(IPartialRssItem, RssItemState)>();
+            return ValueTask.CompletedTask;
         }
     }
 }

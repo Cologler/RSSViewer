@@ -98,23 +98,22 @@ namespace RSSViewer.LocalDb.Helpers
         {
         }
 
-        public void AddForUserAction(IPartialRssItem item, RssItemState newState, IRssItemHandler rssItemHandler)
+        public void AddForUserAction(IPartialRssItem item, RssItemState newState)
         {
             this.Changes.Add((item, new RssItemStateSnapshot
             {
                 State = newState,
-                StateChangeReason = RssItemStateChangeReason.UserChoicedHandler,
-                StateChangeReasonExtras = rssItemHandler.Id
+                StateChangeReason = RssItemStateChangeReason.UserChoicedHandler
             }));
         }
 
-        public void AddForMatchRuler(IPartialRssItem item, RssItemState newState, IRssItemHandler rssItemHandler)
+        public void AddForMatchRule(IPartialRssItem item, RssItemState newState, string matchRuleId)
         {
             this.Changes.Add((item, new RssItemStateSnapshot
             {
                 State = newState,
                 StateChangeReason = RssItemStateChangeReason.MatchRuleHandler,
-                StateChangeReasonExtras = rssItemHandler.Id
+                StateChangeReasonExtras = matchRuleId
             }));
         }
     }

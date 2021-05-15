@@ -52,21 +52,20 @@ namespace RSSViewer.Provider.Synology.DownloadStation
 
         public bool CanbeRuleTarget => true;
 
-        public async IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems)
+        public async ValueTask HandleAsync(IReadOnlyCollection<IRssItemHandlerContext> contexts)
         {
-            if (rssItems is null)
-                throw new ArgumentNullException(nameof(rssItems));
+            if (contexts is null)
+                throw new ArgumentNullException(nameof(contexts));
 
             var logger = this._serviceProvider.GetRequiredService<IViewerLogger>();
 
-            var rssItemsWithMagnetLink = rssItems
-                .Select(z => z.Item1)
-                .Select(z => (RssItem: z, MagnetLink: z.GetPropertyOrDefault(RssItemProperties.MagnetLink)))
+            var rssItemsWithMagnetLink = contexts
+                .Select(z => (Context: z, MagnetLink: z.RssItem.GetPropertyOrDefault(RssItemProperties.MagnetLink)))
                 .Where(z =>
                 {
                     if (string.IsNullOrWhiteSpace(z.MagnetLink))
                     {
-                        logger.AddLine($"Ignore {z.RssItem.Title} which did't have magnet link.");
+                        logger.AddLine($"Ignore {z.Context.RssItem.Title} which did't have magnet link.");
                         return false;
                     }
                     return true;
@@ -75,7 +74,7 @@ namespace RSSViewer.Provider.Synology.DownloadStation
 
             if (rssItemsWithMagnetLink.Count == 0)
             {
-                yield break;
+                return;
             }
 
             using var scope = this._synologyServiceProvider.ServiceProvider.CreateScope();
@@ -110,7 +109,7 @@ namespace RSSViewer.Provider.Synology.DownloadStation
                     .DownloadStation()
                     .Task();
 
-                foreach (var (rssItem, url) in rssItemsWithMagnetLink)
+                foreach (var (context, url) in rssItemsWithMagnetLink)
                 {
                     var ret = await task.CreateAsync(
                                new TaskCreateParameters
@@ -119,19 +118,14 @@ namespace RSSViewer.Provider.Synology.DownloadStation
                                }).ConfigureAwait(false);
                     if (ret?.Success == true)
                     {
-                        accepted.Add(rssItem);
-                        logger.AddLine($"Sent {rssItem.Title} to {SiteName}.");
+                        context.NewState = RssItemState.Accepted;
+                        logger.AddLine($"Sent {context.RssItem.Title} to {this.SiteName}.");
                     }
                 }
             }
             catch (HttpRequestException)
             {
                 // ignore
-            }
-
-            foreach (var rssItem in accepted)
-            {
-                yield return (rssItem, RssItemState.Accepted);
             }
         }
     }

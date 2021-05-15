@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RSSViewer.Abstractions;
 using RSSViewer.Extensions;
 using RSSViewer.LocalDb.Helpers;
+using RSSViewer.Models;
 using RSSViewer.Services;
 using RSSViewer.Utils;
 
@@ -308,15 +309,16 @@ namespace RSSViewer.ViewModels
 
         public async Task HandleAsync(RssItemViewModel[] items, IRssItemHandler handler)
         {
-            var rssItems = items.Select(z => ((IPartialRssItem)z.RssItem, z.RssItem.State)).ToArray();
-            var changes = await handler.HandleAsync(rssItems).ToListAsync();
+            var contexts = items.Select(z => new RssItemHandlerContext(z.RssItem)).ToList();
+            await handler.HandleAsync(contexts);
+            var changes = contexts.Where(z => z.NewState.HasValue).ToList();
             if (changes.Count > 0)
             {
                 var undoService = this.ServiceProvider.GetRequiredService<UndoService>();
                 var changer = this.ServiceProvider.GetRequiredService<RssItemsStateChanger>();
                 foreach (var change in changes)
                 {
-                    changer.AddForUserAction(change.Item1, change.Item2, handler);
+                    changer.AddForUserAction(change.RssItem, change.NewState.Value);
                 }
                 await Task.Run(() =>
                 {

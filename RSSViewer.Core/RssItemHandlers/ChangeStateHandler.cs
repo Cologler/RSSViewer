@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace RSSViewer.RssItemHandlers
 {
@@ -36,12 +37,17 @@ namespace RSSViewer.RssItemHandlers
 
         public bool CanbeRuleTarget => this._newState != RssItemState.Undecided;
 
-        public IAsyncEnumerable<(IPartialRssItem, RssItemState)> HandleAsync(IReadOnlyCollection<(IPartialRssItem, RssItemState)> rssItems)
+        public ValueTask HandleAsync(IReadOnlyCollection<IRssItemHandlerContext> contexts)
         {
-            return rssItems
-                .Where(z => z.Item2 != this._newState)
-                .Select(z => (z.Item1, this._newState))
-                .ToAsyncEnumerable();
+            foreach (var ctx in contexts)
+            {
+                if (ctx.OldState != this._newState)
+                {
+                    ctx.NewState = this._newState;
+                }
+            }
+
+            return ValueTask.CompletedTask;
         }
 
         public string ShortDescription { get; }
