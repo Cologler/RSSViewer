@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -216,7 +217,8 @@ namespace RSSViewer
 
         private void UndoMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            _ = App.RSSViewerHost.Modify().UndoAsync();
+            var undoService = this.ViewModel.ServiceProvider.GetRequiredService<UndoService>();
+            Task.Run(() => undoService.Undo());
         }
 
         private void RemoveTab_Click(object sender, RoutedEventArgs e)

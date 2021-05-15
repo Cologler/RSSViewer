@@ -9,6 +9,7 @@ using RSSViewer.HttpCacheDb;
 using RSSViewer.Json;
 using RSSViewer.KeywordsFinders;
 using RSSViewer.LocalDb;
+using RSSViewer.LocalDb.Helpers;
 using RSSViewer.Provider.RssFetcher;
 using RSSViewer.Provider.Synology;
 using RSSViewer.Provider.Transmission;
@@ -87,6 +88,7 @@ namespace RSSViewer
                 .AddSingleton<ConfigService>()
                 .AddSingleton<ClassifyService>()
                 .AddSingleton<KeywordsService>()
+                .AddSingleton<UndoService>()
                 .AddDbContext<LocalDbContext>((prov, options) => {
                     var path = prov.GetRequiredService<AppDirService>().GetDataFileFullPath("localdb.sqlite3");
                     options.UseSqlite($"Data Source={path}");
@@ -112,8 +114,15 @@ namespace RSSViewer
                 .AddTransient<IAddMagnetOptions, AddMagnetOptions>()
                 .AddLogging(cfg => cfg.AddDebug())
 
+                // helpers
+                .AddTransient<RssItemsStateChanger>()
+
                 // loader
                 .AddScoped<ILoader<IEnumerable<Tag>>>(z => z.GetRequiredService<RulesDbContext>())
+
+                // finder
+                .AddSingleton<IRssItemFinder<IPartialRssItem>, FindByPartialRssItem>()
+                .AddSingleton<IRssItemFinder<RssItemOldStateSnapshot>, RssItemOldStateSnapshot.Finder>()
                 ;
 
             var rssItemStates = new[]

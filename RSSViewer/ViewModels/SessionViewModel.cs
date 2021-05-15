@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using RSSViewer.Abstractions;
 using RSSViewer.Extensions;
+using RSSViewer.LocalDb.Helpers;
 using RSSViewer.Services;
 using RSSViewer.Utils;
 
@@ -18,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace RSSViewer.ViewModels
 {
-    public class SessionViewModel : BaseViewModel, IDisposable
+    public class SessionViewModel : Bases.BaseViewModel, IDisposable
     {
         private CancelableTaskScheduler _searchScheduler = new CancelableTaskScheduler();
         private string _searchText = string.Empty;
@@ -311,20 +312,16 @@ namespace RSSViewer.ViewModels
             var changes = await handler.HandleAsync(rssItems).ToListAsync();
             if (changes.Count > 0)
             {
-                var service = App.RSSViewerHost.Modify();
-                var operationSession = service.CreateOperationSession(true);
-                await operationSession.AcceptAsync(changes
-                    .Where(z => z.Item2 == RssItemState.Accepted)
-                    .Select(z => z.Item1)
-                    .ToList());
-                await operationSession.RejectAsync(changes
-                    .Where(z => z.Item2 == RssItemState.Rejected)
-                    .Select(z => z.Item1)
-                    .ToList());
-                await operationSession.ArchivedAsync(changes
-                    .Where(z => z.Item2 == RssItemState.Archived)
-                    .Select(z => z.Item1)
-                    .ToList());
+                var undoService = this.ServiceProvider.GetRequiredService<UndoService>();
+                var changer = this.ServiceProvider.GetRequiredService<RssItemsStateChanger>();
+                foreach (var change in changes)
+                {
+                    changer.AddFromUserAction(change.Item1, change.Item2, handler);
+                }
+                await Task.Run(() =>
+                {
+                    undoService.Push(changer.SaveChanges());
+                });
             }
         }
 
