@@ -9,7 +9,15 @@ namespace RSSViewer.LocalDb
 
         public string RssId { get; set; }
 
+        #region state
+
         public RssItemState State { get; set; }
+
+        public RssItemStateChangeReason StateChangeReason { get; set; }
+
+        public string StateChangeReasonExtras { get; set; }
+
+        #endregion
 
         public string RawText { get; set; }
 
@@ -56,5 +64,12 @@ namespace RSSViewer.LocalDb
             value = this.GetProperty(property);
             return true;
         }
+    }
+
+    public enum RssItemStateChangeReason
+    {
+        Unknown = 0,
+        UserChoicedHandler = 1,
+        MatchRuleHandler = 2
     }
 }
