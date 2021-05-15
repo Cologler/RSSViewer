@@ -16,7 +16,7 @@ namespace RSSViewer.Services
     {
         private const int MaxUnsavedChanged = 5000;
         private readonly IServiceProvider _serviceProvider;
-        private readonly List<OperationsSession> _operationsSessions = new();
+        private readonly Stack<OperationsSession> _operationsSessionsStack = new();
         private readonly object _syncRoot = new();
 
         public RssItemsOperationService(IServiceProvider serviceProvider)
@@ -30,11 +30,10 @@ namespace RSSViewer.Services
 
             lock (this._syncRoot)
             {
-                if (this._operationsSessions.Count == 0)
+                if (this._operationsSessionsStack.Count == 0)
                     return Task.CompletedTask;
 
-                operationsSession = this._operationsSessions[^1];
-                this._operationsSessions.RemoveAt(this._operationsSessions.Count - 1);
+                operationsSession = this._operationsSessionsStack.Pop();
             }
 
             return Task.Run(() => operationsSession.Undo());
@@ -47,7 +46,7 @@ namespace RSSViewer.Services
             {
                 lock (this._syncRoot)
                 {
-                    this._operationsSessions.Add(session);
+                    this._operationsSessionsStack.Push(session);
                 }
             } 
             return session;
