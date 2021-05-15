@@ -4,6 +4,7 @@ using RSSViewer.Configuration;
 using RSSViewer.Filter;
 using RSSViewer.Helpers;
 using RSSViewer.LocalDb;
+using RSSViewer.LocalDb.Helpers;
 using RSSViewer.Models;
 using RSSViewer.RssItemHandlers;
 using RSSViewer.RulesDb;
@@ -155,14 +156,12 @@ namespace RSSViewer.Services
         {
             private readonly IServiceProvider _serviceProvider;
             private readonly RssItemsQueryService _queryService;
-            private readonly RssItemsOperationService _operationService;
             private readonly bool _isDebuggerAttached = Debugger.IsAttached;
 
             public MatchContext(IServiceProvider serviceProvider)
             {
                 this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
                 this._queryService = serviceProvider.GetRequiredService<RssItemsQueryService>();
-                this._operationService = serviceProvider.GetRequiredService<RssItemsOperationService>();
             }
 
             public RuleMatchTree RuleMatchTree { get; set; }
@@ -241,6 +240,7 @@ namespace RSSViewer.Services
                     }
                 }
 
+                var changer = this._serviceProvider.GetRequiredService<RssItemsStateChanger>();
                 var handlersService = this._serviceProvider.GetRequiredService<RssItemHandlersService>();
                 foreach (var group in results.GroupBy(z => z.RulesChain.Last().HandlerId))
                 {
@@ -268,17 +268,20 @@ namespace RSSViewer.Services
                                 {
                                     this.ArchivedItems.Add(item);
                                 }
+                                else
+                                {
+                                    throw new NotImplementedException(newState.ToString());
+                                }
+
+                                changer.AddForMatchRuler(item, newState, handler);
                             }
                         }
                     }
                 }
 
-                if (this.RejectedItems.Count + this.AcceptedItems.Count + this.ArchivedItems.Count > 0)
+                if (changer.Changes.Count > 0)
                 {
-                    var operationSession = this._operationService.CreateOperationSession(false);
-                    operationSession.ChangeState(this.AcceptedItems, RssItemState.Accepted);
-                    operationSession.ChangeState(this.RejectedItems, RssItemState.Rejected);
-                    operationSession.ChangeState(this.ArchivedItems, RssItemState.Archived);
+                    _ = changer.SaveChanges();
 
                     using (var scope = this._serviceProvider.CreateScope())
                     {

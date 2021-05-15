@@ -25,7 +25,7 @@ namespace RSSViewer.ViewModels
         private string _searchText = string.Empty;
         private RssItemGroupViewModel _selectedGroup;
         private Dictionary<(string, string), RssItemViewModel> _itemsIndexes;
-        private List<(IPartialRssItem, RssItemState)> _stateChangesHook;
+        private List<(IRssItemKey, RssItemState)> _stateChangesHook;
         private string _title;
         private readonly IViewerLogger _viewerLogger;
         public event EventHandler SessionStateChanged;
@@ -68,7 +68,7 @@ namespace RSSViewer.ViewModels
             }
         }
 
-        private void OnRssItemsStateChanged(object sender, IEnumerable<(IPartialRssItem, RssItemState)> e)
+        private void OnRssItemsStateChanged(object sender, IEnumerable<(IRssItemKey, RssItemState)> e)
         {
             App.Current.Dispatcher.InvokeAsync(() =>
             {
@@ -88,13 +88,13 @@ namespace RSSViewer.ViewModels
             });
         }
 
-        private void OnRssItemsStateChangedInternal(IEnumerable<(IPartialRssItem, RssItemState)> e)
+        private void OnRssItemsStateChangedInternal(IEnumerable<(IRssItemKey, RssItemState)> e)
         {
             Debug.Assert(this._itemsIndexes != null);
 
-            foreach (var (rssItem, state) in e)
+            foreach (var (key, state) in e)
             {
-                var viewModel = this._itemsIndexes.GetValueOrDefault(rssItem.GetKey());
+                var viewModel = this._itemsIndexes.GetValueOrDefault(key.ToTuple());
                 if (viewModel != null)
                 {
                     viewModel.RssItem.State = state;
@@ -271,7 +271,7 @@ namespace RSSViewer.ViewModels
                     })
             );
 
-            var itemsIndexes = classifiedItems.Select(z => z.ViewModel).ToDictionary(z => z.RssItem.GetKey());
+            var itemsIndexes = classifiedItems.Select(z => z.ViewModel).ToDictionary(z => z.RssItem.ToTuple());
 
             token.ThrowIfCancellationRequested();
 
@@ -316,7 +316,7 @@ namespace RSSViewer.ViewModels
                 var changer = this.ServiceProvider.GetRequiredService<RssItemsStateChanger>();
                 foreach (var change in changes)
                 {
-                    changer.AddFromUserAction(change.Item1, change.Item2, handler);
+                    changer.AddForUserAction(change.Item1, change.Item2, handler);
                 }
                 await Task.Run(() =>
                 {

@@ -2,7 +2,7 @@
 
 namespace RSSViewer.LocalDb.Helpers
 {
-    class RssItemOldStateSnapshot : RssItemStateSnapshot
+    class RssItemOldStateSnapshot : RssItemStateSnapshot, IRssItemKey
     {
         public string FeedId { get; set; }
 
@@ -13,12 +13,6 @@ namespace RSSViewer.LocalDb.Helpers
             this.FeedId = rssItem.FeedId;
             this.RssId = rssItem.RssId;
             base.UpdateFrom(rssItem);
-        }
-
-        public class Finder : IRssItemFinder<RssItemOldStateSnapshot>
-        {
-            public RssItem FindRssItem(LocalDbContext context, RssItemOldStateSnapshot fromItem) =>
-                context.RssItems.Find(fromItem.FeedId, fromItem.RssId);
         }
     }
 }

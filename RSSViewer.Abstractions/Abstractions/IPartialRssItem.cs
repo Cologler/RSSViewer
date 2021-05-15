@@ -1,11 +1,7 @@
 ﻿namespace RSSViewer.Abstractions
 {
-    public interface IPartialRssItem
+    public interface IPartialRssItem : IRssItemKey
     {
-        string FeedId { get; }
-
-        string RssId { get; }
-
         string Title { get; }
 
         public RssItemState State { get; set; }

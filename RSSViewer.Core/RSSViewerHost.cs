@@ -68,8 +68,6 @@ namespace RSSViewer
 
         public RssItemsQueryService Query() => this.ServiceProvider.GetRequiredService<RssItemsQueryService>();
 
-        public RssItemsOperationService Modify() => this.ServiceProvider.GetRequiredService<RssItemsOperationService>();
-
         public static IServiceCollection CreateServices()
         {
             var appDirService = new AppDirService();
@@ -79,7 +77,6 @@ namespace RSSViewer
                 .AddSingleton<JsonService>()
                 .AddSingleton<SyncSourceManager>()
                 .AddSingleton<RssItemsQueryService>()
-                .AddSingleton<RssItemsOperationService>()
                 .AddSingleton<HttpService>()
                 .AddSingleton<SyncService>()
                 .AddSingleton<RssItemHandlersService>()
@@ -119,10 +116,6 @@ namespace RSSViewer
 
                 // loader
                 .AddScoped<ILoader<IEnumerable<Tag>>>(z => z.GetRequiredService<RulesDbContext>())
-
-                // finder
-                .AddSingleton<IRssItemFinder<IPartialRssItem>, FindByPartialRssItem>()
-                .AddSingleton<IRssItemFinder<RssItemOldStateSnapshot>, RssItemOldStateSnapshot.Finder>()
                 ;
 
             var rssItemStates = new[]

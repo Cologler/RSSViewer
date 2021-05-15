@@ -10,7 +10,7 @@ namespace RSSViewer
 {
     public static class EventNames
     {
-        public static readonly TypedEventName<IReadOnlyCollection<(IPartialRssItem, RssItemState)>> RssItemsStateChanged =
+        public static readonly TypedEventName<IReadOnlyCollection<(IRssItemKey, RssItemState)>> RssItemsStateChanged =
             new(nameof(RssItemsStateChanged));
 
         public static readonly TypedEventName<IReadOnlyCollection<IPartialRssItem>> AddedRssItems =

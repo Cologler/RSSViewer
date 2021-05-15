@@ -14,15 +14,13 @@ using RSSViewer.Utils;
 
 namespace RSSViewer.LocalDb.Helpers
 {
-    public class RssItemsStateChanger<TFrom>
+    public class RssItemsStateChanger<TFrom> where TFrom : IRssItemKey
     {
         protected readonly IServiceProvider _serviceProvider;
-        private readonly IRssItemFinder<TFrom> _rssItemFinder;
 
         public RssItemsStateChanger(IServiceProvider serviceProvider)
         {
             this._serviceProvider = serviceProvider;
-            this._rssItemFinder = serviceProvider.GetRequiredService<IRssItemFinder<TFrom>>();
         }
 
         /// <summary>
@@ -47,7 +45,7 @@ namespace RSSViewer.LocalDb.Helpers
 
                 foreach (var (item, state) in this.Changes)
                 {
-                    var ri = this._rssItemFinder.FindRssItem(ctx, item);
+                    var ri = ctx.RssItems.Find(item.FeedId, item.RssId);
                     if (ri is not null)
                     {
                         var oldState = new RssItemOldStateSnapshot();
@@ -65,6 +63,10 @@ namespace RSSViewer.LocalDb.Helpers
                 {
                     ctx.SaveChanges();
                     this.Changed.AddRange(unsavedChanged);
+                    this._serviceProvider.EmitEvent(
+                        EventNames.RssItemsStateChanged, 
+                        this, 
+                        this.Changed.Select(t => ((IRssItemKey)t.Item1, t.Item2)).ToList());
                     return new Undoable(oldStates);
                 }
             }
@@ -96,7 +98,7 @@ namespace RSSViewer.LocalDb.Helpers
         {
         }
 
-        public void AddFromUserAction(IPartialRssItem item, RssItemState newState, IRssItemHandler rssItemHandler)
+        public void AddForUserAction(IPartialRssItem item, RssItemState newState, IRssItemHandler rssItemHandler)
         {
             this.Changes.Add((item, new RssItemStateSnapshot
             {
@@ -106,7 +108,7 @@ namespace RSSViewer.LocalDb.Helpers
             }));
         }
 
-        public void AddFromHandler(IPartialRssItem item, RssItemState newState, IRssItemHandler rssItemHandler)
+        public void AddForMatchRuler(IPartialRssItem item, RssItemState newState, IRssItemHandler rssItemHandler)
         {
             this.Changes.Add((item, new RssItemStateSnapshot
             {
@@ -114,13 +116,6 @@ namespace RSSViewer.LocalDb.Helpers
                 StateChangeReason = RssItemStateChangeReason.MatchRuleHandler,
                 StateChangeReasonExtras = rssItemHandler.Id
             }));
-        }
-
-        public override IUndoable SaveChanges()
-        {
-            var rv = base.SaveChanges();
-            this._serviceProvider.EmitEvent(EventNames.RssItemsStateChanged, this, this.Changed.ToList());
-            return rv;
         }
     }
 }
