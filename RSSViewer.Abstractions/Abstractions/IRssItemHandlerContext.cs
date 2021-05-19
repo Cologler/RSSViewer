@@ -4,7 +4,7 @@
     {
         IPartialRssItem RssItem { get; }
 
-        RssItemState OldState { get; set; }
+        RssItemState OldState { get; }
 
         RssItemState? NewState { get; set; }
     }

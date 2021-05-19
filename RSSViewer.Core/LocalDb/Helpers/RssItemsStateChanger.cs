@@ -45,7 +45,7 @@ namespace RSSViewer.LocalDb.Helpers
 
                 foreach (var (item, state) in this.Changes)
                 {
-                    var ri = ctx.RssItems.Find(item.FeedId, item.RssId);
+                    var ri = ctx.FindRssItem(item);
                     if (ri is not null)
                     {
                         var oldState = new RssItemOldStateSnapshot();

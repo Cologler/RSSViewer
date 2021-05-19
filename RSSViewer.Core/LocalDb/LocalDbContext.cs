@@ -1,4 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+
+using RSSViewer.Abstractions;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -25,9 +28,11 @@ namespace RSSViewer.LocalDb
             base.OnModelCreating(modelBuilder);
         }
 
+        public RssItem FindRssItem(IRssItemKey key) => this.RssItems.Find(key.FeedId, key.RssId);
+
         public bool AddOrIgnore(RssItem entity)
         {
-            if (!this.RssItems.Any(e => e.FeedId == entity.FeedId && e.RssId == entity.RssId))
+            if (this.FindRssItem(entity) is null)
             {
                 this.Add(entity);
                 return true;

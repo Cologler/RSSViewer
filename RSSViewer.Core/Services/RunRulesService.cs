@@ -305,9 +305,9 @@ namespace RSSViewer.Services
 
             class InternalRssItemHandlerContext : RssItemHandlerContext
             {
-                public InternalRssItemHandlerContext(IPartialRssItem rssItem, MatchRule matchRule) : base(rssItem)
+                public InternalRssItemHandlerContext(IPartialRssItem rssItem, MatchRule matchRule)
+                    : base(rssItem)
                 {
-                    this.OldState = rssItem.State;
                     this.MatchRule = matchRule ?? throw new ArgumentNullException(nameof(matchRule));
                 }
 
