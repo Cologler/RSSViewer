@@ -17,11 +17,22 @@ namespace RSSViewer.Services
 {
     public class RssItemsQueryService
     {
+        private const int DefaultMaxLoadItems = 10000;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ConfigService _configService;
 
-        public RssItemsQueryService(IServiceProvider serviceProvider)
+        public RssItemsQueryService(IServiceProvider serviceProvider, ConfigService configService)
         {
+            if (configService is null)
+                throw new ArgumentNullException(nameof(configService));
             this._serviceProvider = serviceProvider;
+            this._configService = configService;
+        }
+
+        private int GetMaxLoadItems()
+        {
+            var value = this._configService.AppConf.MaxLoadItems ?? DefaultMaxLoadItems;
+            return value < 1 ? DefaultMaxLoadItems : value;
         }
 
         private IQueryable<PartialRssItem> CreateQueryable(IQueryable<RssItem> queryable, 
@@ -53,6 +64,7 @@ namespace RSSViewer.Services
             }
 
             return queryable
+                .Take(this.GetMaxLoadItems())
                 .Select(z => new PartialRssItem
                 {
                     FeedId = z.FeedId,

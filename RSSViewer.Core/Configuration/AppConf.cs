@@ -18,6 +18,8 @@ namespace RSSViewer.Configuration
 
         public bool AddToQueueTop { get; set; }
 
+        public int? MaxLoadItems { get; set; }
+
         public void Upgrade()
         {
             (this.Group ?? (this.Group = new GroupConf())).Upgrade();
