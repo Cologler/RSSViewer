@@ -64,7 +64,6 @@ namespace RSSViewer.Services
             }
 
             return queryable
-                .Take(this.GetMaxLoadItems())
                 .Select(z => new PartialRssItem
                 {
                     FeedId = z.FeedId,
@@ -95,22 +94,22 @@ namespace RSSViewer.Services
             return this.CreateQueryable(ctx.RssItems, includes, null, null).ToArray();
         }
 
-        private Task<PartialRssItem[]> ListCoreAsync(RssItemState[] includes, string feedId, SearchExpression searchExpr, CancellationToken token)
+        private async Task<PartialRssItem[]> ListCoreAsync(RssItemState[] includes, string feedId, SearchExpression searchExpr, CancellationToken token)
         {
             if (includes is null)
                 throw new ArgumentNullException(nameof(includes));
 
             if (includes.Length == 0)
-                return Task.FromResult(Array.Empty<PartialRssItem>());
+                return Array.Empty<PartialRssItem>();
 
             includes = includes.Distinct().ToArray();
 
-            return Task.Run(() =>
-            {
-                using var scope = this._serviceProvider.CreateScope();
-                var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-                return this.CreateQueryable(ctx.RssItems, includes, feedId, searchExpr).ToArrayAsync(token);
-            }, token);
+            using var scope = this._serviceProvider.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
+            var items = await this.CreateQueryable(ctx.RssItems, includes, feedId, searchExpr)
+                .ToArrayAsync(token)
+                .ConfigureAwait(false);
+            return items.TakeLast(this.GetMaxLoadItems()).ToArray();
         }
 
         public async Task<IReadOnlyCollection<IPartialRssItem>> ListAsync(RssItemState[] includes, string feedId, CancellationToken token) 
