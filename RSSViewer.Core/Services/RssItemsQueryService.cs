@@ -93,9 +93,9 @@ namespace RSSViewer.Services
             var items = await this.ListCoreAsync(includes, feedId, searchExpr, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
 
-            if (searchExpr.Parts.OfType<IAppSearchPart>().Any())
+            if (items.WithClientSideFilter(searchExpr) is var filtered && !ReferenceEquals(filtered, items))
             {
-                items = await Task.Run(() => items.WithClientSideFilter(searchExpr).ToArray()).ConfigureAwait(false);
+                items = await Task.Run(() => filtered.ToArray()).ConfigureAwait(false);
             }
 
             return items;
