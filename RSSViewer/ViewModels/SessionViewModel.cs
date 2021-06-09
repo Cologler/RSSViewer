@@ -177,14 +177,15 @@ namespace RSSViewer.ViewModels
 
             var searchText = searchInfo.SearchText.Trim();
 
-            var sc = App.RSSViewerHost.ServiceProvider.GetRequiredService<SyncService>();
+            var sc = this.ServiceProvider.GetRequiredService<SyncService>();
             await sc.SyncAsync();
 
             token.ThrowIfCancellationRequested();
 
             var refreshStopwatch = Stopwatch.StartNew();
 
-            var items = await App.RSSViewerHost.Query().SearchAsync(searchText, searchInfo.IncludeState, searchInfo.FeedId, token);
+            var items = await this.ServiceProvider.GetRequiredService<RssItemsQueryService>()
+                .SearchAsync(searchText, searchInfo.IncludeState, searchInfo.FeedId, token);
             token.ThrowIfCancellationRequested();
 
             switch (searchInfo.SortBy)

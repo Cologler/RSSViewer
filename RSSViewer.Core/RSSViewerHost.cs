@@ -58,16 +58,6 @@ namespace RSSViewer
             this.ServiceProvider.AddListener(EventNames.AddedRssItems, runRulesService.RunForAddedRssItem);
         }
 
-        public SyncSourceManager SourceProviderManager =>
-            this.ServiceProvider.GetRequiredService<SyncSourceManager>();
-
-        public Task SyncAsync()
-        {
-            return this.ServiceProvider.GetRequiredService<SyncService>().SyncAsync();
-        }
-
-        public RssItemsQueryService Query() => this.ServiceProvider.GetRequiredService<RssItemsQueryService>();
-
         public static IServiceCollection CreateServices()
         {
             var appDirService = new AppDirService();
