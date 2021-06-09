@@ -35,45 +35,6 @@ namespace RSSViewer.Services
             return value < 1 ? DefaultMaxLoadItems : value;
         }
 
-        private IQueryable<PartialRssItem> CreateQueryable(IQueryable<RssItem> queryable, 
-            RssItemState[] includes, string feedId, SearchExpression searchExpr)
-        {
-            if (queryable is null)
-                throw new ArgumentNullException(nameof(queryable));
-            if (includes is null)
-                throw new ArgumentNullException(nameof(includes));
-
-            if (feedId is not null)
-            {
-                queryable = queryable.Where(z => z.FeedId == feedId);
-            }
-
-            if (includes.Length == 1)
-                queryable = queryable.Where(z => z.State == includes[0]);
-            else if (includes.Length == 2)
-                queryable = queryable.Where(z => z.State == includes[0] || z.State == includes[1]);
-            else if (includes.Length == 3)
-                queryable = queryable.Where(z => z.State == includes[0] || z.State == includes[1] || z.State == includes[2]);
-
-            if (searchExpr is not null)
-            {
-                foreach (var part in searchExpr.Parts.OfType<IDbSearchPart>())
-                {
-                    queryable = part.Where(queryable);
-                }
-            }
-
-            return queryable
-                .Select(z => new PartialRssItem
-                {
-                    FeedId = z.FeedId,
-                    RssId = z.RssId,
-                    State = z.State,
-                    Title = z.Title,
-                    MagnetLink = z.MagnetLink
-                });
-        }
-
         /// <summary>
         /// a sync version use for core service.
         /// </summary>
@@ -91,7 +52,10 @@ namespace RSSViewer.Services
 
             using var scope = this._serviceProvider.CreateScope();
             var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-            return this.CreateQueryable(ctx.RssItems, includes, null, null).ToArray();
+            return ctx.RssItems
+                .WithStates(includes)
+                .ToPartialRssItem()
+                .ToArray();
         }
 
         private async Task<PartialRssItem[]> ListCoreAsync(RssItemState[] includes, string feedId, SearchExpression searchExpr, CancellationToken token)
@@ -106,16 +70,17 @@ namespace RSSViewer.Services
 
             using var scope = this._serviceProvider.CreateScope();
             var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-            var query = this.CreateQueryable(ctx.RssItems, includes, feedId, searchExpr);
-            var count = await query.CountAsync(token).ConfigureAwait(false);
+            var queryable = ctx.RssItems
+                .WithFeedId(feedId)
+                .WithStates(includes)
+                .WithDbSideFilter(searchExpr)
+                .ToPartialRssItem();
+            var count = await queryable.CountAsync(token).ConfigureAwait(false);
             var take = Math.Min(this.GetMaxLoadItems(), count);
             var skip = Math.Max(count - take, 0);
-            var items = await query.Skip(skip).ToArrayAsync(token).ConfigureAwait(false);
+            var items = await queryable.Skip(skip).ToArrayAsync(token).ConfigureAwait(false);
             return items.TakeLast(take).ToArray();
         }
-
-        public async Task<IReadOnlyCollection<IPartialRssItem>> ListAsync(RssItemState[] includes, string feedId, CancellationToken token) 
-            => await this.ListCoreAsync(includes, feedId, null, token);
 
         public async Task<IReadOnlyCollection<IPartialRssItem>> SearchAsync(string searchText, RssItemState[] includes, string feedId, CancellationToken token)
         {
@@ -130,15 +95,7 @@ namespace RSSViewer.Services
 
             if (searchExpr.Parts.OfType<IAppSearchPart>().Any())
             {
-                items = await Task.Run(() =>
-                {
-                    IEnumerable<PartialRssItem> r = items;
-                    foreach (var part in searchExpr.Parts.OfType<IAppSearchPart>())
-                    {
-                        r = part.Where(r);
-                    }
-                    return r.ToArray();
-                }).ConfigureAwait(false);
+                items = await Task.Run(() => items.WithClientSideFilter(searchExpr).ToArray()).ConfigureAwait(false);
             }
 
             return items;
