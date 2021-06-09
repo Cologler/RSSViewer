@@ -106,10 +106,12 @@ namespace RSSViewer.Services
 
             using var scope = this._serviceProvider.CreateScope();
             var ctx = scope.ServiceProvider.GetRequiredService<LocalDbContext>();
-            var items = await this.CreateQueryable(ctx.RssItems, includes, feedId, searchExpr)
-                .ToArrayAsync(token)
-                .ConfigureAwait(false);
-            return items.TakeLast(this.GetMaxLoadItems()).ToArray();
+            var query = this.CreateQueryable(ctx.RssItems, includes, feedId, searchExpr);
+            var count = await query.CountAsync(token).ConfigureAwait(false);
+            var take = Math.Min(this.GetMaxLoadItems(), count);
+            var skip = Math.Max(count - take, 0);
+            var items = await query.Skip(skip).ToArrayAsync(token).ConfigureAwait(false);
+            return items.TakeLast(take).ToArray();
         }
 
         public async Task<IReadOnlyCollection<IPartialRssItem>> ListAsync(RssItemState[] includes, string feedId, CancellationToken token) 
