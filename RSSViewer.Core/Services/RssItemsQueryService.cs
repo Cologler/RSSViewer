@@ -95,7 +95,7 @@ namespace RSSViewer.Services
 
             if (items.WithClientSideFilter(searchExpr) is var filtered && !ReferenceEquals(filtered, items))
             {
-                items = await Task.Run(() => filtered.ToArray()).ConfigureAwait(false);
+                items = filtered.ToArray();
             }
 
             return items;

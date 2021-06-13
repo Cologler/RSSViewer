@@ -184,8 +184,8 @@ namespace RSSViewer.ViewModels
 
             var refreshStopwatch = Stopwatch.StartNew();
 
-            var items = await this.ServiceProvider.GetRequiredService<RssItemsQueryService>()
-                .SearchAsync(searchText, searchInfo.IncludeState, searchInfo.FeedId, token);
+            var queryService = this.ServiceProvider.GetRequiredService<RssItemsQueryService>();
+            var items = await Task.Run(() => queryService.SearchAsync(searchText, searchInfo.IncludeState, searchInfo.FeedId, token));
             token.ThrowIfCancellationRequested();
 
             switch (searchInfo.SortBy)
