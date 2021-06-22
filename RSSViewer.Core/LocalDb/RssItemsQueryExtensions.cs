@@ -9,6 +9,8 @@ namespace RSSViewer.LocalDb
 {
     public static class RssItemsQueryExtensions
     {
+        private readonly static int RssItemStatesCount = Enum.GetValues<RssItemState>().Length;
+
         public static IQueryable<RssItem> WithFeedId(this IQueryable<RssItem> queryable, string feedId)
         {
             if (queryable is null)
@@ -25,6 +27,9 @@ namespace RSSViewer.LocalDb
                 throw new ArgumentNullException(nameof(states));
 
             Debug.Assert(states.Distinct().Count() == states.Length);
+
+            if (states.Length >= RssItemStatesCount)
+                return queryable;
 
             switch (states.Length)
             {
